@@ -1,17 +1,19 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"math/rand"
-	"net/http"
-	"time"
+  "context"
+  "encoding/json"
+  "fmt"
+  "github.com/aws/aws-sdk-go/service/ec2"
+  "github.com/aws/aws-sdk-go/service/xray"
+  "github.com/grafana/simple-datasource-backend/pkg/configuration"
+  "net/http"
 
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/data"
+  "github.com/grafana/grafana-plugin-sdk-go/backend"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
+  "github.com/grafana/grafana-plugin-sdk-go/data"
 )
 
 // newDatasource returns datasource.ServeOpts.
@@ -51,7 +53,7 @@ func (td *SampleDatasource) QueryData(ctx context.Context, req *backend.QueryDat
 
 	// loop over queries and execute them individually.
 	for _, q := range req.Queries {
-		res := td.query(ctx, q)
+		res := td.query(ctx, q, &req.PluginContext)
 
 		// save the response in a hashmap
 		// based on with RefID as identifier
@@ -62,10 +64,11 @@ func (td *SampleDatasource) QueryData(ctx context.Context, req *backend.QueryDat
 }
 
 type queryModel struct {
-	Format string `json:"format"`
+	Type string `json:"type"`
+  SubType string `json:"subtype"`
 }
 
-func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery) backend.DataResponse {
+func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	// Unmarshal the json into our queryModel
 	var qm queryModel
 
@@ -76,28 +79,34 @@ func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery) 
 		return response
 	}
 
-	// Log a warning if `Format` is empty.
-	if qm.Format == "" {
-		log.DefaultLogger.Warn("format is empty. defaulting to time series")
-	}
+  switch qm.Type {
+  case "getRegions":
+    dsInfo, err := configuration.GetDatasourceInfo(pluginContext.DataSourceInstanceSettings, "default")
+    if err != nil {
+      return makeErrorResponse(err)
+    }
+    ec2Client, err := CreateEc2Client(dsInfo)
+    if err != nil {
+      return makeErrorResponse(err)
+    }
+    result, err := handleGetRegions(ec2Client)
+    if err != nil {
+      return backend.DataResponse{Error: err}
+    }
 
-	// create data frame response
-	frame := data.NewFrame("response")
+    frame := data.NewFrame("response")
 
-	// add the time dimension
-	frame.Fields = append(frame.Fields,
-		data.NewField("time", nil, []time.Time{query.TimeRange.From, query.TimeRange.To}),
-	)
+    // add values
+    frame.Fields = append(frame.Fields,
+      data.NewField("regions", nil, result),
+    )
 
-	// add values
-	frame.Fields = append(frame.Fields,
-		data.NewField("values", nil, []int64{10, 20}),
-	)
-
-	// add the frames to the response
-	response.Frames = append(response.Frames, frame)
-
-	return response
+    // add the frames to the response
+    response.Frames = append(response.Frames, frame)
+    return response
+  default:
+    return backend.DataResponse{Error: fmt.Errorf("unknown query type")}
+  }
 }
 
 // CheckHealth handles health checks sent from Grafana to the plugin.
@@ -108,10 +117,21 @@ func (td *SampleDatasource) CheckHealth(ctx context.Context, req *backend.CheckH
 	var status = backend.HealthStatusOk
 	var message = "Data source is working"
 
-	if rand.Int()%2 == 0 {
-		status = backend.HealthStatusError
-		message = "randomized error"
-	}
+  dsInfo, err := configuration.GetDatasourceInfo(req.PluginContext.DataSourceInstanceSettings, "default")
+  if err != nil {
+    // TODO: not sure if this is correct or CheckHealthResult should also be sent back
+    return nil, err
+  }
+
+	client, err := CreateXrayClient(dsInfo)
+  if err != nil {
+    return nil, err
+  }
+
+	_, err = client.GetGroups(&xray.GetGroupsInput{})
+	if err != nil {
+    return nil, err
+  }
 
 	return &backend.CheckHealthResult{
 		Status:  status,
@@ -132,4 +152,23 @@ func newDataSourceInstance(setting backend.DataSourceInstanceSettings) (instance
 func (s *instanceSettings) Dispose() {
 	// Called before creatinga a new instance to allow plugin authors
 	// to cleanup.
+}
+
+func handleGetRegions(ec2Client *ec2.EC2) ([]string, error) {
+  response, err := ec2Client.DescribeRegions(&ec2.DescribeRegionsInput{})
+  if err != nil {
+    return nil, err
+  }
+  regions := make([]string, len(response.Regions))
+  for _, reg := range response.Regions {
+    regions = append(regions, *reg.RegionName)
+  }
+
+  return regions, nil
+}
+
+func makeErrorResponse(err error) backend.DataResponse {
+  return backend.DataResponse{
+    Error: err,
+  }
 }
