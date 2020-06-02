@@ -1,0 +1,41 @@
+{
+  "type": "datasource",
+  "name": "x-ray-datasource",
+  "id": "grafana-x-ray-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_x-ray-datasource",
+  "info": {
+    "description": "AWS X-Ray data source",
+    "author": {
+      "name": "Grafana",
+      "url": "grafana.com"
+    },
+    "keywords": [
+      "aws",
+      "x-ray",
+      "tracing"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/grafana/simple-datasource-backend"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/grafana/simple-datasource-backend/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaVersion": "7.x.x",
+    "plugins": []
+  }
+}
