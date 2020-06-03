@@ -50,9 +50,11 @@ func (td *SampleDatasource) QueryData(ctx context.Context, req *backend.QueryDat
 
 	// create response struct
 	response := backend.NewQueryDataResponse()
+  log.DefaultLogger.Info("QueryData 2")
 
 	// loop over queries and execute them individually.
 	for _, q := range req.Queries {
+    log.DefaultLogger.Info("QueryData 3")
 		res := td.query(ctx, q, &req.PluginContext)
 
 		// save the response in a hashmap
@@ -74,6 +76,7 @@ func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery, 
 
 	response := backend.DataResponse{}
 
+  log.DefaultLogger.Info("query")
 	response.Error = json.Unmarshal(query.JSON, &qm)
 	if response.Error != nil {
 		return response
@@ -123,14 +126,20 @@ func (td *SampleDatasource) CheckHealth(ctx context.Context, req *backend.CheckH
     return nil, err
   }
 
-	client, err := CreateXrayClient(dsInfo)
+  client, err := CreateXrayClient(dsInfo)
   if err != nil {
-    return nil, err
+    return &backend.CheckHealthResult{
+      Status:  backend.HealthStatusError,
+      Message: err.Error(),
+    }, err
   }
 
 	_, err = client.GetGroups(&xray.GetGroupsInput{})
 	if err != nil {
-    return nil, err
+    return &backend.CheckHealthResult{
+      Status:  backend.HealthStatusError,
+      Message: err.Error(),
+    }, err
   }
 
 	return &backend.CheckHealthResult{
@@ -155,6 +164,7 @@ func (s *instanceSettings) Dispose() {
 }
 
 func handleGetRegions(ec2Client *ec2.EC2) ([]string, error) {
+  log.DefaultLogger.Info("handleGetRegions")
   response, err := ec2Client.DescribeRegions(&ec2.DescribeRegionsInput{})
   if err != nil {
     return nil, err

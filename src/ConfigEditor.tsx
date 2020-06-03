@@ -30,35 +30,13 @@ export class ConfigEditor extends PureComponent<Props, State> {
     super(props);
 
     this.state = {
-      regions: [],
+      // TODO: we have an api to load this but the problem is at this moment we do not have credentials. We will have
+      //  them on the backend after saving the datasource
+      regions: defaultRegions.map((region: string) => ({
+        value: region,
+        label: region,
+      })),
     };
-  }
-
-  componentDidMount() {
-    this.loadRegions();
-  }
-
-  async loadRegions() {
-    try {
-      const datasource: XrayDataSource = await getDataSourceSrv().get(this.props.options.name) as any;
-      const regions = await datasource.getRegions();
-      this.setState({
-        regions: regions.map((region: any) => {
-          return {
-            value: region.value,
-            label: region.text,
-          };
-        }),
-      });
-    } catch (err) {
-      console.error(err);
-      this.setState({
-        regions: defaultRegions.map((region: string) => ({
-          value: region,
-          label: region,
-        })),
-      });
-    }
   }
 
   render() {
