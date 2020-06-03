@@ -1,35 +1,33 @@
-import defaults from 'lodash/defaults';
-
-import React, { ChangeEvent, PureComponent } from 'react';
-import { LegacyForms } from '@grafana/ui';
-import { QueryEditorProps } from '@grafana/data';
+import React from 'react';
+import { LegacyForms, Segment } from '@grafana/ui';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { XrayDataSource } from './DataSource';
-import { defaultQuery, XrayJsonData, MyQuery } from './types';
+import { XrayJsonData, XrayQuery, XrayQueryType } from './types';
 
 const { FormField } = LegacyForms;
 
-type Props = QueryEditorProps<XrayDataSource, MyQuery, XrayJsonData>;
+type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 
-export class QueryEditor extends PureComponent<Props> {
-  onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onChange, query } = this.props;
-    onChange({ ...query, queryText: event.target.value });
-  };
-
-  render() {
-    const query = defaults(this.props.query, defaultQuery);
-    const { queryText } = query;
-
-    return (
-      <div className="gf-form">
-        <FormField
-          labelWidth={8}
-          value={queryText || ''}
-          onChange={this.onQueryTextChange}
-          label="Query Text"
-          tooltip="Not used yet"
-        />
-      </div>
-    );
-  }
+export function QueryEditor({ query, onChange }: Props) {
+  return (
+    <div className="gf-form">
+      <Segment
+        value={query.queryType}
+        options={Object.values(XrayQueryType).map(s => ({ value: s, label: s } as SelectableValue<XrayQueryType>))}
+        onChange={({ value }) => onChange({ ...query, queryType: value! } as any)}
+      />
+      <FormField
+        labelWidth={8}
+        value={query.query || ''}
+        onChange={e =>
+          onChange({
+            ...query,
+            query: e.currentTarget.value,
+          })
+        }
+        label="Query Text"
+        tooltip="Not used yet"
+      />
+    </div>
+  );
 }

@@ -1,13 +1,15 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
-export interface MyQuery extends DataQuery {
-  queryText?: string;
-  constant: number;
+export interface XrayQuery extends DataQuery {
+  queryType: XrayQueryType;
+  query: string;
 }
 
-export const defaultQuery: Partial<MyQuery> = {
-  constant: 6.5,
-};
+export enum XrayQueryType {
+  getTrace = 'getTrace',
+  getTraceSummaries = 'getTraceSummaries',
+  getTimeSeriesServiceStatistics = 'getTimeSeriesServiceStatistics',
+}
 
 export interface XrayJsonData extends DataSourceJsonData {
   timeField?: string;

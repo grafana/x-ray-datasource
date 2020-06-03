@@ -1,8 +1,8 @@
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv } from '@grafana/runtime';
-import { XrayJsonData, MyQuery, TSDBResponse, MetricRequest } from './types';
+import {XrayJsonData, TSDBResponse, MetricRequest, XrayQuery} from './types';
 
-export class XrayDataSource extends DataSourceWithBackend<MyQuery, XrayJsonData> {
+export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   /** @ngInject */
   constructor(
     instanceSettings: DataSourceInstanceSettings<XrayJsonData>,

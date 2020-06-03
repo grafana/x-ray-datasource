@@ -9,9 +9,7 @@ import {
   onUpdateDatasourceSecureJsonDataOption,
 } from '@grafana/data';
 import { SelectableValue } from '@grafana/data';
-import { getDataSourceSrv } from '@grafana/runtime';
 import { XrayJsonData, XraySecureJsonData } from './types';
-import { XrayDataSource } from './DataSource';
 
 const authProviderOptions = [
   { label: 'Access & secret key', value: 'keys' },

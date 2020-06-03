@@ -1,4 +1,4 @@
-module github.com/grafana/simple-datasource-backend
+module github.com/grafana/x-ray-datasource
 
 go 1.14
 
