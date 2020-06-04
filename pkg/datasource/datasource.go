@@ -1,7 +1,6 @@
 package datasource
 
 import (
-  "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/x-ray-datasource/pkg/client"
   "github.com/grafana/x-ray-datasource/pkg/configuration"
@@ -10,7 +9,6 @@ import (
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
   "github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
-  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 // newDatasource returns datasource.ServeOpts.
@@ -77,18 +75,3 @@ func (ds *Datasource) getXrayClient(pluginContext *backend.PluginContext) (*xray
   }
   return xrayClient, nil
 }
-
-func handleGetRegions(ec2Client *ec2.EC2) ([]string, error) {
-  log.DefaultLogger.Info("handleGetRegions")
-  response, err := ec2Client.DescribeRegions(&ec2.DescribeRegionsInput{})
-  if err != nil {
-    return nil, err
-  }
-  regions := make([]string, len(response.Regions))
-  for _, reg := range response.Regions {
-    regions = append(regions, *reg.RegionName)
-  }
-
-  return regions, nil
-}
-
