@@ -1,12 +1,10 @@
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv } from '@grafana/runtime';
-import {XrayJsonData, TSDBResponse, MetricRequest, XrayQuery} from './types';
+import { XrayJsonData, TSDBResponse, MetricRequest, XrayQuery } from './types';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   /** @ngInject */
-  constructor(
-    instanceSettings: DataSourceInstanceSettings<XrayJsonData>,
-  ) {
+  constructor(instanceSettings: DataSourceInstanceSettings<XrayJsonData>) {
     super(instanceSettings);
   }
 
@@ -35,7 +33,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return result.data;
   }
 
-  transformSuggestDataFromTable(suggestData: TSDBResponse): { text: string; value: string; label: string }[] {
+  transformSuggestDataFromTable(suggestData: TSDBResponse): Array<{ text: string; value: string; label: string }> {
     return suggestData.results['metricFindQuery'].tables[0].rows.map(value => ({
       text: value,
       value,
