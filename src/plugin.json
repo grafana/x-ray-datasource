@@ -23,11 +23,11 @@
     "links": [
       {
         "name": "Website",
-        "url": "https://github.com/grafana/simple-datasource-backend"
+        "url": "https://github.com/grafana/x-ray-datasource"
       },
       {
         "name": "License",
-        "url": "https://github.com/grafana/simple-datasource-backend/blob/master/LICENSE"
+        "url": "https://github.com/grafana/x-ray-datasource/blob/master/LICENSE"
       }
     ],
     "screenshots": [],
