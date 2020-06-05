@@ -1,18 +1,6 @@
-# Grafana Data Source Backend Plugin Template
+# X-ray data source
 
 [![CircleCI](https://circleci.com/gh/grafana/simple-datasource-backend/tree/master.svg?style=svg)](https://circleci.com/gh/grafana/simple-datasource-backend/tree/master)
-
-This template is a starting point for building Grafana Data Source Backend Plugins
-
-## What is Grafana Data Source Backend Plugin?
-
-Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
-
-For more information about backend plugins, refer to the documentation on [Backend plugins](https://grafana.com/docs/grafana/latest/developers/plugins/backend/).
-
-## Getting started
-
-A data source backend plugin consists of both frontend and backend components.
 
 ### Frontend
 
@@ -50,6 +38,11 @@ mage -v
 3. List all available Mage targets for additional commands:
 ```BASH
 mage -l
+```
+
+4. Watch all go sources, rebuild on change and reload plugin in running Grafana (need [Bra installed](https://github.com/unknwon/bra)):
+```BASH
+bra run
 ```
 
 ## Learn more
