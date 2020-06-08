@@ -3,6 +3,7 @@ package datasource
 import (
   "context"
   "encoding/json"
+  "fmt"
   "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -45,11 +46,20 @@ func (ds *Datasource) getTrace(ctx context.Context, req *backend.QueryDataReques
       continue
     }
 
-    // TODO: implement proper mapping
+    // We assume only single trace at this moment is returned from the API call
+    trace := tracesResponse.Traces[0]
+    traceBytes, err := json.Marshal(trace)
+    if err != nil {
+      response.Responses[query.RefID] = backend.DataResponse{
+        Error: fmt.Errorf("failed to json.Marshal trace \"%s\" :%w", *trace.Id, err),
+      }
+      continue
+    }
+
     response.Responses[query.RefID] = backend.DataResponse{
       Frames: []*data.Frame{
         data.NewFrame(
-          "Traces", data.NewField("Trace", nil, []string{*tracesResponse.Traces[0].Id}),
+          "Traces", data.NewField("Trace", nil, []string{string(traceBytes)}),
         ),
       },
     }
