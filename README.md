@@ -1,6 +1,6 @@
 # X-ray data source
 
-[![CircleCI](https://circleci.com/gh/grafana/simple-datasource-backend/tree/master.svg?style=svg)](https://circleci.com/gh/grafana/simple-datasource-backend/tree/master)
+[![CircleCI](https://circleci.com/gh/grafana/x-ray-datasource/tree/master.svg?style=svg)](https://circleci.com/gh/grafana/x-ray-datasource/tree/master)
 
 ### Frontend
 
