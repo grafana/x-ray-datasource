@@ -89,14 +89,14 @@ type XrayTraceDataSegmentRaw = {
   Id: string;
 };
 
-type XrayTraceDataSegmentDocument = {
+export type XrayTraceDataSegmentDocument = {
   // Same as Segment Id
   id: string;
   name: string;
   start_time: number;
   end_time: number;
   // Same as top level Id
-  trace_id?: number;
+  trace_id?: string;
   subsegments?: XrayTraceDataSegmentDocument[];
   // TODO there is some other metada
 };

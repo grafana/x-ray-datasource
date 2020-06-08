@@ -20,7 +20,6 @@ import {
   XrayTraceDataRaw,
   XrayTraceDataSegment,
 } from './types';
-import { DataQueryResponseData } from '@grafana/data/types/datasource';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   /** @ngInject */
@@ -28,7 +27,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     super(instanceSettings);
   }
 
-  query(request: DataQueryRequest): Observable<DataQueryResponse> {
+  query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
     const response = super.query(request);
     return response.pipe(
       map(dataQueryResponse => {
@@ -75,13 +74,11 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 }
 
-function parseResponse(response: DataQueryResponseData): DataQueryResponseData {
+function parseResponse(response: DataFrame): DataFrame {
   // TODO this would better be based on type but backend Go def does not have dataFrame.type
   if (response.name !== 'Traces') {
     return response;
   }
-
-  const responseDataFrame: DataFrame = response;
 
   /*
    The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
@@ -89,12 +86,10 @@ function parseResponse(response: DataQueryResponseData): DataQueryResponseData {
    */
 
   // Again assuming this will ge single field with single value which will be the trace data blob
-  const traceData = responseDataFrame.fields[0].values.get(0);
+  const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
 
   const parsedSegments = traceParsed.Segments.map(segment => {
-    console.log(segment.Document);
-    console.log(JSON.parse(segment.Document));
     return {
       ...segment,
       Document: JSON.parse(segment.Document),
