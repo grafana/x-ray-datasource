@@ -1,7 +1,6 @@
 package datasource
 
 import (
-  "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/x-ray-datasource/pkg/client"
   "github.com/grafana/x-ray-datasource/pkg/configuration"
   "net/http"
@@ -16,12 +15,12 @@ func GetServeOpts() datasource.ServeOpts {
 	// creates a instance manager for your plugin. The function passed
 	// into `NewInstanceManger` is called when the instance is created
 	// for the first time or when a datasource configuration changed.
-	im := datasource.NewInstanceManager(newDataSourceInstanceSettings)
-	ds := NewDatasource(im)
+	ds := NewDatasource(getXrayClient)
+	ds.im = datasource.NewInstanceManager(newDataSourceInstanceSettings)
 
 
 	return datasource.ServeOpts{
-		QueryDataHandler:   ds.queryMux,
+		QueryDataHandler:   ds.QueryMux,
 		CheckHealthHandler: ds,
 	}
 }
@@ -47,12 +46,13 @@ type Datasource struct {
 	// of datasource instances in plugins. It's not a requirements
 	// but a best practice that we recommend that you follow.
 	im instancemgmt.InstanceManager
-	queryMux *datasource.QueryTypeMux
+	QueryMux *datasource.QueryTypeMux
+	xrayClientFactory func (pluginContext *backend.PluginContext) (XrayClient, error)
 }
 
-func NewDatasource(im instancemgmt.InstanceManager) *Datasource {
+func NewDatasource(xrayClientFactory func (pluginContext *backend.PluginContext) (XrayClient, error)) *Datasource {
   ds := &Datasource{
-    im: im,
+    xrayClientFactory: xrayClientFactory,
   }
 
   mux := datasource.NewQueryTypeMux()
@@ -60,11 +60,11 @@ func NewDatasource(im instancemgmt.InstanceManager) *Datasource {
   mux.HandleFunc("getTraceSummaries", ds.getTraceSummaries)
   mux.HandleFunc("getTimeSeriesServiceStatistics", ds.getTimeSeriesServiceStatistics)
 
-  ds.queryMux = mux
+  ds.QueryMux = mux
   return ds
 }
 
-func (ds *Datasource) getXrayClient(pluginContext *backend.PluginContext) (*xray.XRay, error) {
+func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
   dsInfo, err := configuration.GetDatasourceInfo(pluginContext.DataSourceInstanceSettings, "default")
   if err != nil {
     return nil, err

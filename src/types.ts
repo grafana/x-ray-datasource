@@ -66,3 +66,37 @@ export interface MetricQuery {
   maxDataPoints?: number;
   intervalMs?: number;
 }
+
+export type XrayTraceData = {
+  Duration: number;
+  Id: string;
+  Segments: XrayTraceDataSegment[];
+};
+
+export type XrayTraceDataRaw = {
+  Duration: number;
+  Id: string;
+  Segments: XrayTraceDataSegmentRaw[];
+};
+
+export type XrayTraceDataSegment = {
+  Document: XrayTraceDataSegmentDocument;
+  Id: string;
+};
+
+type XrayTraceDataSegmentRaw = {
+  Document: string;
+  Id: string;
+};
+
+export type XrayTraceDataSegmentDocument = {
+  // Same as Segment Id
+  id: string;
+  name: string;
+  start_time: number;
+  end_time: number;
+  // Same as top level Id
+  trace_id?: string;
+  subsegments?: XrayTraceDataSegmentDocument[];
+  // TODO there is some other metada
+};

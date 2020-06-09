@@ -1,11 +1,43 @@
-import { DataSourceInstanceSettings } from '@grafana/data';
+import {
+  ArrayVector,
+  DataFrame,
+  DataQueryRequest,
+  DataQueryResponse,
+  DataSourceInstanceSettings,
+  FieldType,
+  MutableDataFrame,
+} from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv } from '@grafana/runtime';
-import { XrayJsonData, TSDBResponse, MetricRequest, XrayQuery } from './types';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+import {
+  MetricRequest,
+  TSDBResponse,
+  XrayJsonData,
+  XrayQuery,
+  XrayTraceData,
+  XrayTraceDataRaw,
+  XrayTraceDataSegment,
+} from './types';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<XrayJsonData>) {
     super(instanceSettings);
+  }
+
+  query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
+    const response = super.query(request);
+    return response.pipe(
+      map(dataQueryResponse => {
+        // TODO add transform to jaeger UI format
+        return {
+          ...dataQueryResponse,
+          data: dataQueryResponse.data.map(parseResponse),
+        };
+      })
+    );
   }
 
   async getRegions(): Promise<Array<{ label: string; value: string; text: string }>> {
@@ -40,4 +72,42 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       label: value,
     }));
   }
+}
+
+function parseResponse(response: DataFrame): DataFrame {
+  // TODO this would better be based on type but backend Go def does not have dataFrame.type
+  if (response.name !== 'Traces') {
+    return response;
+  }
+
+  /*
+   The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
+   json. So when it comes here it is some parts are escaped and we have to double parse that.
+   */
+
+  // Again assuming this will ge single field with single value which will be the trace data blob
+  const traceData = response.fields[0].values.get(0);
+  const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
+
+  const parsedSegments = traceParsed.Segments.map(segment => {
+    return {
+      ...segment,
+      Document: JSON.parse(segment.Document),
+    } as XrayTraceDataSegment;
+  });
+  const traceParsedForReal: XrayTraceData = {
+    ...traceParsed,
+    Segments: parsedSegments,
+  };
+
+  return new MutableDataFrame({
+    name: 'Trace',
+    fields: [
+      {
+        name: 'trace',
+        type: FieldType.trace,
+        values: new ArrayVector([traceParsedForReal]),
+      },
+    ],
+  });
 }
