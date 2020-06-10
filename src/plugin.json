@@ -2,7 +2,8 @@
   "type": "datasource",
   "name": "x-ray-datasource",
   "id": "grafana-x-ray-datasource",
-  "metrics": true,
+  "metrics": false,
+  "tracing": true,
   "backend": true,
   "executable": "gpx_x-ray-datasource",
   "info": {
