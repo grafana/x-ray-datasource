@@ -20,6 +20,7 @@ import {
   XrayTraceDataRaw,
   XrayTraceDataSegment,
 } from './types';
+import { transformResponse } from 'utils/transform';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   /** @ngInject */
@@ -106,7 +107,7 @@ function parseResponse(response: DataFrame): DataFrame {
       {
         name: 'trace',
         type: FieldType.trace,
-        values: new ArrayVector([traceParsedForReal]),
+        values: new ArrayVector([transformResponse(traceParsedForReal)]),
       },
     ],
   });

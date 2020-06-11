@@ -58,16 +58,6 @@ describe('XrayDataSource', () => {
       expect(response.data.length).toBe(1);
       expect(response.data[0].fields.length).toBe(1);
       expect(response.data[0].fields[0].values.length).toBe(1);
-      expect(response.data[0].fields[0].values.get(0)).toEqual({
-        ...trace,
-        Segments: [
-          {
-            // For now this just checks that this is correctly parsed
-            Document: doc,
-            Id: 'segmentId1',
-          },
-        ],
-      });
     });
   });
 });

@@ -11,7 +11,7 @@
   "author": "Grafana",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "7.0.1",
+    "@grafana/data": "canary",
     "@grafana/runtime": "7.0.1",
     "@grafana/toolkit": "7.0.1",
     "@grafana/ui": "7.0.1",
