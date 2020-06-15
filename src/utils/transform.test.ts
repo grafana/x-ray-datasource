@@ -119,90 +119,10 @@ const awsResponse = {
                 },
               ],
             },
-            subsegments: [
-              {
-                id: 'c3646754310b7ff3',
-                name: '169.254.169.254',
-                start_time: 1591872073.755,
-                end_time: 1591872073.772,
-                http: {
-                  request: {
-                    url: 'http://169.254.169.254/latest/meta-data/iam/security-credentials/',
-                    method: 'GET',
-                  },
-                  response: {
-                    status: 200,
-                  },
-                },
-                namespace: 'remote',
-                subsegments: [
-                  {
-                    id: 'c1b5a47d8c1fcf2b',
-                    name: '169.254.169.254',
-                    start_time: 1591872073.772,
-                    end_time: 1591872073.773,
-                    http: {
-                      request: {
-                        url:
-                          'http://169.254.169.254/latest/meta-data/iam/security-credentials/xray-sample-SampleInstanceProfileRole-1N81PPD6M0EYP',
-                        method: 'GET',
-                      },
-                      response: {
-                        status: 200,
-                      },
-                    },
-                    namespace: 'remote',
-                  },
-                ],
-              },
-            ],
           },
         ],
       },
       Id: 'eebec87ce4dd8225',
-    },
-    {
-      Document: {
-        id: '2913ae4223e931bb',
-        name: '169.254.169.254',
-        start_time: 1591872073.755,
-        trace_id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        end_time: 1591872073.772,
-        parent_id: 'c3646754310b7ff3',
-        inferred: true,
-        http: {
-          request: {
-            url: 'http://169.254.169.254/latest/meta-data/iam/security-credentials/',
-            method: 'GET',
-          },
-          response: {
-            status: 200,
-          },
-        },
-      },
-      Id: '2913ae4223e931bb',
-    },
-    {
-      Document: {
-        id: '11af695720598ac5',
-        name: '169.254.169.254',
-        start_time: 1591872073.772,
-        trace_id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        end_time: 1591872073.773,
-        parent_id: 'c1b5a47d8c1fcf2b',
-        inferred: true,
-        http: {
-          request: {
-            url:
-              'http://169.254.169.254/latest/meta-data/iam/security-credentials/xray-sample-SampleInstanceProfileRole-1N81PPD6M0EYP',
-            method: 'GET',
-          },
-          response: {
-            status: 200,
-          },
-        },
-      },
-      Id: '11af695720598ac5',
     },
     {
       Document: {
@@ -235,12 +155,84 @@ const awsResponse = {
     },
   ],
 };
-
 const result = {
   processes: {
     '4ab39ad12cff04b5': {
       id: '4ab39ad12cff04b5',
       serviceName: 'DynamoDB',
+      tags: [],
+    },
+    eebec87ce4dd8225: {
+      id: 'eebec87ce4dd8225',
+      serviceName: 'myfrontend-dev',
+      tags: [],
+    },
+  },
+  spans: [
+    {
+      duration: 48000,
+      flags: 1,
+      logs: [],
+      operationName: 'http://3.23.148.72/signup POST',
+      processID: 'eebec87ce4dd8225',
+      references: [],
+      spanID: 'eebec87ce4dd8225',
+      startTime: 1591872073754000,
+      tags: [
+        {
+          key: 'ec2.availability_zone',
+          type: 'string',
+          value: 'us-east-2b',
+        },
+        {
+          key: 'ec2.instance_id',
+          type: 'string',
+          value: 'i-0ec3e264928bf8dba',
+        },
+        {
+          key: 'request.url',
+          type: 'string',
+          value: 'http://3.23.148.72/signup',
+        },
+        {
+          key: 'request.method',
+          type: 'string',
+          value: 'POST',
+        },
+        {
+          key: 'request.user_agent',
+          type: 'string',
+          value:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+        },
+        {
+          key: 'request.client_ip',
+          type: 'string',
+          value: '80.98.253.126',
+        },
+        {
+          key: 'response.status',
+          type: 'number',
+          value: 409,
+        },
+        {
+          key: 'error',
+          type: 'boolean',
+          value: true,
+        },
+      ],
+      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+      warnings: null,
+    },
+    {
+      duration: 47000,
+      flags: 1,
+      logs: [],
+      operationName: 'PutItem',
+      processID: '4ab39ad12cff04b5',
+      references: [],
+      spanID: '3f8b028e1847bc4c',
+      startTime: 1591872073754000,
       tags: [
         {
           key: 'region',
@@ -264,73 +256,20 @@ const result = {
         },
         {
           key: 'resource_names',
-          type: 'string',
+          type: 'object',
           value: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
         },
-      ],
-    },
-    c1b5a47d8c1fcf2b: {
-      id: 'c1b5a47d8c1fcf2b',
-      serviceName: '169.254.169.254',
-      tags: [],
-    },
-    c3646754310b7ff3: {
-      id: 'c3646754310b7ff3',
-      serviceName: '169.254.169.254',
-      tags: [],
-    },
-    eebec87ce4dd8225: {
-      id: 'eebec87ce4dd8225',
-      serviceName: 'myfrontend-dev',
-      tags: [
         {
-          key: 'ec2',
-          type: 'string',
-          value: {
-            availability_zone: 'us-east-2b',
-            instance_id: 'i-0ec3e264928bf8dba',
-          },
+          key: 'response.status',
+          type: 'number',
+          value: 400,
+        },
+        {
+          key: 'error',
+          type: 'boolean',
+          value: true,
         },
       ],
-    },
-  },
-  spans: [
-    {
-      duration: 48000,
-      flags: 1,
-      logs: [],
-      operationName: 'AWS::EC2::Instance',
-      processID: 'eebec87ce4dd8225',
-      references: [],
-      spanID: 'eebec87ce4dd8225',
-      startTime: 1591872073754000,
-      tags: undefined,
-      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-      warnings: null,
-    },
-    {
-      duration: 17000,
-      flags: 1,
-      logs: [],
-      operationName: '',
-      processID: 'c3646754310b7ff3',
-      references: [],
-      spanID: '2913ae4223e931bb',
-      startTime: 1591872073755000,
-      tags: undefined,
-      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-      warnings: null,
-    },
-    {
-      duration: 1000,
-      flags: 1,
-      logs: [],
-      operationName: '',
-      processID: 'c1b5a47d8c1fcf2b',
-      references: [],
-      spanID: '11af695720598ac5',
-      startTime: 1591872073772000,
-      tags: undefined,
       traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
       warnings: null,
     },
@@ -338,20 +277,7 @@ const result = {
       duration: 47000,
       flags: 1,
       logs: [],
-      operationName: 'AWS::DynamoDB::Table',
-      processID: '4ab39ad12cff04b5',
-      references: [],
-      spanID: '3f8b028e1847bc4c',
-      startTime: 1591872073754000,
-      tags: undefined,
-      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-      warnings: null,
-    },
-    {
-      duration: 47000,
-      flags: 1,
-      logs: [],
-      operationName: '',
+      operationName: 'PutItem',
       processID: '4ab39ad12cff04b5',
       references: [
         {
@@ -362,45 +288,43 @@ const result = {
       ],
       spanID: '4ab39ad12cff04b5',
       startTime: 1591872073754000,
-      tags: undefined,
-      traceID: undefined,
-      warnings: null,
-    },
-    {
-      duration: 17000,
-      flags: 1,
-      logs: [],
-      operationName: '',
-      processID: 'c3646754310b7ff3',
-      references: [
+      tags: [
         {
-          refType: 'CHILD_OF',
-          spanID: '4ab39ad12cff04b5',
-          traceID: undefined,
+          key: 'region',
+          type: 'string',
+          value: 'us-east-2',
+        },
+        {
+          key: 'operation',
+          type: 'string',
+          value: 'PutItem',
+        },
+        {
+          key: 'request_id',
+          type: 'string',
+          value: '21M4JN68EM661B8Q0MKFJHPHBBVV4KQNSO5AEMVJF66Q9ASUAAJG',
+        },
+        {
+          key: 'table_name',
+          type: 'string',
+          value: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
+        },
+        {
+          key: 'resource_names',
+          type: 'object',
+          value: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
+        },
+        {
+          key: 'response.status',
+          type: 'number',
+          value: 400,
+        },
+        {
+          key: 'error',
+          type: 'boolean',
+          value: true,
         },
       ],
-      spanID: 'c3646754310b7ff3',
-      startTime: 1591872073755000,
-      tags: undefined,
-      traceID: undefined,
-      warnings: null,
-    },
-    {
-      duration: 1000,
-      flags: 1,
-      logs: [],
-      operationName: '',
-      processID: 'c1b5a47d8c1fcf2b',
-      references: [
-        {
-          refType: 'CHILD_OF',
-          spanID: 'c3646754310b7ff3',
-          traceID: undefined,
-        },
-      ],
-      spanID: 'c1b5a47d8c1fcf2b',
-      startTime: 1591872073772000,
-      tags: undefined,
       traceID: undefined,
       warnings: null,
     },

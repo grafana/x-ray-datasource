@@ -1,6 +1,7 @@
 import { Process, SpanData, TraceData, SpanReference, KeyValuePair } from '@grafana/data';
 import { XrayTraceData, XrayTraceDataSegment, XrayTraceDataSegmentDocument } from 'types';
 import { keyBy } from 'lodash';
+import { flatten } from './flatten';
 
 const MS_MULTIPLIER = 1000000;
 
@@ -45,42 +46,64 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: stri
     duration: segment.end_time * MS_MULTIPLIER - segment.start_time * MS_MULTIPLIER,
     flags: 1,
     logs: [],
-    operationName: segment.origin ?? '',
+    operationName: getOperationName(segment),
     processID: segment.parent_id || segment.id,
     startTime: segment.start_time * MS_MULTIPLIER,
     spanID: segment.id,
     traceID: segment.trace_id,
     warnings: null,
-    tags: undefined,
+    tags: getTags(segment),
     references,
   };
 
   return jaegerSpan;
 }
 
-function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Process> {
-  const processes = segments.map(segmentToService);
-  return keyBy(processes, 'id');
-}
-
-function segmentToService(segment: XrayTraceDataSegment) {
-  const awsTags: KeyValuePair[] = [];
-  // const httpTags = [];
-
-  if (segment.Document.aws) {
-    Object.keys(segment.Document.aws).map(awsKey => {
-      const tag = valueToTag(awsKey, segment.Document.aws![awsKey], 'string');
-      if (tag) {
-        awsTags.push(tag);
-      }
-    });
+function getOperationName(segment: XrayTraceDataSegmentDocument) {
+  if (segment.aws?.operation) {
+    return segment.aws.operation;
   }
 
-  return {
+  if (segment.http?.request?.url && segment.http?.request?.method) {
+    return `${segment.http.request.url} ${segment.http.request.method}`;
+  }
+
+  return segment.name;
+}
+
+function getTags(segment: XrayTraceDataSegmentDocument) {
+  const tags = [...segmentToTag(segment.aws), ...segmentToTag(segment.http)];
+
+  if (segment.error) {
+    tags.push({ key: 'error', value: segment.error, type: 'boolean' });
+  }
+  return tags;
+}
+
+function segmentToTag(segment: any | undefined) {
+  const result: KeyValuePair[] = [];
+  if (!segment) {
+    return result;
+  }
+
+  const flattenedObject = flatten(segment);
+  Object.keys(flattenedObject).map(key => {
+    const tag = valueToTag(key, flattenedObject[key], typeof flattenedObject[key]);
+    if (tag) {
+      result.push(tag);
+    }
+  });
+  return result;
+}
+
+function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Process> {
+  const processes = segments.map(segment => ({
     serviceName: segment.Document.name,
     id: segment.Document.parent_id || segment.Document.id,
-    tags: awsTags,
-  };
+    tags: [],
+  }));
+
+  return keyBy(processes, 'id');
 }
 
 function valueToTag(key: string, value: string | number | undefined, type: string): KeyValuePair | undefined {
