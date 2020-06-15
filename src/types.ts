@@ -99,6 +99,23 @@ interface Aws {
   resource_names: string[];
 }
 
+interface Request {
+  url: string;
+  method: string;
+  user_agent?: string;
+  client_ip?: string;
+}
+
+interface Response {
+  status: number;
+  content_length?: number;
+}
+
+interface Http {
+  request?: Request;
+  response: Response;
+}
+
 export type XrayTraceDataSegmentDocument = {
   // Same as Segment Id
   id: string;
@@ -112,5 +129,5 @@ export type XrayTraceDataSegmentDocument = {
   origin?: string;
   aws?: Aws;
   error?: boolean;
-  http?: any;
+  http?: Http;
 };
