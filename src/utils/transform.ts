@@ -97,11 +97,19 @@ function segmentToTag(segment: any | undefined) {
 }
 
 function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Process> {
-  const processes = segments.map(segment => ({
-    serviceName: segment.Document.name,
-    id: segment.Document.parent_id || segment.Document.id,
-    tags: [],
-  }));
+  const processes = segments.map(segment => {
+    const tags: KeyValuePair[] = [];
+    tags.push(...segmentToTag(segment.Document.aws), { key: 'name', value: segment.Document.name, type: 'string' });
+    if (segment.Document.http?.request?.url) {
+      const url = new URL(segment.Document.http.request.url);
+      tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
+    }
+    return {
+      serviceName: segment.Document.name,
+      id: segment.Document.parent_id || segment.Document.id,
+      tags,
+    };
+  });
 
   return keyBy(processes, 'id');
 }

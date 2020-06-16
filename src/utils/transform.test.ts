@@ -155,17 +155,70 @@ const awsResponse = {
     },
   ],
 };
+
 const result = {
   processes: {
     '4ab39ad12cff04b5': {
       id: '4ab39ad12cff04b5',
       serviceName: 'DynamoDB',
-      tags: [],
+      tags: [
+        {
+          key: 'region',
+          type: 'string',
+          value: 'us-east-2',
+        },
+        {
+          key: 'operation',
+          type: 'string',
+          value: 'PutItem',
+        },
+        {
+          key: 'request_id',
+          type: 'string',
+          value: '21M4JN68EM661B8Q0MKFJHPHBBVV4KQNSO5AEMVJF66Q9ASUAAJG',
+        },
+        {
+          key: 'table_name',
+          type: 'string',
+          value: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
+        },
+        {
+          key: 'resource_names',
+          type: 'object',
+          value: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
+        },
+        {
+          key: 'name',
+          type: 'string',
+          value: 'DynamoDB',
+        },
+      ],
     },
     eebec87ce4dd8225: {
       id: 'eebec87ce4dd8225',
       serviceName: 'myfrontend-dev',
-      tags: [],
+      tags: [
+        {
+          key: 'ec2.availability_zone',
+          type: 'string',
+          value: 'us-east-2b',
+        },
+        {
+          key: 'ec2.instance_id',
+          type: 'string',
+          value: 'i-0ec3e264928bf8dba',
+        },
+        {
+          key: 'name',
+          type: 'string',
+          value: 'myfrontend-dev',
+        },
+        {
+          key: 'hostname',
+          type: 'string',
+          value: '3.23.148.72',
+        },
+      ],
     },
   },
   spans: [
