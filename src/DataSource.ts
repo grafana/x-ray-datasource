@@ -75,6 +75,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 }
 
 function parseResponse(response: DataFrame): DataFrame {
+  console.log({ response });
   // TODO this would better be based on type but backend Go def does not have dataFrame.type
   if (response.name !== 'Traces') {
     return response;
