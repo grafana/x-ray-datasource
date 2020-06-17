@@ -1,6 +1,6 @@
 import { Process, SpanData, TraceData, SpanReference, KeyValuePair } from '@grafana/data';
-import { XrayTraceData, XrayTraceDataSegment, XrayTraceDataSegmentDocument } from 'types';
-import { keyBy } from 'lodash';
+import { XrayTraceData, XrayTraceDataSegment, XrayTraceDataSegmentDocument, AWS } from 'types';
+import { keyBy, isPlainObject } from 'lodash';
 import { flatten } from './flatten';
 
 const MS_MULTIPLIER = 1000000;
@@ -52,7 +52,7 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: stri
     spanID: segment.id,
     traceID: segment.trace_id,
     warnings: null,
-    tags: getTags(segment),
+    tags: getTagsForSpan(segment),
     references,
   };
 
@@ -71,7 +71,7 @@ function getOperationName(segment: XrayTraceDataSegmentDocument) {
   return segment.name;
 }
 
-function getTags(segment: XrayTraceDataSegmentDocument) {
+function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
   const tags = [...segmentToTag(segment.aws), ...segmentToTag(segment.http)];
 
   if (segment.error) {
@@ -96,10 +96,32 @@ function segmentToTag(segment: any | undefined) {
   return result;
 }
 
+function getTagsFromAws(aws: AWS | undefined) {
+  const tags: KeyValuePair[] = [];
+  if (!aws) {
+    return tags;
+  }
+  /**
+   * see https://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html#api-segmentdocuments-aws
+   * for possible values on aws property
+   */
+  const awsKeys = ['ec2', 'ecs', 'elastic_beanstalk', 'region'];
+  awsKeys.forEach(key => {
+    if (aws[key]) {
+      if (isPlainObject(aws[key])) {
+        tags.push(...segmentToTag(aws[key]));
+      } else {
+        tags.push({ key, value: aws[key], type: 'string' });
+      }
+    }
+  });
+  return tags;
+}
+
 function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Process> {
   const processes = segments.map(segment => {
-    const tags: KeyValuePair[] = [];
-    tags.push(...segmentToTag(segment.Document.aws), { key: 'name', value: segment.Document.name, type: 'string' });
+    const tags: KeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
+    tags.push(...getTagsFromAws(segment.Document.aws));
     if (segment.Document.http?.request?.url) {
       const url = new URL(segment.Document.http.request.url);
       tags.push({ key: 'hostname', value: url.hostname, type: 'string' });

@@ -88,13 +88,26 @@ type XrayTraceDataSegmentRaw = {
   Id: string;
 };
 
-interface Aws {
+export interface AWS {
   [index: string]: any;
-  retries: number;
-  region: string;
-  operation: string;
-  request_id: string;
-  table_name: string;
+  ecs?: {
+    container?: string;
+  };
+  ec2?: {
+    instance_id?: string;
+    availability_zone?: string;
+  };
+  elastic_beanstalk?: {
+    environment_name?: string;
+    version_label?: string;
+    deployment_id?: number;
+  };
+  account_id?: string;
+  retries?: number;
+  region?: string;
+  operation?: string;
+  request_id?: string;
+  table_name?: string;
   attribute_names_substituted: any[];
   resource_names: string[];
 }
@@ -127,7 +140,7 @@ export type XrayTraceDataSegmentDocument = {
   subsegments?: XrayTraceDataSegmentDocument[];
   parent_id?: string;
   origin?: string;
-  aws?: Aws;
+  aws?: AWS;
   error?: boolean;
   http?: Http;
 };
