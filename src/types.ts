@@ -34,7 +34,6 @@ export interface TSDBQueryResult<T = any> {
   series: TSDBTimeSeries[];
   tables: Array<TSDBTable<T>>;
   dataframes: number[][];
-
   error?: string;
   meta?: any;
 }
@@ -89,6 +88,47 @@ type XrayTraceDataSegmentRaw = {
   Id: string;
 };
 
+export interface AWS {
+  [index: string]: any;
+  ecs?: {
+    container?: string;
+  };
+  ec2?: {
+    instance_id?: string;
+    availability_zone?: string;
+  };
+  elastic_beanstalk?: {
+    environment_name?: string;
+    version_label?: string;
+    deployment_id?: number;
+  };
+  account_id?: string;
+  retries?: number;
+  region?: string;
+  operation?: string;
+  request_id?: string;
+  table_name?: string;
+  attribute_names_substituted: any[];
+  resource_names: string[];
+}
+
+interface Request {
+  url: string;
+  method: string;
+  user_agent?: string;
+  client_ip?: string;
+}
+
+interface Response {
+  status: number;
+  content_length?: number;
+}
+
+interface Http {
+  request?: Request;
+  response: Response;
+}
+
 export type XrayTraceDataSegmentDocument = {
   // Same as Segment Id
   id: string;
@@ -96,7 +136,11 @@ export type XrayTraceDataSegmentDocument = {
   start_time: number;
   end_time: number;
   // Same as top level Id
-  trace_id?: string;
+  trace_id: string;
   subsegments?: XrayTraceDataSegmentDocument[];
-  // TODO there is some other metada
+  parent_id?: string;
+  origin?: string;
+  aws?: AWS;
+  error?: boolean;
+  http?: Http;
 };

@@ -954,6 +954,17 @@
     rxjs "6.5.5"
     xss "1.0.6"
 
+"@grafana/data@canary":
+  version "7.1.0-pre.0-282cb73d3a"
+  resolved "https://registry.yarnpkg.com/@grafana/data/-/data-7.1.0-pre.0-282cb73d3a.tgz#1d72f07d71b3ac6eb882f72bce202194904e3e99"
+  integrity sha512-DUG3fiXeghrz4ZcsSP+QQKqpfyCHNTXD8b4RkulZcK3yKbIr2C8Xvnw0hgYMKtjV18zcw4nsyQMX5dzu71dr+Q==
+  dependencies:
+    "@braintree/sanitize-url" "4.0.0"
+    apache-arrow "0.16.0"
+    lodash "4.17.15"
+    rxjs "6.5.5"
+    xss "1.0.6"
+
 "@grafana/e2e-selectors@7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@grafana/e2e-selectors/-/e2e-selectors-7.0.1.tgz#4cb8b7cb583ca8f59c4130cb1e5aa412de9a0310"
