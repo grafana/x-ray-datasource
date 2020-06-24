@@ -17,7 +17,7 @@ export function QueryEditor({ query, onChange }: Props) {
         onChange={({ value }) => onChange({ ...query, queryType: value! } as any)}
       />
       <FormField
-        labelWidth={8}
+        labelWidth={undefined}
         value={query.query || ''}
         onChange={e =>
           onChange({
