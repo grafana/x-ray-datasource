@@ -12,7 +12,10 @@ export function QueryEditor(props: Props) {
 
   const onRunQuery = () => {
     onChange(query);
-    props.onRunQuery();
+    // Only run query if it has value
+    if (query.query) {
+      props.onRunQuery();
+    }
   };
 
   return (
