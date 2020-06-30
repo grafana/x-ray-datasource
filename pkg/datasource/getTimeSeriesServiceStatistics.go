@@ -65,7 +65,8 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   for _, value := range valueDefs {
     frames = append(frames, data.NewFrame(
       value.name,
-      data.NewField("Timestamp", nil, []*time.Time{}),
+      // This needs to be called time so the default join in Explore works and knows which column to join on.
+      data.NewField("Time", nil, []*time.Time{}),
       data.NewField(value.name, nil, value.valueType),
     ))
   }
