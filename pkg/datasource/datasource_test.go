@@ -45,7 +45,7 @@ func TestDatasource(t *testing.T) {
 
 		response, err := ds.QueryMux.QueryData(
 		  context.Background(),
-		  &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: "getTrace", JSON: jsonData }}},
+		  &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: datasource.QueryGetTrace, JSON: jsonData }}},
     )
 		require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)

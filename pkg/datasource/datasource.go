@@ -50,15 +50,21 @@ type Datasource struct {
 	xrayClientFactory func (pluginContext *backend.PluginContext) (XrayClient, error)
 }
 
+const(
+  QueryGetTrace string = "getTrace"
+  QueryGetTraceSummaries = "getTraceSummaries"
+  QueryGetTimeSeriesServiceStatistics = "getTimeSeriesServiceStatistics"
+)
+
 func NewDatasource(xrayClientFactory func (pluginContext *backend.PluginContext) (XrayClient, error)) *Datasource {
   ds := &Datasource{
     xrayClientFactory: xrayClientFactory,
   }
 
   mux := datasource.NewQueryTypeMux()
-  mux.HandleFunc("getTrace", ds.getTrace)
-  mux.HandleFunc("getTraceSummaries", ds.getTraceSummaries)
-  mux.HandleFunc("getTimeSeriesServiceStatistics", ds.getTimeSeriesServiceStatistics)
+  mux.HandleFunc(QueryGetTrace, ds.getTrace)
+  mux.HandleFunc(QueryGetTraceSummaries, ds.getTraceSummaries)
+  mux.HandleFunc(QueryGetTimeSeriesServiceStatistics, ds.getTimeSeriesServiceStatistics)
 
   ds.QueryMux = mux
   return ds
