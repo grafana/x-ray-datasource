@@ -24,7 +24,7 @@ export function XRayQueryField(props: XRayQueryFieldProps) {
     const { datasource } = props;
 
     // Only show suggestions for getTraceSummaries
-    if (!datasource.languageProvider || queryType.current !== XrayQueryType.getTraceSummaries) {
+    if (!datasource.languageProvider || queryType.current !== XrayQueryType.getTrace) {
       return { suggestions: [] };
     }
 
