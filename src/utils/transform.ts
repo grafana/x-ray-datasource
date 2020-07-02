@@ -119,21 +119,27 @@ function getTagsFromAws(aws: AWS | undefined) {
 }
 
 function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Process> {
-  const processes = segments.map(segment => {
-    const tags: KeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
-    tags.push(...getTagsFromAws(segment.Document.aws));
-    if (segment.Document.http?.request?.url) {
-      const url = new URL(segment.Document.http.request.url);
-      tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
-    }
-    return {
-      serviceName: segment.Document.name,
-      id: segment.Document.parent_id || segment.Document.id,
-      tags,
-    };
+  const processes = segments.map(segment => createProcessFromSegment(segment.Document));
+  segments.forEach(segment => {
+    getSubSegments(segment.Document, subSegment => {
+      processes.push(createProcessFromSegment(subSegment));
+    });
   });
-
   return keyBy(processes, 'id');
+}
+
+function createProcessFromSegment(segment: XrayTraceDataSegmentDocument) {
+  const tags: KeyValuePair[] = [{ key: 'name', value: segment.name, type: 'string' }];
+  tags.push(...getTagsFromAws(segment.aws));
+  if (segment.http?.request?.url) {
+    const url = new URL(segment.http.request.url);
+    tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
+  }
+  return {
+    serviceName: segment.name,
+    id: segment.parent_id || segment.id,
+    tags,
+  };
 }
 
 function valueToTag(key: string, value: string | number | undefined, type: string): KeyValuePair | undefined {
