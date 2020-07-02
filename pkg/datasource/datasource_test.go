@@ -15,6 +15,63 @@ import (
 
 type XrayClientMock struct{}
 
+func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
+  http := &xray.Http{
+    ClientIp:   aws.String("127.0.0.1"),
+    HttpMethod: aws.String("GET"),
+    HttpStatus: aws.Int64(200),
+    HttpURL:    aws.String("localhost"),
+    UserAgent:  nil,
+  }
+
+  annotations := make(map[string][]*xray.ValueWithServiceIds)
+  annotations["foo"] = []*xray.ValueWithServiceIds{{
+    AnnotationValue: &xray.AnnotationValue{},
+    ServiceIds:      []*xray.ServiceId{},
+  }, {
+    AnnotationValue: &xray.AnnotationValue{},
+    ServiceIds:      []*xray.ServiceId{},
+  }}
+
+  annotations["bar"] = []*xray.ValueWithServiceIds{{
+    AnnotationValue: &xray.AnnotationValue{},
+    ServiceIds:      []*xray.ServiceId{},
+  }}
+
+  summary := &xray.TraceSummary{
+    Annotations:            annotations,
+    AvailabilityZones:      nil,
+    Duration:               aws.Float64(10.5),
+    EntryPoint:             nil,
+    ErrorRootCauses:        nil,
+    FaultRootCauses:        nil,
+    HasError:               nil,
+    HasFault:               nil,
+    HasThrottle:            nil,
+    Http:                   http,
+    Id:                     aws.String("id1"),
+    InstanceIds:            nil,
+    IsPartial:              nil,
+    MatchedEventTime:       nil,
+    ResourceARNs:           nil,
+    ResponseTime:           nil,
+    ResponseTimeRootCauses: nil,
+    Revision:               nil,
+    ServiceIds:             nil,
+    Users:                  nil,
+  }
+
+  output := &xray.GetTraceSummariesOutput{
+    ApproximateTime:      aws.Time(time.Now()),
+    NextToken:            nil,
+    TraceSummaries:       []*xray.TraceSummary{summary},
+    TracesProcessedCount: nil,
+  }
+  fn(output, true)
+
+  return nil
+}
+
 func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error) {
 	return &xray.BatchGetTracesOutput{
 	  Traces: []*xray.Trace{{
@@ -76,6 +133,7 @@ func clientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient,
 
 func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
+
 	t.Run("getTrace query", func(t *testing.T) {
 	  queryData := datasource.GetTraceQueryData{
 	    Query: "traceID",
@@ -126,5 +184,26 @@ func TestDatasource(t *testing.T) {
       response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
     )
     require.Equal(t, int64(10), response.Responses["A"].Frames[0].Fields[1].At(0))
+  })
+
+  t.Run("getTraceSummaries query", func(t *testing.T) {
+    queryData := datasource.GetTraceSummariesQueryData{
+      Query: "",
+    }
+    jsonData, _ := json.Marshal(queryData)
+
+    response, err := ds.QueryMux.QueryData(
+      context.Background(),
+      &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: datasource.QueryGetTraceSummaries, JSON: jsonData }}},
+    )
+    require.NoError(t, err)
+    require.NoError(t, response.Responses["A"].Error)
+
+    frame := response.Responses["A"].Frames[0]
+    require.Equal(t, 1, frame.Fields[0].Len())
+    require.Equal(t, "id1", frame.Fields[0].At(0))
+    require.Equal(t, "GET", frame.Fields[1].At(0))
+    require.Equal(t, 10.5, frame.Fields[3].At(0))
+    require.Equal(t, int64(3), frame.Fields[6].At(0))
   })
 }

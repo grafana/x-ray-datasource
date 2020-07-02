@@ -1,8 +1,11 @@
 package datasource
 
 import (
-	"net/http"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/request"
+  "net/http"
 
+	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/x-ray-datasource/pkg/client"
 	"github.com/grafana/x-ray-datasource/pkg/configuration"
 
@@ -36,7 +39,7 @@ func newDataSourceInstanceSettings(setting backend.DataSourceInstanceSettings) (
 }
 
 func (s *instanceSettings) Dispose() {
-	// Called before creatinga a new instance to allow plugin authors
+	// Called before creating a new instance to allow plugin authors
 	// to cleanup.
 }
 
@@ -79,4 +82,15 @@ func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
 		return nil, err
 	}
 	return xrayClient, nil
+}
+
+type XrayClient interface {
+	BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
+	GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error
+  GetTimeSeriesServiceStatisticsPagesWithContext(
+    aws.Context,
+    *xray.GetTimeSeriesServiceStatisticsInput,
+    func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
+    ...request.Option,
+  ) error
 }
