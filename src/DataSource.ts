@@ -23,9 +23,12 @@ import {
 import { transformResponse } from 'utils/transform';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
+  private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
+
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<XrayJsonData>) {
     super(instanceSettings);
+    this.instanceSettings = instanceSettings;
   }
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
@@ -35,7 +38,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         // TODO add transform to jaeger UI format
         return {
           ...dataQueryResponse,
-          data: dataQueryResponse.data.map(parseResponse),
+          data: dataQueryResponse.data.map(frame => this.parseResponse(frame)),
         };
       })
     );
@@ -73,19 +76,25 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       label: value,
     }));
   }
+
+  private parseResponse(response: DataFrame): DataFrame {
+    // TODO this would better be based on type but backend Go def does not have dataFrame.type
+    switch (response.name) {
+      case 'Traces':
+        return parseTraceResponse(response);
+      case 'TraceSummaries':
+        return parseTracesListResponse(response, this.instanceSettings.uid);
+      default:
+        return response;
+    }
+  }
 }
 
-function parseResponse(response: DataFrame): DataFrame {
-  // TODO this would better be based on type but backend Go def does not have dataFrame.type
-  if (response.name !== 'Traces') {
-    return response;
-  }
-
-  /*
-   The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
-   json. So when it comes here it is some parts are escaped and we have to double parse that.
-   */
-
+/**
+ The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
+ json, so some parts are escaped and we have to double parse that.
+ */
+function parseTraceResponse(response: DataFrame): DataFrame {
   // Again assuming this will ge single field with single value which will be the trace data blob
   const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
@@ -110,5 +119,29 @@ function parseResponse(response: DataFrame): DataFrame {
         values: new ArrayVector([transformResponse(traceParsedForReal)]),
       },
     ],
+    meta: {
+      // @ts-ignore needs package update
+      preferredVisualisationType: 'trace',
+    },
   });
+}
+
+/**
+ * Adds links to the Id field of the dataframe. This is later processed in grafana to create actual context dependant
+ * link that works both in explore and in dashboards.
+ * TODO This mutates the dataframe, probably just copy it but seems like new MutableDataframe(response) errors out
+ */
+function parseTracesListResponse(response: DataFrame, datasourceUid: string): DataFrame {
+  const idField = response.fields.find(f => f.name === 'Id');
+  idField!.config.links = [
+    {
+      title: 'Trace: ${__value.raw}',
+      url: '',
+      internal: {
+        datasourceUid,
+        query: { query: '${__value.raw}', queryType: 'getTrace' },
+      },
+    },
+  ];
+  return response;
 }
