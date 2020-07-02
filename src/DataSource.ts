@@ -78,7 +78,6 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 
   private parseResponse(response: DataFrame): DataFrame {
-    console.log({ response });
     // TODO this would better be based on type but backend Go def does not have dataFrame.type
     switch (response.name) {
       case 'Traces':
@@ -120,6 +119,10 @@ function parseTraceResponse(response: DataFrame): DataFrame {
         values: new ArrayVector([transformResponse(traceParsedForReal)]),
       },
     ],
+    meta: {
+      // @ts-ignore needs package update
+      preferredVisualisationType: 'trace',
+    },
   });
 }
 
