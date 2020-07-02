@@ -137,8 +137,6 @@ function parseTracesListResponse(response: DataFrame, datasourceUid: string): Da
     {
       title: 'Trace: ${__value.raw}',
       url: '',
-      // TODO: needs update of the DataLink type
-      // @ts-ignore
       internal: {
         datasourceUid,
         query: { query: '${__value.raw}', queryType: 'getTrace' },
