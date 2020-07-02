@@ -51,14 +51,14 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 
   // Each value type needs its own frame so Grafana will treat them as separate time series.
   valueDefs := []ValueDef{
-    { "ErrorStatistics.OtherCount", []int32{} },
-    { "ErrorStatistics.ThrottleCount", []int32{} },
-    { "ErrorStatistics.TotalCount", []int32{} },
-    { "FaultStatistics.OtherCount", []int32{} },
-    { "FaultStatistics.TotalCount", []int32{} },
-    { "OkCount", []int32{} },
-    { "TotalCount", []int32{} },
-    { "TotalResponseTime", []float32{} },
+    { "ErrorStatistics.OtherCount", []int64{} },
+    { "ErrorStatistics.ThrottleCount", []int64{} },
+    { "ErrorStatistics.TotalCount", []int64{} },
+    { "FaultStatistics.OtherCount", []int64{} },
+    { "FaultStatistics.TotalCount", []int64{} },
+    { "OkCount", []int64{} },
+    { "TotalCount", []int64{} },
+    { "TotalResponseTime", []float64{} },
   }
 
   var frames []*data.Frame
@@ -90,14 +90,14 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, lastPage bool) bool {
     for _, statistics := range page.TimeSeriesServiceStatistics {
       values := []interface{}{
-        int32(*statistics.EdgeSummaryStatistics.ErrorStatistics.OtherCount),
-        int32(*statistics.EdgeSummaryStatistics.ErrorStatistics.ThrottleCount),
-        int32(*statistics.EdgeSummaryStatistics.ErrorStatistics.TotalCount),
-        int32(*statistics.EdgeSummaryStatistics.FaultStatistics.OtherCount),
-        int32(*statistics.EdgeSummaryStatistics.FaultStatistics.TotalCount),
-        int32(*statistics.EdgeSummaryStatistics.OkCount),
-        int32(*statistics.EdgeSummaryStatistics.TotalCount),
-        float32(*statistics.EdgeSummaryStatistics.TotalResponseTime),
+        *statistics.EdgeSummaryStatistics.ErrorStatistics.OtherCount,
+        *statistics.EdgeSummaryStatistics.ErrorStatistics.ThrottleCount,
+        *statistics.EdgeSummaryStatistics.ErrorStatistics.TotalCount,
+        *statistics.EdgeSummaryStatistics.FaultStatistics.OtherCount,
+        *statistics.EdgeSummaryStatistics.FaultStatistics.TotalCount,
+        *statistics.EdgeSummaryStatistics.OkCount,
+        *statistics.EdgeSummaryStatistics.TotalCount,
+        *statistics.EdgeSummaryStatistics.TotalResponseTime,
       }
       for i, val := range values {
         frames[i].AppendRow(

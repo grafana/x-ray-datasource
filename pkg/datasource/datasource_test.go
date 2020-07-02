@@ -118,13 +118,13 @@ func TestDatasource(t *testing.T) {
 
     require.Equal(t, 2, response.Responses["A"].Frames[0].Fields[0].Len())
     require.Equal(t, 8, len(response.Responses["A"].Frames))
-    require.Equal(t, "Timestamp", response.Responses["A"].Frames[0].Fields[0].Name)
+    require.Equal(t, "Time", response.Responses["A"].Frames[0].Fields[0].Name)
     require.Equal(t, "ErrorStatistics.OtherCount", response.Responses["A"].Frames[0].Fields[1].Name)
     require.Equal(
       t,
       time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC).String(),
       response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
     )
-    require.Equal(t, int32(10), response.Responses["A"].Frames[0].Fields[1].At(0).(int32))
+    require.Equal(t, int64(10), response.Responses["A"].Frames[0].Fields[1].At(0))
   })
 }
