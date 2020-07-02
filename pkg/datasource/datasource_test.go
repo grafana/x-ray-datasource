@@ -15,21 +15,32 @@ import (
 type XrayClientMock struct{}
 
 func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
-  now := time.Now()
-  id := "traceId1"
   http := &xray.Http{
-    ClientIp:   aws.String("Something"),
-    HttpMethod: nil,
+    ClientIp:   aws.String("127.0.0.1"),
+    HttpMethod: aws.String("GET"),
     HttpStatus: aws.Int64(200),
-    HttpURL:    nil,
+    HttpURL:    aws.String("localhost"),
     UserAgent:  nil,
   }
 
+  annotations := make(map[string][]*xray.ValueWithServiceIds)
+  annotations["foo"] = []*xray.ValueWithServiceIds{{
+    AnnotationValue: &xray.AnnotationValue{},
+    ServiceIds:      []*xray.ServiceId{},
+  }, {
+    AnnotationValue: &xray.AnnotationValue{},
+    ServiceIds:      []*xray.ServiceId{},
+  }}
+
+  annotations["bar"] = []*xray.ValueWithServiceIds{{
+    AnnotationValue: &xray.AnnotationValue{},
+    ServiceIds:      []*xray.ServiceId{},
+  }}
 
   summary := &xray.TraceSummary{
-    Annotations:            nil,
+    Annotations:            annotations,
     AvailabilityZones:      nil,
-    Duration:               nil,
+    Duration:               aws.Float64(10.5),
     EntryPoint:             nil,
     ErrorRootCauses:        nil,
     FaultRootCauses:        nil,
@@ -37,7 +48,7 @@ func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummari
     HasFault:               nil,
     HasThrottle:            nil,
     Http:                   http,
-    Id:                     &id,
+    Id:                     aws.String("id1"),
     InstanceIds:            nil,
     IsPartial:              nil,
     MatchedEventTime:       nil,
@@ -50,7 +61,7 @@ func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummari
   }
 
   output := &xray.GetTraceSummariesOutput{
-    ApproximateTime:      &now,
+    ApproximateTime:      aws.Time(time.Now()),
     NextToken:            nil,
     TraceSummaries:       []*xray.TraceSummary{summary},
     TracesProcessedCount: nil,
@@ -120,11 +131,11 @@ func TestDatasource(t *testing.T) {
     require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
-    require.Equal(t, 1, response.Responses["A"].Frames[0].Fields[0].Len())
-    require.JSONEq(
-      t,
-      "{\"Duration\":1,\"Id\":\"trace1\",\"Segments\":[{\"Document\":\"{}\",\"Id\":\"segment1\"}]}",
-      response.Responses["A"].Frames[0].Fields[0].At(0).(string),
-    )
+    frame := response.Responses["A"].Frames[0]
+    require.Equal(t, 1, frame.Fields[0].Len())
+    require.Equal(t, "id1", frame.Fields[0].At(0))
+    require.Equal(t, "GET", frame.Fields[1].At(0))
+    require.Equal(t, 10.5, frame.Fields[3].At(0))
+    require.Equal(t, int64(3), frame.Fields[6].At(0))
   })
 }

@@ -59,6 +59,11 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
   }
   err = xrayClient.GetTraceSummariesPages(request, func(page *xray.GetTraceSummariesOutput, lastPage bool) bool {
     for _, summary := range page.TraceSummaries {
+      annotationsCount := 0
+      for _, val := range summary.Annotations {
+        annotationsCount += len(val)
+      }
+
       responseDataFrame.AppendRow(
         *summary.Id,
         *summary.Http.HttpMethod,
@@ -67,7 +72,7 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
         *summary.Http.HttpURL,
         *summary.Http.ClientIp,
         // TODO: this is map so this only counts keys not values
-        int64(len(summary.Annotations)),
+        int64(annotationsCount),
       )
     }
 
