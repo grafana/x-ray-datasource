@@ -4,6 +4,8 @@ import (
   "context"
   "encoding/json"
   "fmt"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/request"
   "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/log"
