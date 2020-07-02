@@ -4,6 +4,8 @@ import (
   "context"
   "encoding/json"
   "fmt"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/request"
   "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -34,6 +36,7 @@ func (ds *Datasource) getTrace(ctx context.Context, req *backend.QueryDataReques
 
 type XrayClient interface {
   BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
+  GetTimeSeriesServiceStatisticsPagesWithContext(aws.Context, *xray.GetTimeSeriesServiceStatisticsInput, func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool, ...request.Option) error
 }
 
 // getSingleTrace returns single trace from BatchGetTraces API and unmarshals it.
