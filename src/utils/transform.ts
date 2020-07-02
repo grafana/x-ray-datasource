@@ -1,4 +1,4 @@
-import { Process, SpanData, TraceData, SpanReference, KeyValuePair } from '@grafana/data';
+import { TraceProcess, TraceSpanData, TraceData, TraceSpanReference, TraceKeyValuePair } from '@grafana/data';
 import { XrayTraceData, XrayTraceDataSegment, XrayTraceDataSegmentDocument, AWS } from 'types';
 import { keyBy, isPlainObject } from 'lodash';
 import { flatten } from './flatten';
@@ -8,8 +8,8 @@ const MS_MULTIPLIER = 1000000;
 /**
  * Transforms response to format similar to Jaegers as we use Jaeger ui on the frontend.
  */
-export function transformResponse(data: XrayTraceData): TraceData & { spans: SpanData[] } {
-  let subSegmentSpans: SpanData[] = [];
+export function transformResponse(data: XrayTraceData): TraceData & { spans: TraceSpanData[] } {
+  let subSegmentSpans: TraceSpanData[] = [];
   const segmentSpans = data.Segments.map(segment => {
     getSubSegments(segment.Document, (subSegment, segmentParent) => {
       subSegmentSpans.push(transformSegment(subSegment, segmentParent.id));
@@ -37,12 +37,12 @@ function getSubSegments(
   }
 }
 
-function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: string): SpanData {
-  let references: SpanReference[] = [];
+function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: string): TraceSpanData {
+  let references: TraceSpanReference[] = [];
   if (parentId) {
     references.push({ refType: 'CHILD_OF', spanID: parentId, traceID: segment.trace_id });
   }
-  const jaegerSpan: SpanData = {
+  const jaegerSpan: TraceSpanData = {
     duration: segment.end_time * MS_MULTIPLIER - segment.start_time * MS_MULTIPLIER,
     flags: 1,
     logs: [],
@@ -81,7 +81,7 @@ function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
 }
 
 function segmentToTag(segment: any | undefined) {
-  const result: KeyValuePair[] = [];
+  const result: TraceKeyValuePair[] = [];
   if (!segment) {
     return result;
   }
@@ -97,7 +97,7 @@ function segmentToTag(segment: any | undefined) {
 }
 
 function getTagsFromAws(aws: AWS | undefined) {
-  const tags: KeyValuePair[] = [];
+  const tags: TraceKeyValuePair[] = [];
   if (!aws) {
     return tags;
   }
@@ -118,9 +118,9 @@ function getTagsFromAws(aws: AWS | undefined) {
   return tags;
 }
 
-function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Process> {
+function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, TraceProcess> {
   const processes = segments.map(segment => {
-    const tags: KeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
+    const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
     tags.push(...getTagsFromAws(segment.Document.aws));
     if (segment.Document.http?.request?.url) {
       const url = new URL(segment.Document.http.request.url);
@@ -136,7 +136,7 @@ function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Proce
   return keyBy(processes, 'id');
 }
 
-function valueToTag(key: string, value: string | number | undefined, type: string): KeyValuePair | undefined {
+function valueToTag(key: string, value: string | number | undefined, type: string): TraceKeyValuePair | undefined {
   if (!value || (Array.isArray(value) && !value.length)) {
     return undefined;
   }

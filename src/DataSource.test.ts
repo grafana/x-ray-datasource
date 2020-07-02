@@ -44,8 +44,11 @@ describe('XrayDataSource', () => {
       expect(df.fields.length).toBe(2);
       expect(df.fields[0].values.length).toBe(2);
       expect(df.fields[0].config.links?.length).toBe(1);
-      expect(df.fields[0].config.links[0].internal.datasourceUid).toBe('xrayUid');
-      expect(df.fields[0].config.links[0].internal.query).toEqual({ query: '${__value.raw}', queryType: 'getTrace' });
+      expect(df.fields[0].config.links?.[0].internal?.datasourceUid).toBe('xrayUid');
+      expect(df.fields[0].config.links?.[0].internal?.query).toEqual({
+        query: '${__value.raw}',
+        queryType: 'getTrace',
+      });
     });
   });
 });
