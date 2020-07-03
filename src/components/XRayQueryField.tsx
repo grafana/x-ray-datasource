@@ -33,8 +33,15 @@ export function XRayQueryField(props: XRayQueryFieldProps) {
     return await xRayLanguageProvider.provideCompletionItems(typeahead);
   };
 
+  // Return the last string after whitespace
+  const cleanText = (prefix: string) => {
+    const s = prefix.split(' ');
+    return s[s.length - 1];
+  };
+
   return (
     <QueryField
+      cleanText={cleanText}
       query={props.query.query}
       portalOrigin="xray"
       onChange={onChangeQuery}
