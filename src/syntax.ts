@@ -1,4 +1,5 @@
 import { CompletionItem } from '@grafana/ui';
+import { Grammar } from 'prismjs';
 
 export const BOOLEAN_KEYWORDS: CompletionItem[] = [
   {
@@ -72,3 +73,18 @@ export const COMPLEX_KEYWORDS: CompletionItem[] = [
     You can use the id function in place of a service name in service and edge filters.`,
   },
 ];
+
+export const All_KEYWORDS = [...BOOLEAN_KEYWORDS, ...NUMBER_KEYWORDS, ...STRING_KEYWORDS, ...COMPLEX_KEYWORDS];
+export const tokenizer: Grammar = {
+  function: {
+    pattern: new RegExp(`\\b(?:${All_KEYWORDS.map(f => f.label).join('|')})\\b`, 'i'),
+  },
+  punctuation: /[{}()`,.]/,
+  whitespace: /\s+/,
+  boolean: /true|false/,
+  logicalOperators: {
+    pattern: /and|or/i,
+    alias: 'builtin',
+  },
+  number: /\b-?\d+((\.\d*)?([eE][+-]?\d+)?)?\b/,
+};

@@ -1,11 +1,22 @@
 import React, { useRef, useEffect } from 'react';
-import { QueryField, TypeaheadInput, TypeaheadOutput } from '@grafana/ui';
+import Prism from 'prismjs';
+import { QueryField, TypeaheadInput, TypeaheadOutput, BracesPlugin, SlatePrism } from '@grafana/ui';
 import { ExploreQueryFieldProps } from '@grafana/data';
 import { XrayDataSource } from 'DataSource';
 import { XrayQuery, XrayJsonData, XrayQueryType } from 'types';
 import { XRayLanguageProvider } from 'language_provider';
+import { tokenizer } from 'syntax';
 
 interface XRayQueryFieldProps extends ExploreQueryFieldProps<XrayDataSource, XrayQuery, XrayJsonData> {}
+
+const PRISM_LANGUAGE = 'xray';
+const plugins = [
+  BracesPlugin(),
+  SlatePrism({
+    onlyIn: (node: any) => node.object === 'block' && node.type === 'code_block',
+    getSyntax: () => PRISM_LANGUAGE,
+  }),
+];
 
 export function XRayQueryField(props: XRayQueryFieldProps) {
   const queryType = useRef(props.query.queryType);
@@ -13,6 +24,10 @@ export function XRayQueryField(props: XRayQueryFieldProps) {
   useEffect(() => {
     queryType.current = props.query.queryType;
   }, [props.query.queryType]);
+
+  useEffect(() => {
+    Prism.languages[PRISM_LANGUAGE] = tokenizer;
+  }, []);
 
   const onChangeQuery = (value: string) => {
     const { query, onChange } = props;
@@ -33,15 +48,9 @@ export function XRayQueryField(props: XRayQueryFieldProps) {
     return await xRayLanguageProvider.provideCompletionItems(typeahead);
   };
 
-  // Return the last string after whitespace
-  const cleanText = (prefix: string) => {
-    const s = prefix.split(' ');
-    return s[s.length - 1];
-  };
-
   return (
     <QueryField
-      cleanText={cleanText}
+      additionalPlugins={plugins}
       query={props.query.query}
       portalOrigin="xray"
       onChange={onChangeQuery}
