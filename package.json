@@ -16,7 +16,8 @@
     "@grafana/toolkit": "next",
     "@grafana/ui": "next",
     "@types/lodash": "latest",
-    "@types/prismjs": "1.16.0"
+    "@types/prismjs": "1.16.0",
+    "@types/slate": "0.47.1"
   },
   "engines": {
     "node": ">=12 <13"

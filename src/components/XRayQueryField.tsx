@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import Prism from 'prismjs';
+import { Node } from 'slate';
 import { QueryField, TypeaheadInput, TypeaheadOutput, BracesPlugin, SlatePrism } from '@grafana/ui';
 import { ExploreQueryFieldProps } from '@grafana/data';
 import { XrayDataSource } from 'DataSource';
@@ -13,7 +14,7 @@ const PRISM_LANGUAGE = 'xray';
 const plugins = [
   BracesPlugin(),
   SlatePrism({
-    onlyIn: (node: any) => node.object === 'block' && node.type === 'code_block',
+    onlyIn: (node: Node) => node.object === 'block' && node.type === 'code_block',
     getSyntax: () => PRISM_LANGUAGE,
   }),
 ];
