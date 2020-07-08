@@ -11,16 +11,21 @@
   "author": "Grafana",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "next",
-    "@grafana/runtime": "next",
-    "@grafana/toolkit": "next",
-    "@grafana/ui": "next",
-    "@types/lodash": "latest"
+    "@grafana/data": "canary",
+    "@grafana/runtime": "canary",
+    "@grafana/toolkit": "canary",
+    "@grafana/ui": "canary",
+    "@testing-library/react": "^10.4.4",
+    "@types/lodash": "latest",
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.1"
   },
   "engines": {
     "node": ">=12 <13"
   },
   "dependencies": {
-    "rxjs": "^6.5.5"
+    "emotion": "^10.0.27",
+    "react-use": "^15.3.2",
+    "rxjs": "^6.6.0"
   }
 }
