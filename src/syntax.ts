@@ -81,9 +81,9 @@ export const tokenizer: Grammar = {
   },
   punctuation: /[{}()`,.]/,
   whitespace: /\s+/,
-  boolean: /true|false/,
-  logicalOperators: {
-    pattern: /and|or/i,
+  boolean: /\btrue|false\b/,
+  logicalOperator: {
+    pattern: /\band|or\b/i,
     alias: 'builtin',
   },
   number: /\b-?\d+((\.\d*)?([eE][+-]?\d+)?)?\b/,

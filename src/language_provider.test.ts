@@ -11,6 +11,15 @@ describe('XRayLanguageProvider', () => {
   });
 });
 
+describe('tokenizer', () => {
+  it(`should find 3 tokens in this string 'error and'`, () => {
+    const tokens: Token[] = Prism.tokenize('error and', tokenizer) as any;
+    expect(tokens).toHaveLength(3);
+    expect(tokens[0].type).toBe('function');
+    expect(tokens[2].type).toBe('logicalOperator');
+  });
+});
+
 /**
  * Get suggestion items based on query. Use `\\` to mark position of the cursor.
  */
