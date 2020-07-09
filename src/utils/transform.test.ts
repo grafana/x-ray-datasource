@@ -370,4 +370,50 @@ describe('transformResponse function', () => {
   it('should transform aws x-ray response to jaeger span', () => {
     expect(transformResponse(awsResponse as any)).toEqual(result);
   });
+
+  it('should gather processes from subsegments as well', () => {
+    const aws = {
+      Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
+      Segments: [
+        {
+          Document: {
+            id: '5c6cc52b0685e278',
+            name: 'myfrontend-dev',
+            origin: 'AWS::EC2::Instance',
+            subsegments: [
+              {
+                id: 'c10e6e9093397e1b',
+                name: 'Page Render',
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    expect(transformResponse(aws as any).processes).toEqual({
+      '5c6cc52b0685e278': {
+        id: '5c6cc52b0685e278',
+        serviceName: 'myfrontend-dev',
+        tags: [
+          {
+            key: 'name',
+            type: 'string',
+            value: 'myfrontend-dev',
+          },
+        ],
+      },
+      c10e6e9093397e1b: {
+        id: 'c10e6e9093397e1b',
+        serviceName: 'Page Render',
+        tags: [
+          {
+            key: 'name',
+            type: 'string',
+            value: 'Page Render',
+          },
+        ],
+      },
+    });
+  });
 });
