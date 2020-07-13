@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { LegacyForms, Segment, useStyles, InlineFormLabel } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { css } from 'emotion';
 import { XrayDataSource } from './DataSource';
 import { XrayJsonData, XrayQuery, XrayQueryType } from './types';
-import { useMount } from 'react-use';
 
 const { FormField } = LegacyForms;
 
@@ -36,7 +35,7 @@ function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption
 
 function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: string): XrayQueryType {
   if (queryTypeOption === QueryTypeOptions.traceList) {
-    const isTraceIdQuery = !!query.trim().match(/^\d-\w{8}-\w{24}$/);
+    const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(query.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
   } else {
     return XrayQueryType.getTimeSeriesServiceStatistics;
@@ -85,7 +84,7 @@ export function QueryEditor({ query, onChange }: Props) {
         }}
         label="Query"
         tooltip="Not used yet"
-        data-testid={'query-input'}
+        data-testid="query-input"
       />
     </div>
   );
@@ -95,7 +94,7 @@ export function QueryEditor({ query, onChange }: Props) {
  * Inits the query with queryType so the segment component is filled in.
  */
 function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void) {
-  useMount(() => {
+  useEffect(() => {
     // We assume that if there is no queryType during mount there should not be any query so we do not need to
     // check if query has traceId or not as we do with the QueryTypeOptions mapping.
     if (!query.queryType) {
@@ -104,5 +103,5 @@ function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void) {
         queryType: XrayQueryType.getTraceSummaries,
       });
     }
-  });
+  }, []);
 }
