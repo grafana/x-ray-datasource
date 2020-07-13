@@ -82,6 +82,7 @@ export const tokenizer: Grammar = {
   punctuation: /[{}()`,]/,
   whitespace: /\s+/,
   boolean: /\btrue|false\b/,
+  isTraceId: /^\d-\w{8}-\w{24}$/,
   logicalOperator: {
     pattern: /\band|or\b/i,
     alias: 'builtin',

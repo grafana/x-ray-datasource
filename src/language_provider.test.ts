@@ -22,6 +22,10 @@ describe('tokenizer', () => {
     const tokens: Token[] = Prism.tokenize('http.s', tokenizer) as any;
     expect(tokens).toHaveLength(1);
   });
+  it(`should handle trace ids as one token`, () => {
+    const tokens: Token[] = Prism.tokenize('1-5f0c749d-ed77ad44e0ecad58ce19e689', tokenizer) as any;
+    expect(tokens).toHaveLength(1);
+  });
 });
 
 /**
