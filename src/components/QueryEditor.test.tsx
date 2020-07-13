@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { QueryEditor } from './QueryEditor';
+import { render, screen } from '@testing-library/react';
+import { QueryEditor, queryTypeOptionToQueryType, QueryTypeOptions } from './QueryEditor';
 import { XrayQuery, XrayQueryType } from '../types';
 
 const defaultProps = {
@@ -55,27 +55,7 @@ it('inits the query with query type', () => {
 });
 
 it('sets the query type to getTrace if query is a traceID', () => {
-  const onChange = jest.fn();
-  render(
-    <QueryEditor
-      {...{
-        ...defaultProps,
-        query: {
-          refId: 'A',
-          query: '',
-          queryType: XrayQueryType.getTraceSummaries,
-        },
-        onChange,
-      }}
-    />
-  );
+  const queryType = queryTypeOptionToQueryType(QueryTypeOptions.traceList, '1-5f048fc1-4f1c9b022d6233dacd96fb84');
 
-  fireEvent.change(screen.getByTestId('query-input'), {
-    target: { value: '1-5f048fc1-4f1c9b022d6233dacd96fb84' },
-  });
-  expect(onChange).toBeCalledWith({
-    refId: 'A',
-    query: '1-5f048fc1-4f1c9b022d6233dacd96fb84',
-    queryType: XrayQueryType.getTrace,
-  });
+  expect(queryType).toBe(XrayQueryType.getTrace);
 });

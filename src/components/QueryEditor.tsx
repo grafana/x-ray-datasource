@@ -10,12 +10,12 @@ import { XRayQueryField } from './XRayQueryField';
  * between trace list and single trace and we detect that based on query. So trace list option returns single trace
  * if query contains single traceID.
  */
-enum QueryTypeOptions {
+export enum QueryTypeOptions {
   traceList = 'Trace List',
   traceAnalytics = 'Trace Analytics',
 }
 
-function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOptions {
+export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOptions {
   if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
     return QueryTypeOptions.traceList;
   } else {
@@ -23,7 +23,7 @@ function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption
   }
 }
 
-function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: string): XrayQueryType {
+export function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: string): XrayQueryType {
   if (queryTypeOption === QueryTypeOptions.traceList) {
     const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(query.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
@@ -47,8 +47,8 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
 
   return (
     <div>
-      <div className={'gf-form'}>
-        <InlineFormLabel width={'auto'}>Query Type</InlineFormLabel>
+      <div className="gf-form">
+        <InlineFormLabel width="auto">Query Type</InlineFormLabel>
         <Segment
           value={queryTypeOption}
           options={Object.keys(QueryTypeOptions).map(key => ({
