@@ -18,6 +18,10 @@ describe('tokenizer', () => {
     expect(tokens[0].type).toBe('function');
     expect(tokens[2].type).toBe('logicalOperator');
   });
+  it(`should handle http.s as one token`, () => {
+    const tokens: Token[] = Prism.tokenize('http.s', tokenizer) as any;
+    expect(tokens).toHaveLength(1);
+  });
 });
 
 /**

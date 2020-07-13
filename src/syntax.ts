@@ -79,7 +79,7 @@ export const tokenizer: Grammar = {
   function: {
     pattern: new RegExp(`\\b(?:${All_KEYWORDS.map(f => f.label).join('|')})\\b`, 'i'),
   },
-  punctuation: /[{}()`,.]/,
+  punctuation: /[{}()`,]/,
   whitespace: /\s+/,
   boolean: /\btrue|false\b/,
   logicalOperator: {
