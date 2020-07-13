@@ -18,7 +18,8 @@
     "@testing-library/react": "^10.4.4",
     "@types/lodash": "latest",
     "@types/prismjs": "1.16.0",
-    "@types/slate": "0.47.1"
+    "@types/slate": "0.47.1",
+    "jest-environment-jsdom-sixteen": "^1.0.3"
   },
   "engines": {
     "node": ">=12 <13"
