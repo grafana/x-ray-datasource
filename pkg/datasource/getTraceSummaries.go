@@ -54,10 +54,15 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 		data.NewField("Annotations", nil, []int64{}),
 	)
 
+  var filterExpression *string
+  if queryData.Query != "" {
+    filterExpression = &queryData.Query
+  }
+
 	request := &xray.GetTraceSummariesInput{
 		StartTime:        &query.TimeRange.From,
 		EndTime:          &query.TimeRange.To,
-		FilterExpression: &queryData.Query,
+		FilterExpression: filterExpression,
 	}
 	err = xrayClient.GetTraceSummariesPages(request, func(page *xray.GetTraceSummariesOutput, lastPage bool) bool {
 		for _, summary := range page.TraceSummaries {
@@ -73,7 +78,6 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 				*summary.Duration,
 				*summary.Http.HttpURL,
 				*summary.Http.ClientIp,
-				// TODO: this is map so this only counts keys not values
 				int64(annotationsCount),
 			)
 		}
