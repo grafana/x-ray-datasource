@@ -1,31 +1,21 @@
 import React, { useEffect } from 'react';
-import { LegacyForms, Segment, useStyles, InlineFormLabel } from '@grafana/ui';
+import { Segment, InlineFormLabel } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
-import { css } from 'emotion';
-import { XrayDataSource } from './DataSource';
-import { XrayJsonData, XrayQuery, XrayQueryType } from './types';
-
-const { FormField } = LegacyForms;
-
-function getStyles() {
-  return {
-    FormField: css`
-      flex: 1;
-    `,
-  };
-}
+import { XrayDataSource } from '../DataSource';
+import { XrayJsonData, XrayQuery, XrayQueryType } from '../types';
+import { XRayQueryField } from './XRayQueryField';
 
 /**
  * We do some mapping of the actual queryTypes to options user can select. Mainly don't want user to choose
  * between trace list and single trace and we detect that based on query. So trace list option returns single trace
  * if query contains single traceID.
  */
-enum QueryTypeOptions {
+export enum QueryTypeOptions {
   traceList = 'Trace List',
   traceAnalytics = 'Trace Analytics',
 }
 
-function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOptions {
+export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOptions {
   if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
     return QueryTypeOptions.traceList;
   } else {
@@ -33,7 +23,7 @@ function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption
   }
 }
 
-function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: string): XrayQueryType {
+export function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: string): XrayQueryType {
   if (queryTypeOption === QueryTypeOptions.traceList) {
     const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(query.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
@@ -43,15 +33,22 @@ function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: st
 }
 
 type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
-export function QueryEditor({ query, onChange }: Props) {
+export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
   useInitQuery(query, onChange);
-  const styles = useStyles(getStyles);
   const queryTypeOption = queryTypeToQueryTypeOptions(query.queryType);
+
+  const onRunQuery = () => {
+    onChange(query);
+    // Only run query if it has value
+    if (query.query) {
+      onRunQuerySuper();
+    }
+  };
 
   return (
     <div>
-      <div className={'gf-form'}>
-        <InlineFormLabel width={'auto'}>Query Type</InlineFormLabel>
+      <div className="gf-form">
+        <InlineFormLabel width="auto">Query Type</InlineFormLabel>
         <Segment
           value={queryTypeOption}
           options={Object.keys(QueryTypeOptions).map(key => ({
@@ -71,20 +68,18 @@ export function QueryEditor({ query, onChange }: Props) {
           }}
         />
       </div>
-      <FormField
-        className={styles.FormField}
-        inputWidth={null}
-        value={query.query || ''}
+      <XRayQueryField
+        query={query}
+        history={[]}
+        datasource={datasource}
+        onRunQuery={onRunQuery}
         onChange={e => {
           onChange({
             ...query,
-            queryType: queryTypeOptionToQueryType(queryTypeOption, e.currentTarget.value),
-            query: e.currentTarget.value,
+            queryType: queryTypeOptionToQueryType(queryTypeOption, e.queryType!),
+            query: e.query,
           });
         }}
-        label="Query"
-        tooltip="Not used yet"
-        data-testid="query-input"
       />
     </div>
   );

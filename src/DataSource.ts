@@ -21,6 +21,7 @@ import {
   XrayTraceDataSegment,
 } from './types';
 import { transformResponse } from 'utils/transform';
+import { XRayLanguageProvider } from 'language_provider';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -28,6 +29,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   /** @ngInject */
   constructor(instanceSettings: DataSourceInstanceSettings<XrayJsonData>) {
     super(instanceSettings);
+
+    this.languageProvider = new XRayLanguageProvider(this);
     this.instanceSettings = instanceSettings;
   }
 
