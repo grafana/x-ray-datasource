@@ -51,7 +51,7 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: stri
     startTime: segment.start_time * MS_MULTIPLIER,
     spanID: segment.id,
     traceID: segment.trace_id,
-    stackTrace: getStackTrace(segment),
+    stackTraces: getStackTrace(segment),
     tags: getTagsForSpan(segment),
     references,
   };
@@ -72,15 +72,18 @@ function getOperationName(segment: XrayTraceDataSegmentDocument) {
 }
 
 function getStackTrace(segment: XrayTraceDataSegmentDocument) {
-  if (segment.cause) {
-    const exception = segment.cause.exceptions[0];
+  if (!segment.cause) {
+    return null;
+  }
+  const stackTraces: string[] = [];
+  segment.cause.exceptions.forEach(exception => {
     let stackTrace = `${exception.type}: ${exception.message}\n`;
     exception.stack.forEach(stack => {
       stackTrace = stackTrace.concat(`at ${stack.label} (${stack.path}:${stack.line})\n`);
     });
-    return stackTrace;
-  }
-  return null;
+    stackTraces.push(stackTrace);
+  });
+  return stackTraces;
 }
 
 function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
