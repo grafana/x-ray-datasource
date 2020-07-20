@@ -74,7 +74,7 @@ function getOperationName(segment: XrayTraceDataSegmentDocument) {
 function getStackTrace(segment: XrayTraceDataSegmentDocument) {
   if (segment.cause) {
     const exception = segment.cause.exceptions[0];
-    let stackTrace = `${exception.type}: ${exception.message} \n`;
+    let stackTrace = `${exception.type}: ${exception.message}\n`;
     exception.stack.forEach(stack => {
       stackTrace = stackTrace.concat(`at ${stack.label} (${stack.path}:${stack.line})\n`);
     });

@@ -210,6 +210,7 @@ const result = {
       processID: 'eebec87ce4dd8225',
       references: [],
       spanID: 'eebec87ce4dd8225',
+      stackTrace: null,
       startTime: 1591872073754000,
       tags: [
         {
@@ -255,7 +256,6 @@ const result = {
         },
       ],
       traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-      warnings: null,
     },
     {
       duration: 47000,
@@ -265,6 +265,7 @@ const result = {
       processID: '4ab39ad12cff04b5',
       references: [],
       spanID: '3f8b028e1847bc4c',
+      stackTrace: null,
       startTime: 1591872073754000,
       tags: [
         {
@@ -304,7 +305,6 @@ const result = {
         },
       ],
       traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-      warnings: null,
     },
     {
       duration: 47000,
@@ -320,6 +320,18 @@ const result = {
         },
       ],
       spanID: '4ab39ad12cff04b5',
+      stackTrace: `ConditionalCheckFailedException: The conditional request failed
+at features.constructor.captureAWSRequest [as customRequestHandler] (/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js:66)
+at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aws-sdk/lib/service.js:266)
+at features.constructor.makeRequest (/var/app/current/node_modules/aws-sdk/lib/service.js:191)
+at features.constructor.svc.<computed> [as putItem] (/var/app/current/node_modules/aws-sdk/lib/service.js:451)
+at anonymous (/var/app/current/app.js:74)
+at Layer.handle [as handle_request] (/var/app/current/node_modules/express/lib/router/layer.js:95)
+at next (/var/app/current/node_modules/express/lib/router/route.js:131)
+at Route.dispatch (/var/app/current/node_modules/express/lib/router/route.js:112)
+at Layer.handle [as handle_request] (/var/app/current/node_modules/express/lib/router/layer.js:95)
+at anonymous (/var/app/current/node_modules/express/lib/router/index.js:277)
+`,
       startTime: 1591872073754000,
       tags: [
         {
@@ -359,7 +371,6 @@ const result = {
         },
       ],
       traceID: undefined,
-      warnings: null,
     },
   ],
   traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
