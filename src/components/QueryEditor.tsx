@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Segment, InlineFormLabel } from '@grafana/ui';
+import { InlineFormLabel, Segment } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
 import { XrayJsonData, XrayQuery, XrayQueryType } from '../types';
@@ -48,40 +48,119 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
   return (
     <div>
       <div className="gf-form">
-        <InlineFormLabel width="auto">Query Type</InlineFormLabel>
-        <Segment
-          value={queryTypeOption}
-          options={Object.keys(QueryTypeOptions).map(key => ({
-            value: key,
-            // @ts-ignore get get rid of implicit any here
-            label: QueryTypeOptions[key],
-          }))}
-          onChange={({ value }) => {
-            onChange({
-              ...query,
-              queryType: queryTypeOptionToQueryType(
+        <div className="gf-form">
+          <InlineFormLabel width="auto">Query Type</InlineFormLabel>
+          <Segment
+            value={queryTypeOption}
+            options={Object.keys(QueryTypeOptions).map(key => ({
+              value: key,
+              // @ts-ignore get rid of implicit any here
+              label: QueryTypeOptions[key],
+            }))}
+            onChange={({ value }) => {
+              const newQueryType = queryTypeOptionToQueryType(
                 // @ts-ignore get get rid of implicit any here
                 QueryTypeOptions[value!],
                 query.query || ''
-              ),
-            } as any);
+              );
+              onChange({
+                ...query,
+                queryType: newQueryType,
+                columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
+              } as any);
+            }}
+          />
+        </div>
+        <div style={{ flex: 1, display: 'flex' }}>
+          <InlineFormLabel width="auto">Query</InlineFormLabel>
+          <XRayQueryField
+            query={query}
+            history={[]}
+            datasource={datasource}
+            onRunQuery={onRunQuery}
+            onChange={e => {
+              onChange({
+                ...query,
+                queryType: queryTypeOptionToQueryType(queryTypeOption, e.queryType!),
+                query: e.query,
+              });
+            }}
+          />
+        </div>
+      </div>
+      {queryTypeOption === QueryTypeOptions.traceAnalytics && (
+        <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
+          <InlineFormLabel width="auto">Columns</InlineFormLabel>
+          <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+const columnNames: { [key: string]: string } = {
+  'ErrorStatistics.ThrottleCount': 'Throttle Count',
+  'ErrorStatistics.TotalCount': 'Error Count',
+  'FaultStatistics.TotalCount': 'Fault Count',
+  OkCount: 'Success Count',
+  TotalCount: 'Total Count',
+};
+
+function ColumnFilter(props: { columns: string[]; onChange: (columns: string[]) => void }) {
+  const { columns, onChange } = props;
+
+  let options = Object.keys(columnNames)
+    // Don't allow selecting same column twice.
+    .filter(name => !columns.includes(name))
+    .map(name => ({
+      label: columnNames[name],
+      value: name,
+    }));
+
+  const showingAll = columns.includes('all');
+  if (!showingAll) {
+    // Only allow one instance of 'all'
+    options = [{ label: 'all', value: 'all' }, ...options];
+  }
+
+  return (
+    <>
+      {columns.map((column, index) => (
+        <Segment
+          key={column}
+          placeholder="add"
+          options={[...options, { label: 'remove', value: 'remove' }]}
+          value={{ label: column === 'all' ? column : columnNames[column], value: column }}
+          onChange={val => {
+            if (val.value === 'all') {
+              onChange(['all']);
+            } else if (val.value === 'remove') {
+              const newColumns = columns.slice();
+              newColumns.splice(index, 1);
+              // If we removed last column fall back to default which is showing all columns
+              onChange(newColumns.length ? newColumns : ['all']);
+            } else {
+              const newColumns = columns.slice();
+              newColumns.splice(index, 1, val.value!);
+              onChange(newColumns);
+            }
           }}
         />
-      </div>
-      <XRayQueryField
-        query={query}
-        history={[]}
-        datasource={datasource}
-        onRunQuery={onRunQuery}
-        onChange={e => {
-          onChange({
-            ...query,
-            queryType: queryTypeOptionToQueryType(queryTypeOption, e.queryType!),
-            query: e.query,
-          });
-        }}
-      />
-    </div>
+      ))}
+      {!showingAll && (
+        <Segment
+          placeholder="add"
+          options={[...options]}
+          onChange={val => {
+            if (val.value === 'all') {
+              onChange(['all']);
+            } else {
+              onChange([...columns, val.value!]);
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -98,5 +177,5 @@ function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void) {
         queryType: XrayQueryType.getTraceSummaries,
       });
     }
-  }, []);
+  }, [query]);
 }

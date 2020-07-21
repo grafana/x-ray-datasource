@@ -7,11 +7,14 @@ import (
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/log"
   "github.com/grafana/grafana-plugin-sdk-go/data"
+  "reflect"
+  "strings"
   "time"
 )
 
 type GetTimeSeriesServiceStatisticsQueryData struct {
   Query string `json:"query"`
+  Columns []string `json:"columns"`
   Resolution int64 `json:"resolution"`
 }
 
@@ -34,7 +37,25 @@ func (ds *Datasource) getTimeSeriesServiceStatistics(ctx context.Context, req *b
 
 type ValueDef struct {
   name string
+  label string
   valueType interface{}
+}
+
+// Each value type needs its own frame so Grafana will treat them as separate time series.
+var valueDefs = map[string]interface{}{
+  "ErrorStatistics.ThrottleCount": []*int64{},
+  "ErrorStatistics.TotalCount": []*int64{},
+  "FaultStatistics.TotalCount": []*int64{},
+  "OkCount": []*int64{},
+  "TotalCount": []*int64{},
+}
+
+var labels = map[string]string{
+  "ErrorStatistics.ThrottleCount": "Throttle Count",
+  "ErrorStatistics.TotalCount": "Error Count",
+  "FaultStatistics.TotalCount": "Fault Count",
+  "OkCount": "Success Count",
+  "TotalCount": "Total Count",
 }
 
 func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse  {
@@ -49,25 +70,33 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 
   log.DefaultLogger.Debug("getTimeSeriesServiceStatisticsForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
 
-  // Each value type needs its own frame so Grafana will treat them as separate time series.
-  valueDefs := []ValueDef{
-    { "ErrorStatistics.OtherCount", []int64{} },
-    { "ErrorStatistics.ThrottleCount", []int64{} },
-    { "ErrorStatistics.TotalCount", []int64{} },
-    { "FaultStatistics.OtherCount", []int64{} },
-    { "FaultStatistics.TotalCount", []int64{} },
-    { "OkCount", []int64{} },
-    { "TotalCount", []int64{} },
-    { "TotalResponseTime", []float64{} },
+  var requestedColumns []ValueDef
+  if queryData.Columns[0] == "all" {
+    // Add all columns
+    for key, value := range valueDefs {
+      requestedColumns = append(requestedColumns, ValueDef{
+        name: key,
+        label: labels[key],
+        valueType: value,
+      })
+    }
+  } else {
+    for _, name := range queryData.Columns {
+      requestedColumns = append(requestedColumns, ValueDef{
+        name: name,
+        label: labels[name],
+        valueType: valueDefs[name],
+      })
+    }
   }
 
   var frames []*data.Frame
-  for _, value := range valueDefs {
+  for _, value := range requestedColumns {
     frames = append(frames, data.NewFrame(
-      value.name,
+      "",
       // This needs to be called time so the default join in Explore works and knows which column to join on.
       data.NewField("Time", nil, []*time.Time{}),
-      data.NewField(value.name, nil, value.valueType),
+      data.NewField(value.label, nil, value.valueType),
     ))
   }
 
@@ -76,6 +105,7 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
     resolution = queryData.Resolution
   }
 
+  // Make sure we do not send empty string as that is validation error in x-ray API.
   var entitySelectorExpression *string
   if queryData.Query != "" {
     entitySelectorExpression = &queryData.Query
@@ -89,20 +119,18 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   }
   err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, lastPage bool) bool {
     for _, statistics := range page.TimeSeriesServiceStatistics {
-      values := []interface{}{
-        *statistics.EdgeSummaryStatistics.ErrorStatistics.OtherCount,
-        *statistics.EdgeSummaryStatistics.ErrorStatistics.ThrottleCount,
-        *statistics.EdgeSummaryStatistics.ErrorStatistics.TotalCount,
-        *statistics.EdgeSummaryStatistics.FaultStatistics.OtherCount,
-        *statistics.EdgeSummaryStatistics.FaultStatistics.TotalCount,
-        *statistics.EdgeSummaryStatistics.OkCount,
-        *statistics.EdgeSummaryStatistics.TotalCount,
-        *statistics.EdgeSummaryStatistics.TotalResponseTime,
-      }
-      for i, val := range values {
+      stats := *statistics.EdgeSummaryStatistics
+
+      for i, column := range requestedColumns {
+        parts := strings.Split(column.name, ".")
+        var val = reflect.ValueOf(stats)
+        for _, part := range parts {
+          val = reflect.Indirect(val).FieldByName(part)
+        }
+
         frames[i].AppendRow(
           statistics.Timestamp,
-          val,
+          val.Interface(),
         )
       }
     }

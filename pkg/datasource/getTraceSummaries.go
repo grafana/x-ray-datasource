@@ -97,3 +97,13 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 		Frames: []*data.Frame{responseDataFrame},
 	}
 }
+
+func newField(name string, values interface{}, displayName string) *data.Field {
+  field := data.NewField("Id", nil, []string{})
+  if displayName != "" {
+    field.Config = &data.FieldConfig{
+      DisplayName: displayName,
+    }
+  }
+  return field
+}

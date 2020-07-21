@@ -156,8 +156,9 @@ func TestDatasource(t *testing.T) {
 	})
 
   t.Run("getTimeSeriesServiceStatistics query", func(t *testing.T) {
-    queryData := datasource.GetTraceQueryData{
+    queryData := datasource.GetTimeSeriesServiceStatisticsQueryData{
       Query: "traceID",
+      Columns: []string{"all"},
     }
     jsonData, _ := json.Marshal(queryData)
 
@@ -184,6 +185,31 @@ func TestDatasource(t *testing.T) {
       response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
     )
     require.Equal(t, int64(10), response.Responses["A"].Frames[0].Fields[1].At(0))
+  })
+
+  t.Run("getTimeSeriesServiceStatistics query returns filtered columns", func(t *testing.T) {
+    queryData := datasource.GetTimeSeriesServiceStatisticsQueryData{
+      Query: "traceID",
+      Columns: []string{"OkCount", "FaultStatistics.TotalCount"},
+    }
+    jsonData, _ := json.Marshal(queryData)
+
+    response, err := ds.QueryMux.QueryData(
+      context.Background(),
+      &backend.QueryDataRequest{
+        Queries: []backend.DataQuery{{
+          RefID: "A",
+          QueryType: datasource.QueryGetTimeSeriesServiceStatistics,
+          JSON: jsonData,
+        }},
+      },
+    )
+    require.NoError(t, err)
+    require.NoError(t, response.Responses["A"].Error)
+
+    require.Equal(t, 2, len(response.Responses["A"].Frames))
+    require.Equal(t, "OkCount", response.Responses["A"].Frames[0].Fields[1].Name)
+    require.Equal(t, "FaultStatistics.TotalCount", response.Responses["A"].Frames[1].Fields[1].Name)
   })
 
   t.Run("getTraceSummaries query", func(t *testing.T) {
