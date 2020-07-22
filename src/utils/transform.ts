@@ -73,7 +73,7 @@ function getOperationName(segment: XrayTraceDataSegmentDocument) {
 
 function getStackTrace(segment: XrayTraceDataSegmentDocument) {
   if (!segment.cause) {
-    return null;
+    return undefined;
   }
   const stackTraces: string[] = [];
   segment.cause.exceptions.forEach(exception => {

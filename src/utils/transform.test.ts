@@ -210,7 +210,7 @@ const result = {
       processID: 'eebec87ce4dd8225',
       references: [],
       spanID: 'eebec87ce4dd8225',
-      stackTraces: null,
+      stackTraces: undefined,
       startTime: 1591872073754000,
       tags: [
         {
@@ -265,7 +265,7 @@ const result = {
       processID: '4ab39ad12cff04b5',
       references: [],
       spanID: '3f8b028e1847bc4c',
-      stackTraces: null,
+      stackTraces: undefined,
       startTime: 1591872073754000,
       tags: [
         {
