@@ -51,7 +51,7 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: stri
     startTime: segment.start_time * MS_MULTIPLIER,
     spanID: segment.id,
     traceID: segment.trace_id,
-    warnings: null,
+    stackTraces: getStackTrace(segment),
     tags: getTagsForSpan(segment),
     references,
   };
@@ -71,12 +71,28 @@ function getOperationName(segment: XrayTraceDataSegmentDocument) {
   return segment.name;
 }
 
+function getStackTrace(segment: XrayTraceDataSegmentDocument) {
+  if (!segment.cause) {
+    return undefined;
+  }
+  const stackTraces: string[] = [];
+  segment.cause.exceptions.forEach(exception => {
+    let stackTrace = `${exception.type}: ${exception.message}\n`;
+    exception.stack.forEach(stack => {
+      stackTrace = stackTrace.concat(`at ${stack.label} (${stack.path}:${stack.line})\n`);
+    });
+    stackTraces.push(stackTrace);
+  });
+  return stackTraces;
+}
+
 function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
   const tags = [...segmentToTag(segment.aws), ...segmentToTag(segment.http)];
 
   if (segment.error) {
     tags.push({ key: 'error', value: segment.error, type: 'boolean' });
   }
+
   return tags;
 }
 
