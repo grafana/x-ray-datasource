@@ -142,5 +142,7 @@ export type XrayTraceDataSegmentDocument = {
   origin?: string;
   aws?: AWS;
   error?: boolean;
+  fault?: boolean;
+  throttle?: boolean;
   http?: Http;
 };
