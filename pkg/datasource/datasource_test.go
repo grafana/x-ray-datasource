@@ -15,13 +15,12 @@ import (
 
 type XrayClientMock struct{}
 
-func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
+func makeSummary() *xray.TraceSummary {
   http := &xray.Http{
     ClientIp:   aws.String("127.0.0.1"),
     HttpMethod: aws.String("GET"),
     HttpStatus: aws.Int64(200),
     HttpURL:    aws.String("localhost"),
-    UserAgent:  nil,
   }
 
   annotations := make(map[string][]*xray.ValueWithServiceIds)
@@ -38,34 +37,26 @@ func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummari
     ServiceIds:      []*xray.ServiceId{},
   }}
 
-  summary := &xray.TraceSummary{
+  return &xray.TraceSummary{
     Annotations:            annotations,
-    AvailabilityZones:      nil,
     Duration:               aws.Float64(10.5),
-    EntryPoint:             nil,
-    ErrorRootCauses:        nil,
-    FaultRootCauses:        nil,
-    HasError:               nil,
-    HasFault:               nil,
-    HasThrottle:            nil,
     Http:                   http,
     Id:                     aws.String("id1"),
-    InstanceIds:            nil,
-    IsPartial:              nil,
-    MatchedEventTime:       nil,
-    ResourceARNs:           nil,
-    ResponseTime:           nil,
-    ResponseTimeRootCauses: nil,
-    Revision:               nil,
-    ServiceIds:             nil,
-    Users:                  nil,
   }
+}
+
+func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
+
+  // To make sure we don't panic in this case.
+  nilHttpSummary := makeSummary()
+  nilHttpSummary.Http.ClientIp = nil
+  nilHttpSummary.Http.HttpURL = nil
+  nilHttpSummary.Http.HttpMethod = nil
+  nilHttpSummary.Http.HttpStatus = nil
 
   output := &xray.GetTraceSummariesOutput{
     ApproximateTime:      aws.Time(time.Now()),
-    NextToken:            nil,
-    TraceSummaries:       []*xray.TraceSummary{summary},
-    TracesProcessedCount: nil,
+    TraceSummaries:       []*xray.TraceSummary{makeSummary(), nilHttpSummary},
   }
   fn(output, true)
 
@@ -73,6 +64,11 @@ func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummari
 }
 
 func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error) {
+  if *input.TraceIds[0] == "notFound" {
+    return &xray.BatchGetTracesOutput{
+      Traces: []*xray.Trace{},
+    }, nil
+  }
 	return &xray.BatchGetTracesOutput{
 	  Traces: []*xray.Trace{{
 	    Duration: aws.Float64(1.0),
@@ -131,19 +127,23 @@ func clientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient,
 	return &XrayClientMock{}, nil
 }
 
+func queryDatasource(ds *datasource.Datasource, query string, queryType string) (*backend.QueryDataResponse, error) {
+  queryData := datasource.GetTraceQueryData{
+    Query: query,
+  }
+  jsonData, _ := json.Marshal(queryData)
+
+  return ds.QueryMux.QueryData(
+    context.Background(),
+    &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: queryType, JSON: jsonData }}},
+  )
+}
+
 func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
 
 	t.Run("getTrace query", func(t *testing.T) {
-	  queryData := datasource.GetTraceQueryData{
-	    Query: "traceID",
-    }
-    jsonData, _ := json.Marshal(queryData)
-
-		response, err := ds.QueryMux.QueryData(
-		  context.Background(),
-		  &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: datasource.QueryGetTrace, JSON: jsonData }}},
-    )
+		response, err := queryDatasource(ds, "traceID", datasource.QueryGetTrace)
 		require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
@@ -155,22 +155,14 @@ func TestDatasource(t *testing.T) {
     )
 	})
 
-  t.Run("getTimeSeriesServiceStatistics query", func(t *testing.T) {
-    queryData := datasource.GetTraceQueryData{
-      Query: "traceID",
-    }
-    jsonData, _ := json.Marshal(queryData)
+  t.Run("getTrace query trace not found", func(t *testing.T) {
+    response, err := queryDatasource(ds, "notFound", datasource.QueryGetTrace)
+    require.NoError(t, err)
+    require.Error(t, response.Responses["A"].Error, "trace not found")
+  })
 
-    response, err := ds.QueryMux.QueryData(
-      context.Background(),
-      &backend.QueryDataRequest{
-        Queries: []backend.DataQuery{{
-          RefID: "A",
-          QueryType: datasource.QueryGetTimeSeriesServiceStatistics,
-          JSON: jsonData,
-        }},
-      },
-    )
+  t.Run("getTimeSeriesServiceStatistics query", func(t *testing.T) {
+    response, err := queryDatasource(ds, "traceID", datasource.QueryGetTimeSeriesServiceStatistics)
     require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
@@ -187,23 +179,15 @@ func TestDatasource(t *testing.T) {
   })
 
   t.Run("getTraceSummaries query", func(t *testing.T) {
-    queryData := datasource.GetTraceSummariesQueryData{
-      Query: "",
-    }
-    jsonData, _ := json.Marshal(queryData)
-
-    response, err := ds.QueryMux.QueryData(
-      context.Background(),
-      &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: datasource.QueryGetTraceSummaries, JSON: jsonData }}},
-    )
+    response, err := queryDatasource(ds, "", datasource.QueryGetTraceSummaries)
     require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
     frame := response.Responses["A"].Frames[0]
-    require.Equal(t, 1, frame.Fields[0].Len())
-    require.Equal(t, "id1", frame.Fields[0].At(0))
-    require.Equal(t, "GET", frame.Fields[1].At(0))
-    require.Equal(t, 10.5, frame.Fields[3].At(0))
-    require.Equal(t, int64(3), frame.Fields[6].At(0))
+    require.Equal(t, 2, frame.Fields[0].Len())
+    require.Equal(t, "id1", *frame.Fields[0].At(0).(*string))
+    require.Equal(t, "GET", *frame.Fields[1].At(0).(*string))
+    require.Equal(t, 10.5, *frame.Fields[3].At(0).(*float64))
+    require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
   })
 }
