@@ -41,29 +41,34 @@ type ValueDef struct {
   valueType interface{}
 }
 
-// Each value type needs its own frame so Grafana will treat them as separate time series.
-var sortOrder = []string{
-  "ErrorStatistics.ThrottleCount",
-  "ErrorStatistics.TotalCount",
-  "FaultStatistics.TotalCount",
-  "OkCount",
-  "TotalCount",
-}
-
-var valueDefs = map[string]interface{}{
-  "ErrorStatistics.ThrottleCount": []*int64{},
-  "ErrorStatistics.TotalCount": []*int64{},
-  "FaultStatistics.TotalCount": []*int64{},
-  "OkCount": []*int64{},
-  "TotalCount": []*int64{},
-}
-
-var labels = map[string]string{
-  "ErrorStatistics.ThrottleCount": "Throttle Count",
-  "ErrorStatistics.TotalCount": "Error Count",
-  "FaultStatistics.TotalCount": "Fault Count",
-  "OkCount": "Success Count",
-  "TotalCount": "Total Count",
+// Definition of possible columns. User can ask to see only some of them and we have to filter it here from the
+// response.
+var valueDefs = []ValueDef{
+  {
+    name:      "ErrorStatistics.ThrottleCount",
+    label:     "Throttle Count",
+    valueType: []*int64{},
+  },
+  {
+    name:      "ErrorStatistics.TotalCount",
+    label:     "Error Count",
+    valueType: []*int64{},
+  },
+  {
+    name:      "FaultStatistics.TotalCount",
+    label:     "Fault Count",
+    valueType: []*int64{},
+  },
+  {
+    name:      "OkCount",
+    label:     "Success Count",
+    valueType: []*int64{},
+  },
+  {
+    name:      "TotalCount",
+    label:     "Total Count",
+    valueType: []*int64{},
+  },
 }
 
 func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse  {
@@ -78,26 +83,30 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 
   log.DefaultLogger.Debug("getTimeSeriesServiceStatisticsForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
 
+  // First get the columns user actually wants. There is no query language for this so we filter it here after we get
+  // the response.
   var requestedColumns []ValueDef
   if queryData.Columns[0] == "all" {
     // Add all columns
-    for _, key := range sortOrder {
-      requestedColumns = append(requestedColumns, ValueDef{
-        name: key,
-        label: labels[key],
-        valueType: valueDefs[key],
-      })
-    }
+    requestedColumns = valueDefs
   } else {
+    valueDefMap := make(map[string]ValueDef)
+    for _, val := range valueDefs {
+      valueDefMap[val.name] = val
+    }
+
     for _, name := range queryData.Columns {
       requestedColumns = append(requestedColumns, ValueDef{
         name: name,
-        label: labels[name],
-        valueType: valueDefs[name],
+        label: valueDefMap[name].label,
+        valueType: valueDefMap[name].valueType,
       })
     }
   }
 
+  // Create the data frames. Separate dataframe for each column. Not 100% this is needed to show each as separate
+  // series.
+  // TODO: check if it isn't simpler to create one dataframe with all the columns
   var frames []*data.Frame
   for _, value := range requestedColumns {
     frames = append(frames, data.NewFrame(
@@ -129,6 +138,7 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
     for _, statistics := range page.TimeSeriesServiceStatistics {
       stats := *statistics.EdgeSummaryStatistics
 
+      // Use reflection to append values to correct data frame based on the requested columns.
       for i, column := range requestedColumns {
         parts := strings.Split(column.name, ".")
         var val = reflect.ValueOf(stats)
