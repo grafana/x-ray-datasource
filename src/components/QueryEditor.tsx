@@ -81,7 +81,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             onChange={e => {
               onChange({
                 ...query,
-                queryType: queryTypeOptionToQueryType(queryTypeOption, e.queryType!),
+                queryType: queryTypeOptionToQueryType(queryTypeOption, e.query),
                 query: e.query,
               });
             }}

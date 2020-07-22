@@ -1,13 +1,13 @@
 package datasource
 
 import (
-	"context"
-	"encoding/json"
-
-	"github.com/aws/aws-sdk-go/service/xray"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/data"
+  "context"
+  "encoding/json"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/service/xray"
+  "github.com/grafana/grafana-plugin-sdk-go/backend"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
+  "github.com/grafana/grafana-plugin-sdk-go/data"
 )
 
 type GetTraceSummariesQueryData struct {
@@ -45,13 +45,13 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 
 	responseDataFrame := data.NewFrame(
 		"TraceSummaries",
-		data.NewField("Id", nil, []string{}),
-		data.NewField("Method", nil, []string{}),
-		data.NewField("Response", nil, []int64{}),
-		data.NewField("Response Time", nil, []float64{}),
-		data.NewField("URL", nil, []string{}),
-		data.NewField("Client IP", nil, []string{}),
-		data.NewField("Annotations", nil, []int64{}),
+		data.NewField("Id", nil, []*string{}),
+		data.NewField("Method", nil, []*string{}),
+		data.NewField("Response", nil, []*int64{}),
+		data.NewField("Response Time", nil, []*float64{}),
+		data.NewField("URL", nil, []*string{}),
+		data.NewField("Client IP", nil, []*string{}),
+		data.NewField("Annotations", nil, []*int64{}),
 	)
 
   var filterExpression *string
@@ -72,13 +72,13 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 			}
 
 			responseDataFrame.AppendRow(
-				*summary.Id,
-				*summary.Http.HttpMethod,
-				*summary.Http.HttpStatus,
-				*summary.Duration,
-				*summary.Http.HttpURL,
-				*summary.Http.ClientIp,
-				int64(annotationsCount),
+				summary.Id,
+				summary.Http.HttpMethod,
+				summary.Http.HttpStatus,
+				summary.Duration,
+				summary.Http.HttpURL,
+				summary.Http.ClientIp,
+				aws.Int64(int64(annotationsCount)),
 			)
 		}
 

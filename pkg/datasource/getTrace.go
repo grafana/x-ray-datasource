@@ -52,6 +52,12 @@ func getSingleTrace(xrayClient XrayClient, query backend.DataQuery) backend.Data
     }
   }
 
+  if len(tracesResponse.Traces) == 0 {
+    return backend.DataResponse{
+      Error: fmt.Errorf("trace not found"),
+    }
+  }
+
   // We assume only single trace at this moment is returned from the API call
   trace := tracesResponse.Traces[0]
   traceBytes, err := json.Marshal(trace)
