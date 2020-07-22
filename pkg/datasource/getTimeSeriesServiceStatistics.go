@@ -42,6 +42,14 @@ type ValueDef struct {
 }
 
 // Each value type needs its own frame so Grafana will treat them as separate time series.
+var sortOrder = []string{
+  "ErrorStatistics.ThrottleCount",
+  "ErrorStatistics.TotalCount",
+  "FaultStatistics.TotalCount",
+  "OkCount",
+  "TotalCount",
+}
+
 var valueDefs = map[string]interface{}{
   "ErrorStatistics.ThrottleCount": []*int64{},
   "ErrorStatistics.TotalCount": []*int64{},
@@ -73,11 +81,11 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   var requestedColumns []ValueDef
   if queryData.Columns[0] == "all" {
     // Add all columns
-    for key, value := range valueDefs {
+    for _, key := range sortOrder {
       requestedColumns = append(requestedColumns, ValueDef{
         name: key,
         label: labels[key],
-        valueType: value,
+        valueType: valueDefs[key],
       })
     }
   } else {
