@@ -127,11 +127,8 @@ func clientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient,
 	return &XrayClientMock{}, nil
 }
 
-func queryDatasource(ds *datasource.Datasource, query string, queryType string) (*backend.QueryDataResponse, error) {
-  queryData := datasource.GetTraceQueryData{
-    Query: query,
-  }
-  jsonData, _ := json.Marshal(queryData)
+func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
+  jsonData, _ := json.Marshal(query)
 
   return ds.QueryMux.QueryData(
     context.Background(),
@@ -143,7 +140,7 @@ func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
 
 	t.Run("getTrace query", func(t *testing.T) {
-		response, err := queryDatasource(ds, "traceID", datasource.QueryGetTrace)
+		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{ Query: "traceID" })
 		require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
@@ -156,30 +153,48 @@ func TestDatasource(t *testing.T) {
 	})
 
   t.Run("getTrace query trace not found", func(t *testing.T) {
-    response, err := queryDatasource(ds, "notFound", datasource.QueryGetTrace)
+    response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{ Query: "notFound" })
     require.NoError(t, err)
     require.Error(t, response.Responses["A"].Error, "trace not found")
   })
 
   t.Run("getTimeSeriesServiceStatistics query", func(t *testing.T) {
-    response, err := queryDatasource(ds, "traceID", datasource.QueryGetTimeSeriesServiceStatistics)
+    response, err := queryDatasource(
+      ds,
+      datasource.QueryGetTimeSeriesServiceStatistics,
+      datasource.GetTimeSeriesServiceStatisticsQueryData{ Query: "traceID", Columns: []string{"all"} },
+    )
     require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
     require.Equal(t, 2, response.Responses["A"].Frames[0].Fields[0].Len())
-    require.Equal(t, 8, len(response.Responses["A"].Frames))
+    require.Equal(t, 5, len(response.Responses["A"].Frames))
     require.Equal(t, "Time", response.Responses["A"].Frames[0].Fields[0].Name)
-    require.Equal(t, "ErrorStatistics.OtherCount", response.Responses["A"].Frames[0].Fields[1].Name)
+    require.Equal(t, "Throttle Count", response.Responses["A"].Frames[0].Fields[1].Name)
     require.Equal(
       t,
       time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC).String(),
       response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
     )
-    require.Equal(t, int64(10), response.Responses["A"].Frames[0].Fields[1].At(0))
+    require.Equal(t, int64(10), *response.Responses["A"].Frames[0].Fields[1].At(0).(*int64))
+  })
+
+  t.Run("getTimeSeriesServiceStatistics query returns filtered columns", func(t *testing.T) {
+    response, err := queryDatasource(
+      ds,
+      datasource.QueryGetTimeSeriesServiceStatistics,
+      datasource.GetTimeSeriesServiceStatisticsQueryData{ Query: "traceID", Columns: []string{"OkCount", "FaultStatistics.TotalCount"} },
+    )
+    require.NoError(t, err)
+    require.NoError(t, response.Responses["A"].Error)
+
+    require.Equal(t, 2, len(response.Responses["A"].Frames))
+    require.Equal(t, "Success Count", response.Responses["A"].Frames[0].Fields[1].Name)
+    require.Equal(t, "Fault Count", response.Responses["A"].Frames[1].Fields[1].Name)
   })
 
   t.Run("getTraceSummaries query", func(t *testing.T) {
-    response, err := queryDatasource(ds, "", datasource.QueryGetTraceSummaries)
+    response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{ Query: "" })
     require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 

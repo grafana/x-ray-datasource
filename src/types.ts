@@ -3,6 +3,7 @@ import { DataQuery, DataSourceJsonData } from '@grafana/data';
 export interface XrayQuery extends DataQuery {
   queryType?: XrayQueryType;
   query: string;
+  columns?: string[];
 }
 
 export enum XrayQueryType {
