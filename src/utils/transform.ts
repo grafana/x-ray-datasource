@@ -54,9 +54,22 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: stri
     stackTraces: getStackTrace(segment),
     tags: getTagsForSpan(segment),
     references,
+    errorIconColor: getIconColor(segment),
   };
 
   return jaegerSpan;
+}
+
+function getIconColor(segment: XrayTraceDataSegmentDocument) {
+  if (segment.error) {
+    return '#FFC46E';
+  }
+
+  if (segment.throttle) {
+    return 'mediumpurple';
+  }
+  // Fault should be red so we don't want to set it because it is the default color.
+  return undefined;
 }
 
 function getOperationName(segment: XrayTraceDataSegmentDocument) {
