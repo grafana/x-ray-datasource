@@ -42,7 +42,7 @@ describe('QueryEditor', () => {
   it.each([
     [XrayQueryType.getTrace, 'Trace List'],
     [XrayQueryType.getTraceSummaries, 'Trace List'],
-    [XrayQueryType.getTimeSeriesServiceStatistics, 'Trace Analytics'],
+    [XrayQueryType.getTimeSeriesServiceStatistics, 'Trace Statistics'],
   ])('renders proper query type option when query type is %s', (type, expected) => {
     renderWithQuery({
       query: 'test query',

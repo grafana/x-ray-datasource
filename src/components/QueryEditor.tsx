@@ -12,14 +12,14 @@ import { XRayQueryField } from './XRayQueryField';
  */
 export enum QueryTypeOptions {
   traceList = 'Trace List',
-  traceAnalytics = 'Trace Analytics',
+  traceStatistics = 'Trace Statistics',
 }
 
 export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOptions {
   if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
     return QueryTypeOptions.traceList;
   } else {
-    return QueryTypeOptions.traceAnalytics;
+    return QueryTypeOptions.traceStatistics;
   }
 }
 
@@ -88,7 +88,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
           />
         </div>
       </div>
-      {queryTypeOption === QueryTypeOptions.traceAnalytics && (
+      {queryTypeOption === QueryTypeOptions.traceStatistics && (
         <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
           <InlineFormLabel width="auto">Columns</InlineFormLabel>
           <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
