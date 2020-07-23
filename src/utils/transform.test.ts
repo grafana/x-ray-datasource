@@ -204,6 +204,7 @@ const result = {
   spans: [
     {
       duration: 48000,
+      errorIconColor: '#FFC46E',
       flags: 1,
       logs: [],
       operationName: 'http://3.23.148.72/signup POST',
@@ -259,6 +260,7 @@ const result = {
     },
     {
       duration: 47000,
+      errorIconColor: '#FFC46E',
       flags: 1,
       logs: [],
       operationName: 'PutItem',
@@ -308,6 +310,7 @@ const result = {
     },
     {
       duration: 47000,
+      errorIconColor: '#FFC46E',
       flags: 1,
       logs: [],
       operationName: 'PutItem',
