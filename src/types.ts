@@ -129,6 +129,11 @@ interface Http {
   response: Response;
 }
 
+interface Cause {
+  working_directory: string;
+  exceptions: Array<{ message: string; type: string; stack: Array<{ path: string; line: number; label: string }> }>;
+}
+
 export type XrayTraceDataSegmentDocument = {
   // Same as Segment Id
   id: string;
@@ -145,4 +150,5 @@ export type XrayTraceDataSegmentDocument = {
   fault?: boolean;
   throttle?: boolean;
   http?: Http;
+  cause?: Cause;
 };
