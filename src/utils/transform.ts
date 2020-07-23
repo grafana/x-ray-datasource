@@ -68,7 +68,7 @@ function getIconColor(segment: XrayTraceDataSegmentDocument) {
   if (segment.throttle) {
     return 'mediumpurple';
   }
-  // Throttle should be red so we don't want to set it because it is the default color.
+  // Fault should be red so we don't want to set it because it is the default color.
   return undefined;
 }
 
