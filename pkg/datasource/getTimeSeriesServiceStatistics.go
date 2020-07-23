@@ -3,6 +3,8 @@ package datasource
 import (
   "context"
   "encoding/json"
+  "fmt"
+  "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   "github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -68,6 +70,11 @@ var valueDefs = []ValueDef{
     name:      "TotalCount",
     label:     "Total Count",
     valueType: []*int64{},
+  },
+  {
+    name:      "Computed.AverageResponseTime",
+    label:     "Average Response Time",
+    valueType: []*float64{},
   },
 }
 
@@ -142,8 +149,12 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
       for i, column := range requestedColumns {
         parts := strings.Split(column.name, ".")
         var val = reflect.ValueOf(stats)
-        for _, part := range parts {
-          val = reflect.Indirect(val).FieldByName(part)
+        if parts[0] == "Computed" {
+          val = reflect.ValueOf(computeAggregation(parts[1], stats))
+        } else {
+          for _, part := range parts {
+            val = reflect.Indirect(val).FieldByName(part)
+          }
         }
 
         frames[i].AppendRow(
@@ -168,3 +179,11 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   }
 }
 
+func computeAggregation(name string, values xray.EdgeStatistics) interface{} {
+  switch name {
+  case "AverageResponseTime":
+    return aws.Float64(*values.TotalResponseTime / float64(*values.TotalCount))
+  default:
+    panic(fmt.Sprintf("Unknown computed column: %s", name))
+  }
+}

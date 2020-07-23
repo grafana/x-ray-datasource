@@ -168,15 +168,17 @@ func TestDatasource(t *testing.T) {
     require.NoError(t, response.Responses["A"].Error)
 
     require.Equal(t, 2, response.Responses["A"].Frames[0].Fields[0].Len())
-    require.Equal(t, 5, len(response.Responses["A"].Frames))
+    require.Equal(t, 6, len(response.Responses["A"].Frames))
     require.Equal(t, "Time", response.Responses["A"].Frames[0].Fields[0].Name)
     require.Equal(t, "Throttle Count", response.Responses["A"].Frames[0].Fields[1].Name)
+    require.Equal(t, "Average Response Time", response.Responses["A"].Frames[5].Fields[1].Name)
     require.Equal(
       t,
       time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC).String(),
       response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
     )
     require.Equal(t, int64(10), *response.Responses["A"].Frames[0].Fields[1].At(0).(*int64))
+    require.Equal(t, 3.14 / 80, *response.Responses["A"].Frames[5].Fields[1].At(0).(*float64))
   })
 
   t.Run("getTimeSeriesServiceStatistics query returns filtered columns", func(t *testing.T) {

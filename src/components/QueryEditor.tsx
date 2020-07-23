@@ -104,6 +104,7 @@ const columnNames: { [key: string]: string } = {
   'FaultStatistics.TotalCount': 'Fault Count',
   OkCount: 'Success Count',
   TotalCount: 'Total Count',
+  'Computed.AverageResponseTime': 'Average Response Time',
 };
 
 function ColumnFilter(props: { columns: string[]; onChange: (columns: string[]) => void }) {
