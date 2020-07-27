@@ -147,7 +147,7 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
       for i, column := range requestedColumns {
         var val reflect.Value
 
-        // There seems to be cases when EdgeSummaryStatistics is nil. Not sure why does not seem to be the case
+        // There seems to be cases when EdgeSummaryStatistics is nil. Not sure why it does not seem to be the case
         // in x-ray console so it is being investigated
         if statistics.EdgeSummaryStatistics != nil {
           val = reflect.ValueOf(statistics.EdgeSummaryStatistics)
