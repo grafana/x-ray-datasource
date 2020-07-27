@@ -185,19 +185,6 @@ export class ConfigEditor extends PureComponent<Props, State> {
               />
             </div>
           </div>
-          <div className="gf-form-inline">
-            <div className="gf-form">
-              <InlineFormLabel className="width-14" tooltip="Namespaces of Custom Metrics.">
-                Custom Metrics
-              </InlineFormLabel>
-              <Input
-                className="width-30"
-                placeholder="Namespace1,Namespace2"
-                value={options.jsonData.customMetricsNamespaces || ''}
-                onChange={onUpdateDatasourceJsonDataOption(this.props, 'customMetricsNamespaces')}
-              />
-            </div>
-          </div>
         </div>
       </>
     );
