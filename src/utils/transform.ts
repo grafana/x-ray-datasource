@@ -9,18 +9,41 @@ const MS_MULTIPLIER = 1000000;
  * Transforms response to format similar to Jaegers as we use Jaeger ui on the frontend.
  */
 export function transformResponse(data: XrayTraceData): TraceData & { spans: TraceSpanData[] } {
-  let subSegmentSpans: TraceSpanData[] = [];
+  const processes = gatherProcesses(data.Segments);
+
+  const subSegmentSpans: TraceSpanData[] = [];
+  // parentSpans is used to group services that has the same name
+  const parentSpans: TraceSpanData[] = [];
   const segmentSpans = data.Segments.map(segment => {
+    let subSegmentProcessId = segment.Document.name;
     getSubSegments(segment.Document, (subSegment, segmentParent) => {
-      subSegmentSpans.push(transformSegment(subSegment, segmentParent.id));
+      subSegmentProcessId = processes[subSegment.name]?.serviceName ?? subSegmentProcessId;
+      subSegmentSpans.push(transformSegment(subSegment, subSegmentProcessId, segmentParent.id));
     });
-    return transformSegment(segment.Document);
+
+    let parentSpan = parentSpans.find(ps => ps.spanID === segment.Document.name + segment.Document.origin);
+
+    if (!parentSpan) {
+      parentSpan = {
+        duration: 0,
+        flags: 1,
+        logs: [],
+        operationName: segment.Document.origin ?? segment.Document.name,
+        processID: segment.Document.name,
+        spanID: segment.Document.name + segment.Document.origin,
+        startTime: segment.Document.start_time * MS_MULTIPLIER,
+        traceID: segment.Document.trace_id,
+      };
+      parentSpans.push(parentSpan);
+    }
+
+    return transformSegment(segment.Document, segment.Document.name, parentSpan.spanID);
   });
 
   return {
-    processes: gatherProcesses(data.Segments),
+    processes,
     traceID: data.Id,
-    spans: subSegmentSpans ? [...segmentSpans, ...subSegmentSpans] : segmentSpans,
+    spans: [...subSegmentSpans, ...segmentSpans, ...parentSpans],
     warnings: null,
   };
 }
@@ -37,7 +60,7 @@ function getSubSegments(
   }
 }
 
-function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: string): TraceSpanData {
+function transformSegment(segment: XrayTraceDataSegmentDocument, processID: string, parentId?: string): TraceSpanData {
   let references: TraceSpanReference[] = [];
   if (parentId) {
     references.push({ refType: 'CHILD_OF', spanID: parentId, traceID: segment.trace_id });
@@ -46,8 +69,8 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, parentId?: stri
     duration: segment.end_time * MS_MULTIPLIER - segment.start_time * MS_MULTIPLIER,
     flags: 1,
     logs: [],
-    operationName: getOperationName(segment),
-    processID: segment.parent_id || segment.id,
+    operationName: segment.name,
+    processID,
     startTime: segment.start_time * MS_MULTIPLIER,
     spanID: segment.id,
     traceID: segment.trace_id,
@@ -72,18 +95,6 @@ function getIconColor(segment: XrayTraceDataSegmentDocument) {
   return undefined;
 }
 
-function getOperationName(segment: XrayTraceDataSegmentDocument) {
-  if (segment.aws?.operation) {
-    return segment.aws.operation;
-  }
-
-  if (segment.http?.request?.url && segment.http?.request?.method) {
-    return `${segment.http.request.url} ${segment.http.request.method}`;
-  }
-
-  return segment.name;
-}
-
 function getStackTrace(segment: XrayTraceDataSegmentDocument) {
   if (!segment.cause) {
     return undefined;
@@ -100,10 +111,16 @@ function getStackTrace(segment: XrayTraceDataSegmentDocument) {
 }
 
 function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
-  const tags = [...segmentToTag(segment.aws), ...segmentToTag(segment.http)];
+  const tags = [
+    ...segmentToTag(segment.aws),
+    ...segmentToTag(segment.http),
+    ...segmentToTag({ annotations: segment.annotations }),
+  ];
 
-  if (segment.error) {
-    tags.push({ key: 'error', value: segment.error, type: 'boolean' });
+  const isError = segment.error || segment.fault || segment.throttle;
+
+  if (isError) {
+    tags.push({ key: 'error', value: true, type: 'boolean' });
   }
 
   return tags;
@@ -148,27 +165,19 @@ function getTagsFromAws(aws: AWS | undefined) {
 }
 
 function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, TraceProcess> {
-  const processes = segments.map(segment => createProcessFromSegment(segment.Document));
-  segments.forEach(segment => {
-    getSubSegments(segment.Document, subSegment => {
-      processes.push(createProcessFromSegment(subSegment));
-    });
+  const processes = segments.map(segment => {
+    const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
+    tags.push(...getTagsFromAws(segment.Document.aws));
+    if (segment.Document.http?.request?.url) {
+      const url = new URL(segment.Document.http.request.url);
+      tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
+    }
+    return {
+      serviceName: segment.Document.name,
+      tags,
+    };
   });
-  return keyBy(processes, 'id');
-}
-
-function createProcessFromSegment(segment: XrayTraceDataSegmentDocument) {
-  const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.name, type: 'string' }];
-  tags.push(...getTagsFromAws(segment.aws));
-  if (segment.http?.request?.url) {
-    const url = new URL(segment.http.request.url);
-    tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
-  }
-  return {
-    serviceName: segment.name,
-    id: segment.parent_id || segment.id,
-    tags,
-  };
+  return keyBy(processes, 'serviceName');
 }
 
 function valueToTag(key: string, value: string | number | undefined, type: string): TraceKeyValuePair | undefined {

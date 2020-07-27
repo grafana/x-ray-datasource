@@ -152,4 +152,5 @@ export type XrayTraceDataSegmentDocument = {
   throttle?: boolean;
   http?: Http;
   cause?: Cause;
+  annotations?: any;
 };
