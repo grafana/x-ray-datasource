@@ -65,8 +65,9 @@ function transformSegment(segment: XrayTraceDataSegmentDocument, processID: stri
   if (parentId) {
     references.push({ refType: 'CHILD_OF', spanID: parentId, traceID: segment.trace_id });
   }
+  const duration = segment.end_time ? segment.end_time * MS_MULTIPLIER - segment.start_time * MS_MULTIPLIER : 0;
   const jaegerSpan: TraceSpanData = {
-    duration: segment.end_time * MS_MULTIPLIER - segment.start_time * MS_MULTIPLIER,
+    duration,
     flags: 1,
     logs: [],
     operationName: segment.name,
@@ -112,9 +113,10 @@ function getStackTrace(segment: XrayTraceDataSegmentDocument) {
 
 function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
   const tags = [
-    ...segmentToTag(segment.aws),
-    ...segmentToTag(segment.http),
+    ...segmentToTag({ aws: segment.aws }),
+    ...segmentToTag({ http: segment.http }),
     ...segmentToTag({ annotations: segment.annotations }),
+    ...segmentToTag({ metadata: segment.metadata }),
   ];
 
   const isError = segment.error || segment.fault || segment.throttle;

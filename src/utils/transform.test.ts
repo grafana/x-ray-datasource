@@ -11,26 +11,6 @@ const awsResponse = {
         start_time: 1591872073.754,
         trace_id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         end_time: 1591872073.802,
-        error: true,
-        http: {
-          request: {
-            url: 'http://3.23.148.72/signup',
-            method: 'POST',
-            user_agent:
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
-            client_ip: '80.98.253.126',
-          },
-          response: {
-            status: 409,
-            content_length: 0,
-          },
-        },
-        aws: {
-          ec2: {
-            availability_zone: 'us-east-2b',
-            instance_id: 'i-0ec3e264928bf8dba',
-          },
-        },
         annotations: {
           theme: 'flatly',
         },
@@ -45,15 +25,11 @@ const awsResponse = {
             http: {
               response: {
                 status: 400,
-                content_length: 0,
               },
             },
             aws: {
               retries: 0,
               region: 'us-east-2',
-              operation: 'PutItem',
-              request_id: '21M4JN68EM661B8Q0MKFJHPHBBVV4KQNSO5AEMVJF66Q9ASUAAJG',
-              table_name: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
               attribute_names_substituted: [],
               resource_names: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
             },
@@ -75,46 +51,6 @@ const awsResponse = {
                       line: 266,
                       label: 'features.constructor.addAllRequestListeners',
                     },
-                    {
-                      path: '/var/app/current/node_modules/aws-sdk/lib/service.js',
-                      line: 191,
-                      label: 'features.constructor.makeRequest',
-                    },
-                    {
-                      path: '/var/app/current/node_modules/aws-sdk/lib/service.js',
-                      line: 451,
-                      label: 'features.constructor.svc.<computed> [as putItem]',
-                    },
-                    {
-                      path: '/var/app/current/app.js',
-                      line: 74,
-                      label: 'anonymous',
-                    },
-                    {
-                      path: '/var/app/current/node_modules/express/lib/router/layer.js',
-                      line: 95,
-                      label: 'Layer.handle [as handle_request]',
-                    },
-                    {
-                      path: '/var/app/current/node_modules/express/lib/router/route.js',
-                      line: 131,
-                      label: 'next',
-                    },
-                    {
-                      path: '/var/app/current/node_modules/express/lib/router/route.js',
-                      line: 112,
-                      label: 'Route.dispatch',
-                    },
-                    {
-                      path: '/var/app/current/node_modules/express/lib/router/layer.js',
-                      line: 95,
-                      label: 'Layer.handle [as handle_request]',
-                    },
-                    {
-                      path: '/var/app/current/node_modules/express/lib/router/index.js',
-                      line: 277,
-                      label: 'anonymous',
-                    },
                   ],
                 },
               ],
@@ -133,21 +69,23 @@ const awsResponse = {
         end_time: 1591872073.801,
         parent_id: '4ab39ad12cff04b5',
         inferred: true,
-        error: true,
-        http: {
-          response: {
-            status: 400,
-            content_length: 0,
+        error: false,
+        fault: true,
+        metadata: {
+          http: {
+            dns: {
+              addresses: [
+                {
+                  Zone: '',
+                  IP: '4.2.123.160',
+                },
+                {
+                  Zone: '',
+                  IP: '22.23.14.122',
+                },
+              ],
+            },
           },
-        },
-        aws: {
-          retries: 0,
-          region: 'us-east-2',
-          operation: 'PutItem',
-          request_id: '21M4JN68EM661B8Q0MKFJHPHBBVV4KQNSO5AEMVJF66Q9ASUAAJG',
-          table_name: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
-          attribute_names_substituted: [],
-          resource_names: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
         },
         origin: 'AWS::DynamoDB::Table',
       },
@@ -158,8 +96,7 @@ const awsResponse = {
 
 const result = {
   processes: {
-    '4ab39ad12cff04b5': {
-      id: '4ab39ad12cff04b5',
+    DynamoDB: {
       serviceName: 'DynamoDB',
       tags: [
         {
@@ -167,15 +104,9 @@ const result = {
           type: 'string',
           value: 'DynamoDB',
         },
-        {
-          key: 'region',
-          type: 'string',
-          value: 'us-east-2',
-        },
       ],
     },
-    eebec87ce4dd8225: {
-      id: 'eebec87ce4dd8225',
+    'myfrontend-dev': {
       serviceName: 'myfrontend-dev',
       tags: [
         {
@@ -183,138 +114,17 @@ const result = {
           type: 'string',
           value: 'myfrontend-dev',
         },
-        {
-          key: 'availability_zone',
-          type: 'string',
-          value: 'us-east-2b',
-        },
-        {
-          key: 'instance_id',
-          type: 'string',
-          value: 'i-0ec3e264928bf8dba',
-        },
-        {
-          key: 'hostname',
-          type: 'string',
-          value: '3.23.148.72',
-        },
       ],
     },
   },
   spans: [
     {
-      duration: 48000,
-      errorIconColor: '#FFC46E',
-      flags: 1,
-      logs: [],
-      operationName: 'http://3.23.148.72/signup POST',
-      processID: 'eebec87ce4dd8225',
-      references: [],
-      spanID: 'eebec87ce4dd8225',
-      stackTraces: undefined,
-      startTime: 1591872073754000,
-      tags: [
-        {
-          key: 'ec2.availability_zone',
-          type: 'string',
-          value: 'us-east-2b',
-        },
-        {
-          key: 'ec2.instance_id',
-          type: 'string',
-          value: 'i-0ec3e264928bf8dba',
-        },
-        {
-          key: 'request.url',
-          type: 'string',
-          value: 'http://3.23.148.72/signup',
-        },
-        {
-          key: 'request.method',
-          type: 'string',
-          value: 'POST',
-        },
-        {
-          key: 'request.user_agent',
-          type: 'string',
-          value:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
-        },
-        {
-          key: 'request.client_ip',
-          type: 'string',
-          value: '80.98.253.126',
-        },
-        {
-          key: 'response.status',
-          type: 'number',
-          value: 409,
-        },
-        {
-          key: 'error',
-          type: 'boolean',
-          value: true,
-        },
-      ],
-      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-    },
-    {
       duration: 47000,
       errorIconColor: '#FFC46E',
       flags: 1,
       logs: [],
-      operationName: 'PutItem',
-      processID: '4ab39ad12cff04b5',
-      references: [],
-      spanID: '3f8b028e1847bc4c',
-      stackTraces: undefined,
-      startTime: 1591872073754000,
-      tags: [
-        {
-          key: 'region',
-          type: 'string',
-          value: 'us-east-2',
-        },
-        {
-          key: 'operation',
-          type: 'string',
-          value: 'PutItem',
-        },
-        {
-          key: 'request_id',
-          type: 'string',
-          value: '21M4JN68EM661B8Q0MKFJHPHBBVV4KQNSO5AEMVJF66Q9ASUAAJG',
-        },
-        {
-          key: 'table_name',
-          type: 'string',
-          value: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
-        },
-        {
-          key: 'resource_names',
-          type: 'object',
-          value: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
-        },
-        {
-          key: 'response.status',
-          type: 'number',
-          value: 400,
-        },
-        {
-          key: 'error',
-          type: 'boolean',
-          value: true,
-        },
-      ],
-      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-    },
-    {
-      duration: 47000,
-      errorIconColor: '#FFC46E',
-      flags: 1,
-      logs: [],
-      operationName: 'PutItem',
-      processID: '4ab39ad12cff04b5',
+      operationName: 'DynamoDB',
+      processID: 'DynamoDB',
       references: [
         {
           refType: 'CHILD_OF',
@@ -327,45 +137,22 @@ const result = {
         `ConditionalCheckFailedException: The conditional request failed
 at features.constructor.captureAWSRequest [as customRequestHandler] (/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js:66)
 at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aws-sdk/lib/service.js:266)
-at features.constructor.makeRequest (/var/app/current/node_modules/aws-sdk/lib/service.js:191)
-at features.constructor.svc.<computed> [as putItem] (/var/app/current/node_modules/aws-sdk/lib/service.js:451)
-at anonymous (/var/app/current/app.js:74)
-at Layer.handle [as handle_request] (/var/app/current/node_modules/express/lib/router/layer.js:95)
-at next (/var/app/current/node_modules/express/lib/router/route.js:131)
-at Route.dispatch (/var/app/current/node_modules/express/lib/router/route.js:112)
-at Layer.handle [as handle_request] (/var/app/current/node_modules/express/lib/router/layer.js:95)
-at anonymous (/var/app/current/node_modules/express/lib/router/index.js:277)
 `,
       ],
       startTime: 1591872073754000,
       tags: [
         {
-          key: 'region',
+          key: 'aws.region',
           type: 'string',
           value: 'us-east-2',
         },
         {
-          key: 'operation',
-          type: 'string',
-          value: 'PutItem',
-        },
-        {
-          key: 'request_id',
-          type: 'string',
-          value: '21M4JN68EM661B8Q0MKFJHPHBBVV4KQNSO5AEMVJF66Q9ASUAAJG',
-        },
-        {
-          key: 'table_name',
+          key: 'aws.resource_names0',
           type: 'string',
           value: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
         },
         {
-          key: 'resource_names',
-          type: 'object',
-          value: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
-        },
-        {
-          key: 'response.status',
+          key: 'http.response.status',
           type: 'number',
           value: 400,
         },
@@ -377,6 +164,88 @@ at anonymous (/var/app/current/node_modules/express/lib/router/index.js:277)
       ],
       traceID: undefined,
     },
+    {
+      duration: 48000,
+      errorIconColor: undefined,
+      flags: 1,
+      logs: [],
+      operationName: 'myfrontend-dev',
+      processID: 'myfrontend-dev',
+      references: [
+        {
+          refType: 'CHILD_OF',
+          spanID: 'myfrontend-devAWS::EC2::Instance',
+          traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+        },
+      ],
+      spanID: 'eebec87ce4dd8225',
+      stackTraces: undefined,
+      startTime: 1591872073754000,
+      tags: [
+        {
+          key: 'annotations.theme',
+          type: 'string',
+          value: 'flatly',
+        },
+      ],
+      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+    },
+    {
+      duration: 47000,
+      errorIconColor: undefined,
+      flags: 1,
+      logs: [],
+      operationName: 'DynamoDB',
+      processID: 'DynamoDB',
+      references: [
+        {
+          refType: 'CHILD_OF',
+          spanID: 'DynamoDBAWS::DynamoDB::Table',
+          traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+        },
+      ],
+      spanID: '3f8b028e1847bc4c',
+      stackTraces: undefined,
+      startTime: 1591872073754000,
+      tags: [
+        {
+          key: 'metadata.http.dns.addresses0.IP',
+          type: 'string',
+          value: '4.2.123.160',
+        },
+        {
+          key: 'metadata.http.dns.addresses1.IP',
+          type: 'string',
+          value: '22.23.14.122',
+        },
+        {
+          key: 'error',
+          type: 'boolean',
+          value: true,
+        },
+      ],
+      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+    },
+    {
+      duration: 0,
+      flags: 1,
+      logs: [],
+      operationName: 'AWS::EC2::Instance',
+      processID: 'myfrontend-dev',
+      spanID: 'myfrontend-devAWS::EC2::Instance',
+      startTime: 1591872073754000,
+      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+    },
+    {
+      duration: 0,
+      flags: 1,
+      logs: [],
+      operationName: 'AWS::DynamoDB::Table',
+      processID: 'DynamoDB',
+      spanID: 'DynamoDBAWS::DynamoDB::Table',
+      startTime: 1591872073754000,
+      traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+    },
   ],
   traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
   warnings: null,
@@ -387,7 +256,7 @@ describe('transformResponse function', () => {
     expect(transformResponse(awsResponse as any)).toEqual(result);
   });
 
-  it('should gather processes from subsegments as well', () => {
+  it("should response that is in progress (doesn't have an end time)", () => {
     const aws = {
       Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
       Segments: [
@@ -398,8 +267,10 @@ describe('transformResponse function', () => {
             origin: 'AWS::EC2::Instance',
             subsegments: [
               {
-                id: 'c10e6e9093397e1b',
-                name: 'Page Render',
+                id: 'e5ea9d95ecda4d8a',
+                name: 'response',
+                start_time: 1595878288.1899369,
+                in_progress: true,
               },
             ],
           },
@@ -407,29 +278,6 @@ describe('transformResponse function', () => {
       ],
     };
 
-    expect(transformResponse(aws as any).processes).toEqual({
-      '5c6cc52b0685e278': {
-        id: '5c6cc52b0685e278',
-        serviceName: 'myfrontend-dev',
-        tags: [
-          {
-            key: 'name',
-            type: 'string',
-            value: 'myfrontend-dev',
-          },
-        ],
-      },
-      c10e6e9093397e1b: {
-        id: 'c10e6e9093397e1b',
-        serviceName: 'Page Render',
-        tags: [
-          {
-            key: 'name',
-            type: 'string',
-            value: 'Page Render',
-          },
-        ],
-      },
-    });
+    expect(transformResponse(aws as any).spans[1].duration).toBe(0);
   });
 });
