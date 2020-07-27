@@ -6,9 +6,12 @@ import {
   DataSourceInstanceSettings,
   FieldType,
   MutableDataFrame,
+  ScopedVars,
+  VariableModel,
 } from '@grafana/data';
 import { XrayJsonData, XrayQuery, XrayQueryType, XrayTraceDataRaw, XrayTraceDataSegmentDocument } from './types';
 import { of } from 'rxjs';
+import { TemplateSrv } from '@grafana/runtime/services/templateSrv';
 
 jest.mock('@grafana/runtime', () => {
   const runtime = jest.requireActual('@grafana/runtime');
@@ -22,6 +25,22 @@ jest.mock('@grafana/runtime', () => {
       query(...args: any[]) {
         return this.mockQuery(...args);
       }
+    },
+    getTemplateSrv(): TemplateSrv {
+      return {
+        getVariables(): VariableModel[] {
+          return [];
+        },
+        replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
+          if (!target || !scopedVars) {
+            return '';
+          }
+          for (const key of Object.keys(scopedVars)) {
+            target = target!.replace(`\$${key}`, scopedVars[key].value);
+          }
+          return target!;
+        },
+      };
     },
   };
 });
@@ -74,6 +93,17 @@ describe('XrayDataSource', () => {
         .toPromise();
       const mockQuery = (ds as any).mockQuery as jest.Mock;
       expect(mockQuery.mock.calls[0][0].targets[0].resolution).toBe(60);
+    });
+
+    it('handles variable interpolation', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      await ds
+        .query(
+          makeQuery({ query: 'service("$variable")' }, { scopedVars: { variable: { text: 'test', value: 'test' } } })
+        )
+        .toPromise();
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("test")');
     });
   });
 });

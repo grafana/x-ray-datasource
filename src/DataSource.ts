@@ -7,7 +7,7 @@ import {
   FieldType,
   MutableDataFrame,
 } from '@grafana/data';
-import { DataSourceWithBackend, getBackendSrv } from '@grafana/runtime';
+import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -36,7 +36,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
-    const processedRequest = processRequest(request);
+    const processedRequest = processRequest(request, getTemplateSrv());
     const response = super.query(processedRequest);
     return response.pipe(
       map(dataQueryResponse => {
@@ -150,20 +150,26 @@ function parseTracesListResponse(response: DataFrame, datasourceUid: string): Da
   return response;
 }
 
-function processRequest(request: DataQueryRequest<XrayQuery>) {
+function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv) {
   return {
     ...request,
     targets: request.targets.map(target => {
-      if (target.queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
-        if (request.intervalMs && !target.resolution) {
+      let newTarget = {
+        ...target,
+      };
+
+      // Handle interval => resolution mapping
+      if (newTarget.queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
+        if (request.intervalMs && !newTarget.resolution) {
           const intervalSeconds = Math.floor(request.intervalMs / 1000);
-          return {
-            ...target,
-            resolution: intervalSeconds <= 60 ? 60 : 300,
-          };
+          newTarget.resolution = intervalSeconds <= 60 ? 60 : 300;
         }
       }
-      return target;
+
+      // Variable interpolation
+      newTarget.query = templateSrv.replace(newTarget.query, request.scopedVars);
+
+      return newTarget;
     }),
   };
 }
