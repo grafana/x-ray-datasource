@@ -88,16 +88,22 @@ func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*
 func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(context aws.Context, input *xray.GetTimeSeriesServiceStatisticsInput, fn func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool, options ...request.Option) error {
   output := &xray.GetTimeSeriesServiceStatisticsOutput{
     TimeSeriesServiceStatistics: []*xray.TimeSeriesServiceStatistics{
-      makeTimeSeriesRow(0, "edge"),
-      makeTimeSeriesRow(1, "edge"),
-      makeTimeSeriesRow(2, "service"),
+      makeTimeSeriesRow(0, Edge),
+      makeTimeSeriesRow(1, Edge),
+      makeTimeSeriesRow(2, Service),
     },
   }
   fn(output, false)
   return nil
 }
 
-func makeTimeSeriesRow(index int, statsType string) *xray.TimeSeriesServiceStatistics {
+type StatsType string
+const (
+  Edge = "edge"
+  Service = "service"
+)
+
+func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceStatistics {
   stats := &xray.TimeSeriesServiceStatistics{
     EdgeSummaryStatistics: nil,
     ResponseTimeHistogram: []*xray.HistogramEntry{
