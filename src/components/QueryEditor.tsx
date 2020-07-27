@@ -90,7 +90,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
       </div>
       {queryTypeOption === QueryTypeOptions.traceStatistics && (
         <div className="gf-form">
-          <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
+          <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
             <InlineFormLabel width="auto">Resolution</InlineFormLabel>
             <Segment
               value={query.resolution ? query.resolution.toString() + 's' : 'auto'}
