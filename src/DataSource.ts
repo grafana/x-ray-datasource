@@ -16,6 +16,7 @@ import {
   TSDBResponse,
   XrayJsonData,
   XrayQuery,
+  XrayQueryType,
   XrayTraceData,
   XrayTraceDataRaw,
   XrayTraceDataSegment,
@@ -35,10 +36,10 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
-    const response = super.query(request);
+    const processedRequest = processRequest(request);
+    const response = super.query(processedRequest);
     return response.pipe(
       map(dataQueryResponse => {
-        // TODO add transform to jaeger UI format
         return {
           ...dataQueryResponse,
           data: dataQueryResponse.data.map(frame => this.parseResponse(frame)),
@@ -147,4 +148,22 @@ function parseTracesListResponse(response: DataFrame, datasourceUid: string): Da
     },
   ];
   return response;
+}
+
+function processRequest(request: DataQueryRequest<XrayQuery>) {
+  return {
+    ...request,
+    targets: request.targets.map(target => {
+      if (target.queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
+        if (request.intervalMs && !target.resolution) {
+          const intervalSeconds = Math.floor(request.intervalMs / 1000);
+          return {
+            ...target,
+            resolution: intervalSeconds <= 60 ? 60 : 300,
+          };
+        }
+      }
+      return target;
+    }),
+  };
 }
