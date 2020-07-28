@@ -5,27 +5,42 @@ describe('flatten function', () => {
     const awsResponse = {
       http: {
         request: {
-          url: 'http://3.23.148.72/signup',
-          method: 'POST',
-          user_agent:
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
           client_ip: '80.98.253.126',
         },
         response: {
           status: 409,
-          content_length: 0,
+        },
+      },
+      aws: {
+        resource_names: ['orders', 'products'],
+      },
+      metadata: {
+        http: {
+          dns: {
+            addresses: [
+              {
+                Zone: '',
+                IP: '4.2.123.160',
+              },
+              {
+                Zone: '',
+                IP: '22.23.14.122',
+              },
+            ],
+          },
         },
       },
     };
 
     expect(flatten(awsResponse)).toEqual({
+      'aws.resource_names[0]': 'orders',
+      'aws.resource_names[1]': 'products',
       'http.request.client_ip': '80.98.253.126',
-      'http.request.method': 'POST',
-      'http.request.url': 'http://3.23.148.72/signup',
-      'http.request.user_agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
-      'http.response.content_length': 0,
       'http.response.status': 409,
+      'metadata.http.dns.addresses[0].IP': '4.2.123.160',
+      'metadata.http.dns.addresses[0].Zone': '',
+      'metadata.http.dns.addresses[1].IP': '22.23.14.122',
+      'metadata.http.dns.addresses[1].Zone': '',
     });
   });
 });

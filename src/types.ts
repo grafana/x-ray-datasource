@@ -146,7 +146,8 @@ export type XrayTraceDataSegmentDocument = {
   id: string;
   name: string;
   start_time: number;
-  end_time: number;
+  end_time?: number;
+  in_progress?: boolean;
   // Same as top level Id
   trace_id: string;
   subsegments?: XrayTraceDataSegmentDocument[];
@@ -158,4 +159,6 @@ export type XrayTraceDataSegmentDocument = {
   throttle?: boolean;
   http?: Http;
   cause?: Cause;
+  annotations?: any;
+  metadata?: any;
 };
