@@ -147,7 +147,7 @@ at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aw
           value: 'us-east-2',
         },
         {
-          key: 'aws.resource_names0',
+          key: 'aws.resource_names[0]',
           type: 'string',
           value: 'awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA',
         },
@@ -209,12 +209,12 @@ at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aw
       startTime: 1591872073754000,
       tags: [
         {
-          key: 'metadata.http.dns.addresses0.IP',
+          key: 'metadata.http.dns.addresses[0].IP',
           type: 'string',
           value: '4.2.123.160',
         },
         {
-          key: 'metadata.http.dns.addresses1.IP',
+          key: 'metadata.http.dns.addresses[1].IP',
           type: 'string',
           value: '22.23.14.122',
         },

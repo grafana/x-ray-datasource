@@ -33,14 +33,14 @@ describe('flatten function', () => {
     };
 
     expect(flatten(awsResponse)).toEqual({
-      'aws.resource_names0': 'orders',
-      'aws.resource_names1': 'products',
+      'aws.resource_names[0]': 'orders',
+      'aws.resource_names[1]': 'products',
       'http.request.client_ip': '80.98.253.126',
       'http.response.status': 409,
-      'metadata.http.dns.addresses0.IP': '4.2.123.160',
-      'metadata.http.dns.addresses0.Zone': '',
-      'metadata.http.dns.addresses1.IP': '22.23.14.122',
-      'metadata.http.dns.addresses1.Zone': '',
+      'metadata.http.dns.addresses[0].IP': '4.2.123.160',
+      'metadata.http.dns.addresses[0].Zone': '',
+      'metadata.http.dns.addresses[1].IP': '22.23.14.122',
+      'metadata.http.dns.addresses[1].Zone': '',
     });
   });
 });

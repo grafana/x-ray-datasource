@@ -14,10 +14,11 @@ export function flatten(target: object): any {
 
       if (Array.isArray(value)) {
         value.forEach((val, index) => {
+          const keyWithArray = `${newKey}[${index}]`;
           if (isPlainObject(val)) {
-            step(val, newKey + index);
+            step(val, keyWithArray);
           } else {
-            output[newKey + index] = val;
+            output[keyWithArray] = val;
           }
         });
         return;
