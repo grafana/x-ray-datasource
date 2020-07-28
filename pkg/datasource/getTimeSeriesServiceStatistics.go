@@ -143,14 +143,24 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   }
   err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, lastPage bool) bool {
     for _, statistics := range page.TimeSeriesServiceStatistics {
-      stats := *statistics.EdgeSummaryStatistics
-
       // Use reflection to append values to correct data frame based on the requested columns.
       for i, column := range requestedColumns {
+        var val reflect.Value
+
+        // There seems to be cases when EdgeSummaryStatistics is nil. Not sure why it does not seem to be the case
+        // in x-ray console so it is being investigated
+        if statistics.EdgeSummaryStatistics != nil {
+          val = reflect.ValueOf(statistics.EdgeSummaryStatistics)
+        } else if statistics.ServiceSummaryStatistics != nil {
+          val = reflect.ValueOf(statistics.ServiceSummaryStatistics)
+        } else {
+          // Hope this should not happen but I think skipping the row in that case should be safe for now.
+          continue
+        }
+
         parts := strings.Split(column.name, ".")
-        var val = reflect.ValueOf(stats)
         if parts[0] == "Computed" {
-          val = reflect.ValueOf(computeAggregation(parts[1], stats))
+          val = reflect.ValueOf(computeAggregation(parts[1], val.Interface()))
         } else {
           for _, part := range parts {
             val = reflect.Indirect(val).FieldByName(part)
@@ -179,11 +189,32 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
   }
 }
 
-func computeAggregation(name string, values xray.EdgeStatistics) interface{} {
+// computeAggregation computes new values on top of the API.
+// values is an interface{} because it can be either EdgeStatistics or ServiceStatistics and they are
+// the same but are different types.
+func computeAggregation(name string, values interface{}) interface{} {
   switch name {
   case "AverageResponseTime":
-    return aws.Float64(*values.TotalResponseTime / float64(*values.TotalCount))
+    return aws.Float64(*getResponseTime(values) / float64(*getTotalCount(values)))
   default:
     panic(fmt.Sprintf("Unknown computed column: %s", name))
   }
+}
+
+func getResponseTime(stats interface{}) *float64 {
+  if val, ok := stats.(*xray.EdgeStatistics); ok {
+    return val.TotalResponseTime
+  } else if val, ok := stats.(*xray.ServiceStatistics); ok {
+    return val.TotalResponseTime
+  }
+  panic("stats is not xray.EdgeStatistics nor xray.ServiceStatistics")
+}
+
+func getTotalCount(stats interface{}) *int64 {
+  if val, ok := stats.(*xray.EdgeStatistics); ok {
+    return val.TotalCount
+  } else if val, ok := stats.(*xray.ServiceStatistics); ok {
+    return val.TotalCount
+  }
+  panic("stats is not xray.EdgeStatistics nor xray.ServiceStatistics")
 }

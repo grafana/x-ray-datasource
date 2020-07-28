@@ -89,9 +89,24 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         </div>
       </div>
       {queryTypeOption === QueryTypeOptions.traceStatistics && (
-        <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
-          <InlineFormLabel width="auto">Columns</InlineFormLabel>
-          <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
+        <div className="gf-form">
+          <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
+            <InlineFormLabel width="auto">Resolution</InlineFormLabel>
+            <Segment
+              value={query.resolution ? query.resolution.toString() + 's' : 'auto'}
+              options={['auto', '60s', '300s'].map(val => ({ value: val, label: val }))}
+              onChange={({ value }) => {
+                onChange({
+                  ...query,
+                  resolution: value === 'auto' ? undefined : parseInt(value!, 10),
+                } as any);
+              }}
+            />
+          </div>
+          <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
+            <InlineFormLabel width="auto">Columns</InlineFormLabel>
+            <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
+          </div>
         </div>
       )}
     </div>

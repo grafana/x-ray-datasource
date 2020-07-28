@@ -60,12 +60,14 @@ describe('QueryEditor', () => {
     });
   });
 
-  it('does not show column filter if query type is not getTimeSeriesServiceStatistics', () => {
+  it('shows column filter and resolution only if query type is getTimeSeriesServiceStatistics', () => {
     const { rerender } = renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
     expect(screen.queryByTestId('column-filter')).toBeNull();
+    expect(screen.queryByTestId('resolution')).toBeNull();
 
     renderWithQuery({ query: '', queryType: XrayQueryType.getTimeSeriesServiceStatistics }, rerender);
     expect(screen.queryByTestId('column-filter')).not.toBeNull();
+    expect(screen.queryByTestId('resolution')).not.toBeNull();
   });
 
   it('correctly changes the query type if user fills in trace id', () => {

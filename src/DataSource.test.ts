@@ -6,9 +6,12 @@ import {
   DataSourceInstanceSettings,
   FieldType,
   MutableDataFrame,
+  ScopedVars,
+  VariableModel,
 } from '@grafana/data';
 import { XrayJsonData, XrayQuery, XrayQueryType, XrayTraceDataRaw, XrayTraceDataSegmentDocument } from './types';
 import { of } from 'rxjs';
+import { TemplateSrv } from '@grafana/runtime/services/templateSrv';
 
 jest.mock('@grafana/runtime', () => {
   const runtime = jest.requireActual('@grafana/runtime');
@@ -23,6 +26,22 @@ jest.mock('@grafana/runtime', () => {
         return this.mockQuery(...args);
       }
     },
+    getTemplateSrv(): TemplateSrv {
+      return {
+        getVariables(): VariableModel[] {
+          return [];
+        },
+        replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
+          if (!target || !scopedVars) {
+            return '';
+          }
+          for (const key of Object.keys(scopedVars)) {
+            target = target!.replace(`\$${key}`, scopedVars[key].value);
+          }
+          return target!;
+        },
+      };
+    },
   };
 });
 
@@ -30,7 +49,7 @@ describe('XrayDataSource', () => {
   describe('.query()', () => {
     it('returns parsed data when querying single trace', async () => {
       const ds = makeDatasourceWithResponse(makeTraceResponse(makeTrace()));
-      const response = await ds.query(makeQuery(XrayQueryType.getTrace, 'traceId1')).toPromise();
+      const response = await ds.query(makeQuery()).toPromise();
       expect(response.data.length).toBe(1);
       expect(response.data[0].fields.length).toBe(1);
       expect(response.data[0].fields[0].values.length).toBe(1);
@@ -38,7 +57,7 @@ describe('XrayDataSource', () => {
 
     it('returns parsed data with links when querying trace list', async () => {
       const ds = makeDatasourceWithResponse(makeTraceSummariesResponse());
-      const response = await ds.query(makeQuery(XrayQueryType.getTraceSummaries, '')).toPromise();
+      const response = await ds.query(makeQuery({ queryType: XrayQueryType.getTraceSummaries, query: '' })).toPromise();
       expect(response.data.length).toBe(1);
       const df: DataFrame = response.data[0];
       expect(df.fields.length).toBe(2);
@@ -50,17 +69,58 @@ describe('XrayDataSource', () => {
         queryType: 'getTrace',
       });
     });
+
+    it('adds correct resolution based on interval', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      await ds
+        .query(
+          makeQuery({ queryType: XrayQueryType.getTimeSeriesServiceStatistics, query: '' }, { intervalMs: 400 * 1000 })
+        )
+        .toPromise();
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      expect(mockQuery.mock.calls[0][0].targets[0].resolution).toBe(300);
+    });
+
+    it('does not override explicit resolution', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      await ds
+        .query(
+          makeQuery(
+            { queryType: XrayQueryType.getTimeSeriesServiceStatistics, query: '', resolution: 60 },
+            { intervalMs: 400 * 1000 }
+          )
+        )
+        .toPromise();
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      expect(mockQuery.mock.calls[0][0].targets[0].resolution).toBe(60);
+    });
+
+    it('handles variable interpolation', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      await ds
+        .query(
+          makeQuery({ query: 'service("$variable")' }, { scopedVars: { variable: { text: 'test', value: 'test' } } })
+        )
+        .toPromise();
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("test")');
+    });
   });
 });
 
-function makeQuery(type: XrayQueryType, query: string): DataQueryRequest<XrayQuery> {
+function makeQuery(
+  query?: Partial<XrayQuery>,
+  request?: Partial<DataQueryRequest<XrayQuery>>
+): DataQueryRequest<XrayQuery> {
   return {
     targets: [
       {
         queryType: XrayQueryType.getTrace,
         query: 'traceId1',
+        ...(query || {}),
       },
     ],
+    ...(request || {}),
   } as DataQueryRequest<XrayQuery>;
 }
 

@@ -1,9 +1,15 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
+// TODO: would make sense at this point to change to discriminated union type
 export interface XrayQuery extends DataQuery {
   queryType?: XrayQueryType;
   query: string;
+
+  // Used in case of getTimeSeriesServiceStatistics to say which column/series actually return
   columns?: string[];
+
+  // Interval of the getTimeSeriesServiceStatistics aggregation time bucket
+  resolution?: number;
 }
 
 export enum XrayQueryType {

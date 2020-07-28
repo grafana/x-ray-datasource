@@ -88,17 +88,35 @@ func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*
 func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(context aws.Context, input *xray.GetTimeSeriesServiceStatisticsInput, fn func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool, options ...request.Option) error {
   output := &xray.GetTimeSeriesServiceStatisticsOutput{
     TimeSeriesServiceStatistics: []*xray.TimeSeriesServiceStatistics{
-      makeTimeSeriesRow(0),
-      makeTimeSeriesRow(1),
+      makeTimeSeriesRow(0, Edge),
+      makeTimeSeriesRow(1, Edge),
+      makeTimeSeriesRow(2, Service),
     },
   }
   fn(output, false)
   return nil
 }
 
-func makeTimeSeriesRow(index int) *xray.TimeSeriesServiceStatistics {
-  return &xray.TimeSeriesServiceStatistics{
-    EdgeSummaryStatistics: &xray.EdgeStatistics{
+type StatsType string
+const (
+  Edge = "edge"
+  Service = "service"
+)
+
+func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceStatistics {
+  stats := &xray.TimeSeriesServiceStatistics{
+    EdgeSummaryStatistics: nil,
+    ResponseTimeHistogram: []*xray.HistogramEntry{
+      {
+        Count: aws.Int64(5),
+        Value: aws.Float64(42.42),
+      },
+    },
+    ServiceSummaryStatistics: nil,
+    Timestamp:                aws.Time(time.Date(2020, 6, 20, 1, index, 1, 0, time.UTC)),
+  }
+  if statsType == "edge" {
+    stats.EdgeSummaryStatistics = &xray.EdgeStatistics{
       ErrorStatistics: &xray.ErrorStatistics{
         OtherCount:    aws.Int64(10),
         ThrottleCount: aws.Int64(10),
@@ -111,16 +129,24 @@ func makeTimeSeriesRow(index int) *xray.TimeSeriesServiceStatistics {
       OkCount:           aws.Int64(40),
       TotalCount:        aws.Int64(80),
       TotalResponseTime: aws.Float64(3.14),
-    },
-    ResponseTimeHistogram: []*xray.HistogramEntry{
-      {
-        Count: aws.Int64(5),
-        Value: aws.Float64(42.42),
+    }
+  } else {
+    stats.ServiceSummaryStatistics = &xray.ServiceStatistics{
+      ErrorStatistics: &xray.ErrorStatistics{
+        OtherCount:    aws.Int64(10),
+        ThrottleCount: aws.Int64(11),
+        TotalCount:    aws.Int64(20),
       },
-    },
-    ServiceSummaryStatistics: nil,
-    Timestamp:                aws.Time(time.Date(2020, 6, 20, 1, index, 1, 0, time.UTC)),
+      FaultStatistics: &xray.FaultStatistics{
+        OtherCount: aws.Int64(15),
+        TotalCount: aws.Int64(20),
+      },
+      OkCount:           aws.Int64(40),
+      TotalCount:        aws.Int64(80),
+      TotalResponseTime: aws.Float64(3.14),
+    }
   }
+  return stats
 }
 
 func clientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient, error) {
@@ -167,7 +193,7 @@ func TestDatasource(t *testing.T) {
     require.NoError(t, err)
     require.NoError(t, response.Responses["A"].Error)
 
-    require.Equal(t, 2, response.Responses["A"].Frames[0].Fields[0].Len())
+    require.Equal(t, 3, response.Responses["A"].Frames[0].Fields[0].Len())
     require.Equal(t, 6, len(response.Responses["A"].Frames))
     require.Equal(t, "Time", response.Responses["A"].Frames[0].Fields[0].Name)
     require.Equal(t, "Throttle Count", response.Responses["A"].Frames[0].Fields[1].Name)
@@ -178,6 +204,7 @@ func TestDatasource(t *testing.T) {
       response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
     )
     require.Equal(t, int64(10), *response.Responses["A"].Frames[0].Fields[1].At(0).(*int64))
+    require.Equal(t, int64(11), *response.Responses["A"].Frames[0].Fields[1].At(2).(*int64))
     require.Equal(t, 3.14 / 80, *response.Responses["A"].Frames[5].Fields[1].At(0).(*float64))
   })
 
