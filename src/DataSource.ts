@@ -124,7 +124,6 @@ function parseTraceResponse(response: DataFrame): DataFrame {
       },
     ],
     meta: {
-      // @ts-ignore needs package update
       preferredVisualisationType: 'trace',
     },
   });

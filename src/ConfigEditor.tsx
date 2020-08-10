@@ -44,7 +44,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
 
     return (
       <>
-        <h3 className="page-heading">CloudWatch Details</h3>
+        <h3 className="page-heading">X-Ray Details</h3>
         <div className="gf-form-group">
           <div className="gf-form-inline">
             <div className="gf-form">
