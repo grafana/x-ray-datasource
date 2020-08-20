@@ -5,6 +5,7 @@
   "metrics": true,
   "tracing": true,
   "backend": true,
+  "alerting": true,
   "executable": "gpx_x-ray-datasource",
   "info": {
     "description": "AWS X-Ray data source",
