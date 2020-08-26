@@ -1,20 +1,21 @@
 package datasource
 
 import (
-  "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/aws/request"
-  "net/http"
+	"net/http"
 
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+
 	"github.com/grafana/x-ray-datasource/pkg/client"
 	"github.com/grafana/x-ray-datasource/pkg/configuration"
+	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 )
 
-// newDatasource returns datasource.ServeOpts.
+// GetServeOpts returns datasource.ServeOpts.
 func GetServeOpts() datasource.ServeOpts {
 	// creates a instance manager for your plugin. The function passed
 	// into `NewInstanceManger` is called when the instance is created
@@ -87,10 +88,10 @@ func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
 type XrayClient interface {
 	BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
 	GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error
-  GetTimeSeriesServiceStatisticsPagesWithContext(
-    aws.Context,
-    *xray.GetTimeSeriesServiceStatisticsInput,
-    func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
-    ...request.Option,
-  ) error
+	GetTimeSeriesServiceStatisticsPagesWithContext(
+		aws.Context,
+		*xray.GetTimeSeriesServiceStatisticsInput,
+		func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
+		...request.Option,
+	) error
 }
