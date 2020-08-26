@@ -86,8 +86,8 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 		return true
 	})
 
-	log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "error", err)
 	if err != nil {
+    log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "error", err)
 		return backend.DataResponse{
 			Error: err,
 		}
