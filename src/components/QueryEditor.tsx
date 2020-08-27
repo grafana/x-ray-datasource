@@ -5,6 +5,7 @@ import { XrayDataSource } from '../DataSource';
 import { XrayJsonData, XrayQuery, XrayQueryType } from '../types';
 import { XRayQueryField } from './XRayQueryField';
 import { ColumnFilter } from './ColumnFilter';
+import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
 
 const traceListOption = { label: 'Trace List', value: 'traceList' };
 const traceStatisticsOption = {
@@ -13,7 +14,12 @@ const traceStatisticsOption = {
   queryType: XrayQueryType.getTimeSeriesServiceStatistics,
 };
 
-const queryTypeOptions = [
+type QueryTypeOption = CascaderOption & {
+  queryType?: XrayQueryType;
+  children?: QueryTypeOption[];
+};
+
+export const queryTypeOptions: QueryTypeOption[] = [
   traceListOption,
   traceStatisticsOption,
   {
@@ -32,7 +38,7 @@ const queryTypeOptions = [
                 value: 'rootCauseService',
                 label: 'Root Cause',
                 queryType: XrayQueryType.getAnalyticsRootCauseResponseTimeService,
-              },
+              } as QueryTypeOption,
               {
                 value: 'path',
                 label: 'Path',
@@ -88,7 +94,7 @@ const queryTypeOptions = [
         value: 'user',
         label: 'End user impact',
         queryType: XrayQueryType.getAnalyticsUser,
-      },
+      } as QueryTypeOption,
       {
         value: 'url',
         label: 'URL',
@@ -103,18 +109,22 @@ const queryTypeOptions = [
   },
 ];
 
-function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): any {
+function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
+    const selected: QueryTypeOption[] = [];
     if (option.queryType === queryType) {
-      return option;
+      selected.push(option);
+      return selected;
     }
     if (option.children) {
       const found = findOptionForQueryType(queryType, option.children);
-      if (found) {
-        return found;
+      if (found.length) {
+        selected.push(option, ...found);
+        return selected;
       }
     }
   }
+  return [];
 }
 
 /**
@@ -122,13 +132,13 @@ function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTy
  * between trace list and single trace and we detect that based on query. So trace list option returns single trace
  * if query contains single traceID.
  */
-export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): any {
+export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
   if (!queryType || queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
-    return queryTypeOptions[1];
+    return [queryTypeOptions[1]];
   }
 
   if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
-    return queryTypeOptions[0];
+    return [queryTypeOptions[0]];
   }
 
   return findOptionForQueryType(queryType);
@@ -139,20 +149,19 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
     const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(query.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
   } else {
-    let searchingOptions: any = queryTypeOptions;
-    let foundOption;
-    for (const option of selected) {
-      foundOption = searchingOptions.find((o: any) => o.value === option);
-      searchingOptions = foundOption?.children;
+    let found: any = undefined;
+    for (const path of selected) {
+      found = (found?.children ?? queryTypeOptions).find((option: QueryTypeOption) => option.value === path)!;
     }
-    return foundOption.queryType;
+    return found.queryType!;
   }
 }
 
 type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
   useInitQuery(query, onChange);
-  const queryTypeOption = queryTypeToQueryTypeOptions(query.queryType);
+  const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
+  console.log(selectedOptions);
 
   const onRunQuery = () => {
     onChange(query);
@@ -168,6 +177,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         <div className="gf-form">
           <InlineFormLabel width="auto">Query Type</InlineFormLabel>
           <ButtonCascader
+            value={selectedOptions.map(option => option.value)}
             options={queryTypeOptions}
             onChange={value => {
               const newQueryType = queryTypeOptionToQueryType(
@@ -182,7 +192,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
               } as any);
             }}
           >
-            {queryTypeOption.label}
+            {selectedOptions[selectedOptions.length - 1].label}
           </ButtonCascader>
         </div>
         <div style={{ flex: 1, display: 'flex' }}>
@@ -195,14 +205,17 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             onChange={e => {
               onChange({
                 ...query,
-                queryType: queryTypeOptionToQueryType(queryTypeOption, e.query),
+                queryType: queryTypeOptionToQueryType(
+                  selectedOptions.map(option => option.value),
+                  e.query
+                ),
                 query: e.query,
               });
             }}
           />
         </div>
       </div>
-      {queryTypeOption === traceStatisticsOption && (
+      {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form">
           <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
             <InlineFormLabel width="auto">Resolution</InlineFormLabel>
