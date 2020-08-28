@@ -42,6 +42,71 @@ func makeSummary() *xray.TraceSummary {
     Duration:               aws.Float64(10.5),
     Http:                   http,
     Id:                     aws.String("id1"),
+    ErrorRootCauses: []*xray.ErrorRootCause{
+      {
+        ClientImpacting: nil,
+        Services:        []*xray.ErrorRootCauseService{
+          {
+            Name: aws.String("service_name_1"),
+            Type: aws.String("service_type_1"),
+            EntityPath: []*xray.ErrorRootCauseEntity{
+              {
+                Exceptions: []*xray.RootCauseException{
+                  {
+                    Name: aws.String("Test exception"),
+                    Message: aws.String("Test exception message"),
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    FaultRootCauses: []*xray.FaultRootCause{
+      {
+        ClientImpacting: nil,
+        Services:        []*xray.FaultRootCauseService{
+          {
+            Name: aws.String("faulty_service_name_1"),
+            Type: aws.String("faulty_service_type_1"),
+            EntityPath: []*xray.FaultRootCauseEntity{
+              {
+                Exceptions: []*xray.RootCauseException{
+                  {
+                    Name: aws.String("Test fault"),
+                    Message: aws.String("Test fault message"),
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    ResponseTimeRootCauses: []*xray.ResponseTimeRootCause{
+      {
+        ClientImpacting: nil,
+        Services:        []*xray.ResponseTimeRootCauseService{
+          {
+            Name: aws.String("response_service_name_1"),
+            Type: aws.String("response_service_type_1"),
+            EntityPath: []*xray.ResponseTimeRootCauseEntity{
+              { Name: aws.String("response_service_name_1") },
+              { Name: aws.String("response_sub_service_name_1") },
+            },
+          },
+          {
+            Name: aws.String("response_service_name_2"),
+            Type: aws.String("response_service_type_2"),
+            EntityPath: []*xray.ResponseTimeRootCauseEntity{
+              { Name: aws.String("response_service_name_2") },
+              { Name: aws.String("response_sub_service_name_2") },
+            },
+          },
+        },
+      },
+    },
   }
 }
 
@@ -234,4 +299,85 @@ func TestDatasource(t *testing.T) {
     require.Equal(t, 10.5, *frame.Fields[3].At(0).(*float64))
     require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
   })
+
+	//
+	// RootCauseError
+	//
+
+  t.Run("getAnalyticsRootCauseErrorService query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorService, [][]interface{}{
+      {"service_name_1 (service_type_1)", int64(2), float64(100) },
+    })
+  })
+
+  t.Run("getAnalyticsRootCauseErrorPath query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorPath, [][]interface{}{
+      {"service_name_1 (service_type_1) -> Test exception", int64(2), float64(100) },
+    })
+  })
+
+  t.Run("getAnalyticsRootCauseErrorMessage query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorMessage, [][]interface{}{
+      {"Test exception message", int64(2), float64(100) },
+    })
+  })
+
+  //
+  // RootCauseFault
+  //
+
+  t.Run("getAnalyticsRootCauseFaultService query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultService, [][]interface{}{
+      {"faulty_service_name_1 (faulty_service_type_1)", int64(2), float64(100) },
+    })
+  })
+
+  t.Run("getAnalyticsRootCauseFaultPath query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultPath, [][]interface{}{
+      {"faulty_service_name_1 (faulty_service_type_1) -> Test fault", int64(2), float64(100) },
+    })
+  })
+
+  t.Run("getAnalyticsRootCauseFaultMessage query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultMessage, [][]interface{}{
+      {"Test fault message", int64(2), float64(100) },
+    })
+  })
+
+  //
+  // RootCauseResponseTime
+  //
+
+  t.Run("getAnalyticsRootCauseResponseTimeService query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimeService, [][]interface{}{
+      {"response_service_name_2 (response_service_type_2)", int64(2), float64(100) },
+    })
+  })
+
+  t.Run("getAnalyticsRootCauseResponseTimePath query", func(t *testing.T) {
+    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimePath, [][]interface{}{
+      {
+        "response_service_name_1 (response_service_type_1) -> response_sub_service_name_1 => response_service_name_2 (response_service_type_2) -> response_sub_service_name_2",
+        int64(2),
+        float64(100),
+      },
+    })
+  })
+}
+
+func testAnalytics(t *testing.T, ds *datasource.Datasource, queryType string, data [][]interface{}) {
+  response, err := queryDatasource(ds, queryType, datasource.GetTraceSummariesQueryData{ Query: "" })
+  require.NoError(t, err)
+  checkResponse(t, response, data)
+}
+
+func checkResponse(t *testing.T, response *backend.QueryDataResponse, data [][]interface{}) {
+  require.NoError(t, response.Responses["A"].Error)
+  frame := response.Responses["A"].Frames[0]
+  require.Equal(t, len(data), frame.Fields[0].Len())
+  for rowIndex, row := range data {
+    for columnIndex, column := range row {
+      require.Equal(t, column, frame.Fields[columnIndex].At(rowIndex))
+    }
+  }
 }

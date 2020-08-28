@@ -225,7 +225,6 @@ func (dataProcessor *DataProcessor) dataframe() *data.Frame {
   )
 
   for key, value := range dataProcessor.counts {
-    log.DefaultLogger.Debug("percent", "percent", float64(value) / float64(dataProcessor.total) * 100, "value", value, "total", dataProcessor.total)
     frame.AppendRow(key, value, float64(value) / float64(dataProcessor.total) * 100)
   }
 
