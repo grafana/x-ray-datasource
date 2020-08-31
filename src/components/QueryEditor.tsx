@@ -180,7 +180,6 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             options={queryTypeOptions}
             onChange={value => {
               const newQueryType = queryTypeOptionToQueryType(
-                // @ts-ignore get get rid of implicit any here
                 value,
                 query.query || ''
               );
