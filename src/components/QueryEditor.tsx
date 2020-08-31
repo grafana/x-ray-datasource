@@ -161,7 +161,6 @@ type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
   useInitQuery(query, onChange);
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
-  console.log(selectedOptions);
 
   const onRunQuery = () => {
     onChange(query);
