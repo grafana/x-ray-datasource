@@ -27,6 +27,7 @@ export enum XrayQueryType {
   getAnalyticsUser = 'getAnalyticsUser',
   getAnalyticsUrl = 'getAnalyticsUrl',
   getAnalyticsStatusCode = 'getAnalyticsStatusCode',
+  getInsights = 'getInsights',
 }
 
 export interface XrayJsonData extends DataSourceJsonData {

@@ -161,6 +161,10 @@ func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(con
 	return nil
 }
 
+func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error) {
+	return &xray.GetInsightSummariesOutput{}, nil
+}
+
 type StatsType string
 
 const (
