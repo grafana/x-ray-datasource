@@ -57,6 +57,17 @@ const (
 	QueryGetTrace                       = "getTrace"
 	QueryGetTraceSummaries              = "getTraceSummaries"
 	QueryGetTimeSeriesServiceStatistics = "getTimeSeriesServiceStatistics"
+  QueryGetAnalyticsRootCauseResponseTimeService = "getAnalyticsRootCauseResponseTimeService"
+  QueryGetAnalyticsRootCauseResponseTimePath = "getAnalyticsRootCauseResponseTimePath"
+  QueryGetAnalyticsRootCauseErrorService = "getAnalyticsRootCauseErrorService"
+  QueryGetAnalyticsRootCauseErrorPath = "getAnalyticsRootCauseErrorPath"
+  QueryGetAnalyticsRootCauseErrorMessage = "getAnalyticsRootCauseErrorMessage"
+  QueryGetAnalyticsRootCauseFaultService = "getAnalyticsRootCauseFaultService"
+  QueryGetAnalyticsRootCauseFaultPath = "getAnalyticsRootCauseFaultPath"
+  QueryGetAnalyticsRootCauseFaultMessage = "getAnalyticsRootCauseFaultMessage"
+  QueryGetAnalyticsUrl = "getAnalyticsUrl"
+  QueryGetAnalyticsUser = "getAnalyticsUser"
+  QueryGetAnalyticsStatusCode = "getAnalyticsStatusCode"
 )
 
 func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) (XrayClient, error)) *Datasource {
@@ -68,6 +79,17 @@ func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) 
 	mux.HandleFunc(QueryGetTrace, ds.getTrace)
 	mux.HandleFunc(QueryGetTraceSummaries, ds.getTraceSummaries)
 	mux.HandleFunc(QueryGetTimeSeriesServiceStatistics, ds.getTimeSeriesServiceStatistics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimeService, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimePath, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseErrorService, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseErrorPath, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseErrorMessage, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseFaultService, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseFaultPath, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsRootCauseFaultMessage, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsUser, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsUrl, ds.getAnalytics)
+  mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
 
 	ds.QueryMux = mux
 	return ds
