@@ -16,6 +16,17 @@ export enum XrayQueryType {
   getTrace = 'getTrace',
   getTraceSummaries = 'getTraceSummaries',
   getTimeSeriesServiceStatistics = 'getTimeSeriesServiceStatistics',
+  getAnalyticsRootCauseResponseTimeService = 'getAnalyticsRootCauseResponseTimeService',
+  getAnalyticsRootCauseResponseTimePath = 'getAnalyticsRootCauseResponseTimePath',
+  getAnalyticsRootCauseErrorService = 'getAnalyticsRootCauseErrorService',
+  getAnalyticsRootCauseErrorPath = 'getAnalyticsRootCauseErrorPath',
+  getAnalyticsRootCauseErrorMessage = 'getAnalyticsRootCauseErrorMessage',
+  getAnalyticsRootCauseFaultService = 'getAnalyticsRootCauseFaultService',
+  getAnalyticsRootCauseFaultPath = 'getAnalyticsRootCauseFaultPath',
+  getAnalyticsRootCauseFaultMessage = 'getAnalyticsRootCauseFaultMessage',
+  getAnalyticsUser = 'getAnalyticsUser',
+  getAnalyticsUrl = 'getAnalyticsUrl',
+  getAnalyticsStatusCode = 'getAnalyticsStatusCode',
 }
 
 export interface XrayJsonData extends DataSourceJsonData {

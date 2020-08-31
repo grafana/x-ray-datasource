@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { QueryEditor, queryTypeOptionToQueryType, QueryTypeOptions } from './QueryEditor';
+import { QueryEditor, queryTypeOptionToQueryType, queryTypeOptions } from './QueryEditor';
 import { XrayQuery, XrayQueryType } from '../types';
 
 const defaultProps = {
@@ -135,7 +135,7 @@ describe('QueryEditor', () => {
   });
 
   it('sets the query type to getTrace if query is a traceID', () => {
-    const queryType = queryTypeOptionToQueryType(QueryTypeOptions.traceList, '1-5f048fc1-4f1c9b022d6233dacd96fb84');
+    const queryType = queryTypeOptionToQueryType([queryTypeOptions[0].value], '1-5f048fc1-4f1c9b022d6233dacd96fb84');
 
     expect(queryType).toBe(XrayQueryType.getTrace);
   });

@@ -1,41 +1,166 @@
 import React, { useEffect } from 'react';
-import { InlineFormLabel, Segment } from '@grafana/ui';
+import { ButtonCascader, InlineFormLabel, Segment } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
 import { XrayJsonData, XrayQuery, XrayQueryType } from '../types';
 import { XRayQueryField } from './XRayQueryField';
+import { ColumnFilter } from './ColumnFilter';
+import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
+
+const traceListOption = { label: 'Trace List', value: 'traceList' };
+const traceStatisticsOption = {
+  label: 'Trace Statistics',
+  value: 'traceStatistics',
+  queryType: XrayQueryType.getTimeSeriesServiceStatistics,
+};
+
+type QueryTypeOption = CascaderOption & {
+  queryType?: XrayQueryType;
+  children?: QueryTypeOption[];
+};
+
+export const queryTypeOptions: QueryTypeOption[] = [
+  traceListOption,
+  traceStatisticsOption,
+  {
+    label: 'Trace Analytics',
+    value: 'traceAnalytics',
+    children: [
+      {
+        value: 'rootCause',
+        label: 'Root Cause',
+        children: [
+          {
+            value: 'responseTime',
+            label: 'Response Time',
+            children: [
+              {
+                value: 'rootCauseService',
+                label: 'Root Cause',
+                queryType: XrayQueryType.getAnalyticsRootCauseResponseTimeService,
+              } as QueryTypeOption,
+              {
+                value: 'path',
+                label: 'Path',
+                queryType: XrayQueryType.getAnalyticsRootCauseResponseTimePath,
+              },
+            ],
+          },
+          {
+            value: 'error',
+            label: 'Error',
+            children: [
+              {
+                value: 'rootCauseService',
+                label: 'Root Cause',
+                queryType: XrayQueryType.getAnalyticsRootCauseErrorService,
+              },
+              {
+                value: 'path',
+                label: 'Path',
+                queryType: XrayQueryType.getAnalyticsRootCauseErrorPath,
+              },
+              {
+                value: 'message',
+                label: 'Error Message',
+                queryType: XrayQueryType.getAnalyticsRootCauseErrorMessage,
+              },
+            ],
+          },
+          {
+            value: 'fault',
+            label: 'Fault',
+            children: [
+              {
+                value: 'rootCauseService',
+                label: 'Root Cause',
+                queryType: XrayQueryType.getAnalyticsRootCauseFaultService,
+              },
+              {
+                value: 'path',
+                label: 'Path',
+                queryType: XrayQueryType.getAnalyticsRootCauseFaultPath,
+              },
+              {
+                value: 'message',
+                label: 'Error Message',
+                queryType: XrayQueryType.getAnalyticsRootCauseFaultMessage,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        value: 'user',
+        label: 'End user impact',
+        queryType: XrayQueryType.getAnalyticsUser,
+      } as QueryTypeOption,
+      {
+        value: 'url',
+        label: 'URL',
+        queryType: XrayQueryType.getAnalyticsUrl,
+      },
+      {
+        value: 'statusCode',
+        label: 'HTTP status code',
+        queryType: XrayQueryType.getAnalyticsStatusCode,
+      },
+    ],
+  },
+];
+
+function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
+  for (const option of options) {
+    const selected: QueryTypeOption[] = [];
+    if (option.queryType === queryType) {
+      selected.push(option);
+      return selected;
+    }
+    if (option.children) {
+      const found = findOptionForQueryType(queryType, option.children);
+      if (found.length) {
+        selected.push(option, ...found);
+        return selected;
+      }
+    }
+  }
+  return [];
+}
 
 /**
  * We do some mapping of the actual queryTypes to options user can select. Mainly don't want user to choose
  * between trace list and single trace and we detect that based on query. So trace list option returns single trace
  * if query contains single traceID.
  */
-export enum QueryTypeOptions {
-  traceList = 'Trace List',
-  traceStatistics = 'Trace Statistics',
-}
-
-export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOptions {
-  if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
-    return QueryTypeOptions.traceList;
-  } else {
-    return QueryTypeOptions.traceStatistics;
+export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
+  if (!queryType || queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
+    return [traceStatisticsOption];
   }
+
+  if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
+    return [traceListOption];
+  }
+
+  return findOptionForQueryType(queryType);
 }
 
-export function queryTypeOptionToQueryType(queryTypeOption: QueryTypeOptions, query: string): XrayQueryType {
-  if (queryTypeOption === QueryTypeOptions.traceList) {
+export function queryTypeOptionToQueryType(selected: string[], query: string): XrayQueryType {
+  if (selected[0] === traceListOption.value) {
     const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(query.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
   } else {
-    return XrayQueryType.getTimeSeriesServiceStatistics;
+    let found: any = undefined;
+    for (const path of selected) {
+      found = (found?.children ?? queryTypeOptions).find((option: QueryTypeOption) => option.value === path)!;
+    }
+    return found.queryType!;
   }
 }
 
 type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
   useInitQuery(query, onChange);
-  const queryTypeOption = queryTypeToQueryTypeOptions(query.queryType);
+  const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
 
   const onRunQuery = () => {
     onChange(query);
@@ -50,26 +175,20 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
       <div className="gf-form">
         <div className="gf-form">
           <InlineFormLabel width="auto">Query Type</InlineFormLabel>
-          <Segment
-            value={queryTypeOption}
-            options={Object.keys(QueryTypeOptions).map(key => ({
-              value: key,
-              // @ts-ignore get rid of implicit any here
-              label: QueryTypeOptions[key],
-            }))}
-            onChange={({ value }) => {
-              const newQueryType = queryTypeOptionToQueryType(
-                // @ts-ignore get get rid of implicit any here
-                QueryTypeOptions[value!],
-                query.query || ''
-              );
+          <ButtonCascader
+            value={selectedOptions.map(option => option.value)}
+            options={queryTypeOptions}
+            onChange={value => {
+              const newQueryType = queryTypeOptionToQueryType(value, query.query || '');
               onChange({
                 ...query,
                 queryType: newQueryType,
                 columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
               } as any);
             }}
-          />
+          >
+            {selectedOptions[selectedOptions.length - 1].label}
+          </ButtonCascader>
         </div>
         <div style={{ flex: 1, display: 'flex' }}>
           <InlineFormLabel width="auto">Query</InlineFormLabel>
@@ -81,14 +200,17 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             onChange={e => {
               onChange({
                 ...query,
-                queryType: queryTypeOptionToQueryType(queryTypeOption, e.query),
+                queryType: queryTypeOptionToQueryType(
+                  selectedOptions.map(option => option.value),
+                  e.query
+                ),
                 query: e.query,
               });
             }}
           />
         </div>
       </div>
-      {queryTypeOption === QueryTypeOptions.traceStatistics && (
+      {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form">
           <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
             <InlineFormLabel width="auto">Resolution</InlineFormLabel>
@@ -110,73 +232,6 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         </div>
       )}
     </div>
-  );
-}
-
-const columnNames: { [key: string]: string } = {
-  'ErrorStatistics.ThrottleCount': 'Throttle Count',
-  'ErrorStatistics.TotalCount': 'Error Count',
-  'FaultStatistics.TotalCount': 'Fault Count',
-  OkCount: 'Success Count',
-  TotalCount: 'Total Count',
-  'Computed.AverageResponseTime': 'Average Response Time',
-};
-
-function ColumnFilter(props: { columns: string[]; onChange: (columns: string[]) => void }) {
-  const { columns, onChange } = props;
-
-  let options = Object.keys(columnNames)
-    // Don't allow selecting same column twice.
-    .filter(name => !columns.includes(name))
-    .map(name => ({
-      label: columnNames[name],
-      value: name,
-    }));
-
-  const showingAll = columns.includes('all');
-  if (!showingAll) {
-    // Only allow one instance of 'all'
-    options = [{ label: 'all', value: 'all' }, ...options];
-  }
-
-  return (
-    <>
-      {columns.map((column, index) => (
-        <Segment
-          key={column}
-          placeholder="add"
-          options={[...options, { label: 'remove', value: 'remove' }]}
-          value={{ label: column === 'all' ? column : columnNames[column], value: column }}
-          onChange={val => {
-            if (val.value === 'all') {
-              onChange(['all']);
-            } else if (val.value === 'remove') {
-              const newColumns = columns.slice();
-              newColumns.splice(index, 1);
-              // If we removed last column fall back to default which is showing all columns
-              onChange(newColumns.length ? newColumns : ['all']);
-            } else {
-              const newColumns = columns.slice();
-              newColumns.splice(index, 1, val.value!);
-              onChange(newColumns);
-            }
-          }}
-        />
-      ))}
-      {!showingAll && (
-        <Segment
-          placeholder="add"
-          options={[...options]}
-          onChange={val => {
-            if (val.value === 'all') {
-              onChange(['all']);
-            } else {
-              onChange([...columns, val.value!]);
-            }
-          }}
-        />
-      )}
-    </>
   );
 }
 
