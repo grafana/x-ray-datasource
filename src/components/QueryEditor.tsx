@@ -134,11 +134,11 @@ function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTy
  */
 export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
   if (!queryType || queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
-    return [queryTypeOptions[1]];
+    return [traceStatisticsOption];
   }
 
   if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
-    return [queryTypeOptions[0]];
+    return [traceListOption];
   }
 
   return findOptionForQueryType(queryType);
@@ -179,10 +179,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             value={selectedOptions.map(option => option.value)}
             options={queryTypeOptions}
             onChange={value => {
-              const newQueryType = queryTypeOptionToQueryType(
-                value,
-                query.query || ''
-              );
+              const newQueryType = queryTypeOptionToQueryType(value, query.query || '');
               onChange({
                 ...query,
                 queryType: newQueryType,
