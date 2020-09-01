@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ButtonCascader, InlineFormLabel, Segment } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
-import { XrayJsonData, XrayQuery, XrayQueryType } from '../types';
+import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../types';
 import { XRayQueryField } from './XRayQueryField';
 import { ColumnFilter } from './ColumnFilter';
 import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
@@ -159,7 +159,8 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
 
 type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
-  useInitQuery(query, onChange);
+  const groups = useGroups(datasource);
+  useInitQuery(query, onChange, groups);
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
 
   const onRunQuery = () => {
@@ -190,6 +191,24 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             {selectedOptions[selectedOptions.length - 1].label}
           </ButtonCascader>
         </div>
+        {query.queryType !== XrayQueryType.getTrace && (
+          <div className="gf-form">
+            <InlineFormLabel width="auto">Group</InlineFormLabel>
+            <Segment
+              value={query.group?.GroupName}
+              options={groups.map((group: Group) => ({
+                value: group.GroupARN,
+                label: group.GroupName,
+              }))}
+              onChange={value => {
+                onChange({
+                  ...query,
+                  group: groups.find((g: Group) => g.GroupARN === value.value),
+                } as any);
+              }}
+            />
+          </div>
+        )}
         <div style={{ flex: 1, display: 'flex' }}>
           <InlineFormLabel width="auto">Query</InlineFormLabel>
           <XRayQueryField
@@ -238,15 +257,56 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
 /**
  * Inits the query with queryType so the segment component is filled in.
  */
-function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void) {
+function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void, groups: Group[]) {
   useEffect(() => {
+    let queryType;
     // We assume that if there is no queryType during mount there should not be any query so we do not need to
     // check if query has traceId or not as we do with the QueryTypeOptions mapping.
     if (!query.queryType) {
+      queryType = XrayQueryType.getTraceSummaries;
+    }
+
+    let group;
+    let sameArnGroup = groups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
+    if (!sameArnGroup) {
+      // We assume here the "Default" group is always there.
+      group = groups.find((g: Group) => g.GroupName === 'Default');
+    } else if (
+      // This is the case when the group changes ie has the same ARN but different filter for example. I assume this can
+      // happen but not 100% sure.
+      sameArnGroup.GroupName !== query.group?.GroupName ||
+      sameArnGroup.FilterExpression !== query.group?.FilterExpression
+    ) {
+      group = sameArnGroup;
+    }
+
+    if (queryType || group) {
+      const change: Partial<XrayQuery> = {};
+      if (queryType) {
+        change.queryType = queryType;
+      }
+      if (group) {
+        change.group = group;
+      }
       onChange({
         ...query,
-        queryType: XrayQueryType.getTraceSummaries,
+        ...change,
       });
     }
-  }, [query]);
+  }, [query, groups]);
+}
+
+/**
+ * Inits the query with queryType so the segment component is filled in.
+ */
+function useGroups(datasource: XrayDataSource) {
+  const [groups, setGroups] = useState<Group[]>([]);
+  useEffect(() => {
+    // This should run in case we change between different x-ray datasources and so should clear old groups.
+    setGroups([]);
+    datasource.getGroups().then(groups => {
+      setGroups(groups);
+    });
+  }, [datasource]);
+  return groups;
 }

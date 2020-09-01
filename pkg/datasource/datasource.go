@@ -1,8 +1,11 @@
 package datasource
 
 import (
+  "context"
+  "fmt"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/request"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/resource"
   "net/http"
 
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -12,6 +15,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 // newDatasource returns datasource.ServeOpts.
@@ -24,6 +28,7 @@ func GetServeOpts() datasource.ServeOpts {
 
 	return datasource.ServeOpts{
 		QueryDataHandler:   ds.QueryMux,
+		CallResourceHandler: ds,
 		CheckHealthHandler: ds,
 	}
 }
@@ -94,6 +99,33 @@ func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) 
 	return ds
 }
 
+func (ds *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+
+  log.DefaultLogger.Debug("CallResource", "Path", req.Path, "Method", req.Method)
+  if req.Path == "/groups" && req.Method == "GET" {
+    xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
+    if err != nil {
+      return err
+    }
+    req := &xray.GetGroupsInput{}
+    var groups []*xray.GroupSummary
+    err = xrayClient.GetGroupsPages(req, func(output *xray.GetGroupsOutput, b bool) bool {
+      groups = append(groups, output.Groups...)
+      return true
+    })
+    if err != nil {
+      return err
+    }
+
+    err = resource.SendJSON(sender, groups)
+    if err != nil {
+      return err
+    }
+    return nil
+  }
+  return fmt.Errorf("unknow resource %s: %s", req.Method, req.Path)
+}
+
 func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
 	dsInfo, err := configuration.GetDatasourceInfo(pluginContext.DataSourceInstanceSettings, "default")
 	if err != nil {
@@ -115,4 +147,5 @@ type XrayClient interface {
     func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
     ...request.Option,
   ) error
+  GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool ) error
 }
