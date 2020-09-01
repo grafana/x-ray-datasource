@@ -191,24 +191,22 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             {selectedOptions[selectedOptions.length - 1].label}
           </ButtonCascader>
         </div>
-        {query.queryType !== XrayQueryType.getTrace && (
-          <div className="gf-form">
-            <InlineFormLabel width="auto">Group</InlineFormLabel>
-            <Segment
-              value={query.group?.GroupName}
-              options={groups.map((group: Group) => ({
-                value: group.GroupARN,
-                label: group.GroupName,
-              }))}
-              onChange={value => {
-                onChange({
-                  ...query,
-                  group: groups.find((g: Group) => g.GroupARN === value.value),
-                } as any);
-              }}
-            />
-          </div>
-        )}
+        <div className="gf-form">
+          <InlineFormLabel width="auto">Group</InlineFormLabel>
+          <Segment
+            value={query.group?.GroupName}
+            options={groups.map((group: Group) => ({
+              value: group.GroupARN,
+              label: group.GroupName,
+            }))}
+            onChange={value => {
+              onChange({
+                ...query,
+                group: groups.find((g: Group) => g.GroupARN === value.value),
+              } as any);
+            }}
+          />
+        </div>
         <div style={{ flex: 1, display: 'flex' }}>
           <InlineFormLabel width="auto">Query</InlineFormLabel>
           <XRayQueryField

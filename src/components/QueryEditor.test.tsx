@@ -1,12 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { QueryEditor, queryTypeOptionToQueryType, queryTypeOptions } from './QueryEditor';
 import { XrayQuery, XrayQueryType } from '../types';
 
 const defaultProps = {
-  onChange: () => {},
-  datasource: undefined as any,
   onRunQuery: undefined as any,
+  datasource: {
+    async getGroups() {
+      return [];
+    },
+  } as any,
 };
 
 jest.mock('./XRayQueryField', () => {
@@ -18,22 +21,26 @@ jest.mock('./XRayQueryField', () => {
   };
 });
 
-function renderWithQuery(query: Omit<XrayQuery, 'refId'>, rerender?: any) {
+async function renderWithQuery(query: Omit<XrayQuery, 'refId'>, rerender?: any) {
   const renderFunc = rerender || render;
 
   const onChange = jest.fn();
-  const utils = renderFunc(
-    <QueryEditor
-      {...{
-        ...defaultProps,
-        query: {
-          refId: 'A',
-          ...query,
-        },
-      }}
-      onChange={onChange}
-    />
-  );
+  let utils: any;
+  await act(async () => {
+    utils = renderFunc(
+      <QueryEditor
+        {...{
+          ...defaultProps,
+          query: {
+            refId: 'A',
+            ...query,
+          },
+        }}
+        onChange={onChange}
+      />
+    );
+    await waitFor(() => {});
+  });
 
   return { ...utils, onChange };
 }
@@ -43,16 +50,16 @@ describe('QueryEditor', () => {
     [XrayQueryType.getTrace, 'Trace List'],
     [XrayQueryType.getTraceSummaries, 'Trace List'],
     [XrayQueryType.getTimeSeriesServiceStatistics, 'Trace Statistics'],
-  ])('renders proper query type option when query type is %s', (type, expected) => {
-    renderWithQuery({
+  ])('renders proper query type option when query type is %s', async (type, expected) => {
+    await renderWithQuery({
       query: 'test query',
       queryType: type as XrayQueryType,
     });
     expect(screen.getByText(expected)).not.toBeNull();
   });
 
-  it('inits the query with query type', () => {
-    const { onChange } = renderWithQuery({ query: '' });
+  it('inits the query with query type', async () => {
+    const { onChange } = await renderWithQuery({ query: '' });
     expect(onChange).toBeCalledWith({
       refId: 'A',
       query: '',
@@ -60,27 +67,18 @@ describe('QueryEditor', () => {
     });
   });
 
-  it('shows column filter and resolution only if query type is getTimeSeriesServiceStatistics', () => {
-    const { rerender } = renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
+  it('shows column filter and resolution only if query type is getTimeSeriesServiceStatistics', async () => {
+    const { rerender } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
     expect(screen.queryByTestId('column-filter')).toBeNull();
     expect(screen.queryByTestId('resolution')).toBeNull();
 
-    renderWithQuery({ query: '', queryType: XrayQueryType.getTimeSeriesServiceStatistics }, rerender);
+    await renderWithQuery({ query: '', queryType: XrayQueryType.getTimeSeriesServiceStatistics }, rerender);
     expect(screen.queryByTestId('column-filter')).not.toBeNull();
     expect(screen.queryByTestId('resolution')).not.toBeNull();
   });
 
-  it('correctly changes the query type if user fills in trace id', () => {
-    const onChange = jest.fn();
-    render(
-      <QueryEditor
-        {...{
-          ...defaultProps,
-          query: { refId: 'A', query: '', queryType: XrayQueryType.getTraceSummaries },
-          onChange,
-        }}
-      />
-    );
+  it('correctly changes the query type if user fills in trace id', async () => {
+    const { onChange } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
 
     const field = screen.getByTestId('query-field-mock');
 
@@ -93,8 +91,8 @@ describe('QueryEditor', () => {
     });
   });
 
-  it('can add and remove column filters', () => {
-    let { onChange, rerender } = renderWithQuery({
+  it('can add and remove column filters', async () => {
+    let { onChange, rerender } = await renderWithQuery({
       query: '',
       columns: ['all'],
       queryType: XrayQueryType.getTimeSeriesServiceStatistics,
@@ -112,13 +110,15 @@ describe('QueryEditor', () => {
       queryType: XrayQueryType.getTimeSeriesServiceStatistics,
     });
 
-    onChange = renderWithQuery(
-      {
-        query: '',
-        columns: ['OkCount'],
-        queryType: XrayQueryType.getTimeSeriesServiceStatistics,
-      },
-      rerender
+    onChange = (
+      await renderWithQuery(
+        {
+          query: '',
+          columns: ['OkCount'],
+          queryType: XrayQueryType.getTimeSeriesServiceStatistics,
+        },
+        rerender
+      )
     ).onChange;
 
     segment = screen.getByText(/Success Count/i, { selector: 'a' });

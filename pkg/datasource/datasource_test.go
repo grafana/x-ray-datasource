@@ -162,6 +162,25 @@ func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(con
   return nil
 }
 
+func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool ) error {
+  output := &xray.GetGroupsOutput{
+    Groups: []*xray.GroupSummary{
+      {
+        GroupARN: aws.String("arn:1"),
+        GroupName: aws.String("Default"),
+        FilterExpression: aws.String(""),
+      },
+      {
+        GroupARN: aws.String("arn:2"),
+        GroupName: aws.String("GroupTest"),
+        FilterExpression: aws.String("service(\"test\")"),
+      },
+    },
+  }
+  fn(output, false)
+  return nil
+}
+
 type StatsType string
 const (
   Edge = "edge"
@@ -225,6 +244,26 @@ func queryDatasource(ds *datasource.Datasource, queryType string, query interfac
     context.Background(),
     &backend.QueryDataRequest{Queries: []backend.DataQuery{{ RefID: "A", QueryType: queryType, JSON: jsonData }}},
   )
+}
+
+type MockSender struct {
+  fn func(resp *backend.CallResourceResponse)
+}
+func (sender *MockSender) Send(resp *backend.CallResourceResponse) error {
+  sender.fn(resp)
+  return nil
+}
+
+func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourceRequest) *backend.CallResourceResponse {
+  var resp *backend.CallResourceResponse
+  ds.ResourceMux.CallResource(
+    context.Background(),
+    req,
+    &MockSender{fn: func(r *backend.CallResourceResponse) {
+      resp = r
+    }},
+  )
+  return resp
 }
 
 func TestDatasource(t *testing.T) {
@@ -362,6 +401,20 @@ func TestDatasource(t *testing.T) {
         float64(100),
       },
     })
+  })
+
+  t.Run("getGroups query", func(t *testing.T) {
+    resp := queryDatasourceResource(ds, &backend.CallResourceRequest{
+      Path:          "/groups",
+      Method:        "GET",
+    })
+
+    var data []*xray.GroupSummary
+    err := json.Unmarshal(resp.Body, &data)
+    require.NoError(t, err)
+    require.Equal(t, 2, len(data))
+    require.Equal(t, "Default", *data[0].GroupName)
+    require.Equal(t, "GroupTest", *data[1].GroupName)
   })
 }
 

@@ -1,11 +1,8 @@
 package datasource
 
 import (
-  "context"
-  "fmt"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/request"
-  "github.com/grafana/grafana-plugin-sdk-go/backend/resource"
   "net/http"
 
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -15,7 +12,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
-  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
 // newDatasource returns datasource.ServeOpts.
@@ -28,7 +25,7 @@ func GetServeOpts() datasource.ServeOpts {
 
 	return datasource.ServeOpts{
 		QueryDataHandler:   ds.QueryMux,
-		CallResourceHandler: ds,
+		CallResourceHandler: ds.ResourceMux,
 		CheckHealthHandler: ds,
 	}
 }
@@ -54,6 +51,7 @@ type Datasource struct {
 	// but a best practice that we recommend that you follow.
 	im                instancemgmt.InstanceManager
 	QueryMux          *datasource.QueryTypeMux
+  ResourceMux       backend.CallResourceHandler
 	xrayClientFactory func(pluginContext *backend.PluginContext) (XrayClient, error)
 }
 
@@ -96,34 +94,11 @@ func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) 
   mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
 
 	ds.QueryMux = mux
+
+  resMux := http.NewServeMux()
+  resMux.HandleFunc("/groups", ds.getGroups)
+  ds.ResourceMux = httpadapter.New(resMux)
 	return ds
-}
-
-func (ds *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-
-  log.DefaultLogger.Debug("CallResource", "Path", req.Path, "Method", req.Method)
-  if req.Path == "/groups" && req.Method == "GET" {
-    xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-    if err != nil {
-      return err
-    }
-    req := &xray.GetGroupsInput{}
-    var groups []*xray.GroupSummary
-    err = xrayClient.GetGroupsPages(req, func(output *xray.GetGroupsOutput, b bool) bool {
-      groups = append(groups, output.Groups...)
-      return true
-    })
-    if err != nil {
-      return err
-    }
-
-    err = resource.SendJSON(sender, groups)
-    if err != nil {
-      return err
-    }
-    return nil
-  }
-  return fmt.Errorf("unknow resource %s: %s", req.Method, req.Path)
 }
 
 func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {

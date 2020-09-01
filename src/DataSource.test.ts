@@ -32,8 +32,11 @@ jest.mock('@grafana/runtime', () => {
           return [];
         },
         replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
-          if (!target || !scopedVars) {
+          if (!target) {
             return '';
+          }
+          if (!scopedVars) {
+            return target;
           }
           for (const key of Object.keys(scopedVars)) {
             target = target!.replace(`\$${key}`, scopedVars[key].value);
@@ -104,6 +107,21 @@ describe('XrayDataSource', () => {
         .toPromise();
       const mockQuery = (ds as any).mockQuery as jest.Mock;
       expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("test")');
+    });
+
+    it('handles group', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      await ds
+        .query(
+          makeQuery({
+            queryType: XrayQueryType.getTimeSeriesServiceStatistics,
+            query: 'service("something")',
+            group: { FilterExpression: 'service("from group")' } as any,
+          })
+        )
+        .toPromise();
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("from group") AND service("something")');
     });
   });
 });
