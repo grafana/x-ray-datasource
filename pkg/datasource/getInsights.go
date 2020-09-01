@@ -56,8 +56,9 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 
 	responseDataFrame := data.NewFrame(
 		"InsightSummaries",
+		data.NewField("InsightId", nil, []*string{}),
 		data.NewField("Description", nil, []string{}),
-		data.NewField("Duration", nil, []*time.Time{}),
+		data.NewField("Duration", nil, []int64{}),
 		data.NewField("Root cause service", nil, []*string{}),
 		data.NewField("Anomalous services", nil, []*string{}),
 		data.NewField("Group", nil, []*string{}),
@@ -67,8 +68,9 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 	for _, insight := range insightsResponse.InsightSummaries {
 		description := strings.Split(aws.StringValue(insight.Summary), ".")[1] + "."
 		responseDataFrame.AppendRow(
+			insight.InsightId,
 			description,
-			insight.EndTime,
+			int64(insight.EndTime.Sub(aws.TimeValue(insight.StartTime))/time.Millisecond),
 			insight.RootCauseServiceId.Name,
 			insight.TopAnomalousServices[0].ServiceId.Name,
 			insight.GroupName,
