@@ -149,7 +149,7 @@ interface Http {
 
 interface Cause {
   working_directory: string;
-  exceptions: Array<{ message: string; type: string; stack: Array<{ path: string; line: number; label: string }> }>;
+  exceptions?: Array<{ message: string; type: string; stack: Array<{ path: string; line: number; label: string }> }>;
 }
 
 export type XrayTraceDataSegmentDocument = {
