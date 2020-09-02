@@ -254,16 +254,16 @@ func (sender *MockSender) Send(resp *backend.CallResourceResponse) error {
   return nil
 }
 
-func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourceRequest) *backend.CallResourceResponse {
+func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourceRequest) (*backend.CallResourceResponse, error) {
   var resp *backend.CallResourceResponse
-  ds.ResourceMux.CallResource(
+  err := ds.ResourceMux.CallResource(
     context.Background(),
     req,
     &MockSender{fn: func(r *backend.CallResourceResponse) {
       resp = r
     }},
   )
-  return resp
+  return resp, err
 }
 
 func TestDatasource(t *testing.T) {
@@ -404,13 +404,14 @@ func TestDatasource(t *testing.T) {
   })
 
   t.Run("getGroups query", func(t *testing.T) {
-    resp := queryDatasourceResource(ds, &backend.CallResourceRequest{
+    resp, err := queryDatasourceResource(ds, &backend.CallResourceRequest{
       Path:          "/groups",
       Method:        "GET",
     })
+    require.NoError(t, err)
 
     var data []*xray.GroupSummary
-    err := json.Unmarshal(resp.Body, &data)
+    err = json.Unmarshal(resp.Body, &data)
     require.NoError(t, err)
     require.Equal(t, 2, len(data))
     require.Equal(t, "Default", *data[0].GroupName)
