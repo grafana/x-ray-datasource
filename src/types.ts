@@ -10,6 +10,9 @@ export interface XrayQuery extends DataQuery {
 
   // Interval of the getTimeSeriesServiceStatistics aggregation time bucket
   resolution?: number;
+
+  // Used in case of getInsights to filter by state
+  state?: string;
 }
 
 export enum XrayQueryType {

@@ -2,7 +2,7 @@ package datasource
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -15,6 +15,7 @@ import (
 
 type GetInsightsQueryData struct {
 	Query string `json:"query"`
+	State string `json:"state"`
 }
 
 func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -35,9 +36,27 @@ func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataReq
 }
 
 func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+	queryData := &GetInsightsQueryData{}
+	err := json.Unmarshal(query.JSON, queryData)
+
+	if err != nil {
+		return backend.DataResponse{
+			Error: err,
+		}
+	}
+
+	var states []string = []string{strings.ToUpper(queryData.State)}
+
+	log.DefaultLogger.Debug("states", "states", states)
+
+	if queryData.State == "All" {
+		states = nil
+	}
+
 	insightsResponse, err := xrayClient.GetInsightSummaries(&xray.GetInsightSummariesInput{
 		StartTime: &query.TimeRange.From,
 		EndTime:   &query.TimeRange.To,
+		States:    aws.StringSlice(states),
 		GroupName: aws.String("Grafana"),
 	})
 
@@ -45,12 +64,6 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 		log.DefaultLogger.Debug("GetInsightSummaries", "error", err)
 		return backend.DataResponse{
 			Error: err,
-		}
-	}
-
-	if len(insightsResponse.InsightSummaries) == 0 {
-		return backend.DataResponse{
-			Error: fmt.Errorf("Insight not found"),
 		}
 	}
 
