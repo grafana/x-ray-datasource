@@ -294,9 +294,6 @@ function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void, gr
   }, [query, groups]);
 }
 
-/**
- * Inits the query with queryType so the segment component is filled in.
- */
 function useGroups(datasource: XrayDataSource) {
   const [groups, setGroups] = useState<Group[]>([]);
   useEffect(() => {
