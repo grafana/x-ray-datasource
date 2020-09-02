@@ -97,7 +97,7 @@ function getIconColor(segment: XrayTraceDataSegmentDocument) {
 }
 
 function getStackTrace(segment: XrayTraceDataSegmentDocument) {
-  if (!segment.cause) {
+  if (!segment.cause?.exceptions) {
     return undefined;
   }
   const stackTraces: string[] = [];
