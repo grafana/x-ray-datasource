@@ -82,8 +82,13 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 			)
 		}
 
-		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
-		return true
+		count, err := responseDataFrame.RowLen()
+		if err != nil {
+		  // This should not happen, if it does it's probably a programmatic error.
+		  log.DefaultLogger.Error("could not count the rows in response dataframe", "error", err)
+    }
+    // Hardcode to have similar limit to x-ray console.
+		return count < 1000
 	})
 
 	if err != nil {
