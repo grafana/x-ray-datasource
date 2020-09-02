@@ -160,7 +160,6 @@ function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: Templ
   return {
     ...request,
     targets: request.targets.map(target => {
-
       let newTarget = {
         ...target,
       };
