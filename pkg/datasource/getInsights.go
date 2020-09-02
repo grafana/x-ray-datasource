@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,8 +15,8 @@ import (
 )
 
 type GetInsightsQueryData struct {
-	Query string `json:"query"`
 	State string `json:"state"`
+	Group string `json:"group"`
 }
 
 func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -49,7 +50,7 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 
 	log.DefaultLogger.Debug("states", "states", states)
 
-	if queryData.State == "All" {
+	if queryData.State == "All" || len(queryData.State) == 0 {
 		states = nil
 	}
 
@@ -72,20 +73,23 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 		data.NewField("InsightId", nil, []*string{}),
 		data.NewField("Description", nil, []string{}),
 		data.NewField("Duration", nil, []int64{}),
-		data.NewField("Root cause service", nil, []*string{}),
-		data.NewField("Anomalous services", nil, []*string{}),
+		data.NewField("Root cause service", nil, []string{}),
+		data.NewField("Anomalous services", nil, []string{}),
 		data.NewField("Group", nil, []*string{}),
 		data.NewField("Start time", nil, []*time.Time{}),
 	)
 
 	for _, insight := range insightsResponse.InsightSummaries {
-		description := strings.Split(aws.StringValue(insight.Summary), ".")[1] + "."
+		description := strings.Split(aws.StringValue(insight.Summary), ".")[1]
+		description = strings.TrimSpace(description) + "."
+		rootCauseService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.RootCauseServiceId.Name), aws.StringValue(insight.RootCauseServiceId.Type))
+		anomalousService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Name), aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Type))
 		responseDataFrame.AppendRow(
 			insight.InsightId,
 			description,
 			int64(insight.EndTime.Sub(aws.TimeValue(insight.StartTime))/time.Millisecond),
-			insight.RootCauseServiceId.Name,
-			insight.TopAnomalousServices[0].ServiceId.Name,
+			rootCauseService,
+			anomalousService,
 			insight.GroupName,
 			insight.StartTime,
 		)

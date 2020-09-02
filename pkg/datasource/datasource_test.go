@@ -162,7 +162,19 @@ func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(con
 }
 
 func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error) {
-	return &xray.GetInsightSummariesOutput{}, nil
+	return &xray.GetInsightSummariesOutput{
+		InsightSummaries: []*xray.InsightSummary{
+			{
+				Summary:              aws.String("The incident lasted for 25 minutes. Overall, 54% of the requests to zappa-grafana (AWS::S3::Bucket) failed due to errors."),
+				StartTime:            aws.Time(time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC)),
+				EndTime:              aws.Time(time.Date(2020, 6, 20, 1, 20, 1, 0, time.UTC)),
+				GroupName:            aws.String("Grafana"),
+				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
+				TopAnomalousServices: []*xray.ImpactedService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
+				InsightId:            aws.String("ID"),
+			},
+		},
+	}, nil
 }
 
 type StatsType string
@@ -233,6 +245,24 @@ func queryDatasource(ds *datasource.Datasource, queryType string, query interfac
 
 func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
+
+	t.Run("getInsightSummaries query", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		// it should remove the first sentence from the summary
+		require.Equal(t, "Overall, 54% of the requests to zappa-grafana (AWS::S3::Bucket) failed due to errors.", response.Responses["A"].Frames[0].Fields[1].At(0))
+
+		// duration should be 20 minutes which is 1 200 000 milliseconds
+		require.Equal(t, int64(1200000), response.Responses["A"].Frames[0].Fields[2].At(0))
+
+		// RootCauseServiceId should be Name (Type)
+		require.Equal(t, "graf (AWS)", response.Responses["A"].Frames[0].Fields[3].At(0))
+
+		// TopAnomalousServices should be Name (Type)
+		require.Equal(t, "graf2 (AWS2)", response.Responses["A"].Frames[0].Fields[4].At(0))
+	})
 
 	t.Run("getTrace query", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "traceID"})
