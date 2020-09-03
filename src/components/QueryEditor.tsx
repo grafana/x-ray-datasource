@@ -8,6 +8,7 @@ import { ColumnFilter } from './ColumnFilter';
 import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
 
 const traceListOption = { label: 'Trace List', value: 'traceList' };
+const insightsOption = { label: 'Insights', value: 'insights', queryType: XrayQueryType.getInsights };
 const traceStatisticsOption = {
   label: 'Trace Statistics',
   value: 'traceStatistics',
@@ -22,6 +23,7 @@ type QueryTypeOption = CascaderOption & {
 export const queryTypeOptions: QueryTypeOption[] = [
   traceListOption,
   traceStatisticsOption,
+  insightsOption,
   {
     label: 'Trace Analytics',
     value: 'traceAnalytics',
@@ -141,6 +143,10 @@ export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTyp
     return [traceListOption];
   }
 
+  if (queryType === XrayQueryType.getInsights) {
+    return [insightsOption];
+  }
+
   return findOptionForQueryType(queryType);
 }
 
@@ -151,9 +157,9 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
   } else {
     let found: any = undefined;
     for (const path of selected) {
-      found = (found?.children ?? queryTypeOptions).find((option: QueryTypeOption) => option.value === path)!;
+      found = (found?.children ?? queryTypeOptions).find((option: QueryTypeOption) => option.value === path);
     }
-    return found.queryType!;
+    return found.queryType;
   }
 }
 
@@ -190,25 +196,42 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             {selectedOptions[selectedOptions.length - 1].label}
           </ButtonCascader>
         </div>
-        <div style={{ flex: 1, display: 'flex' }}>
-          <InlineFormLabel width="auto">Query</InlineFormLabel>
-          <XRayQueryField
-            query={query}
-            history={[]}
-            datasource={datasource}
-            onRunQuery={onRunQuery}
-            onChange={e => {
-              onChange({
-                ...query,
-                queryType: queryTypeOptionToQueryType(
-                  selectedOptions.map(option => option.value),
-                  e.query
-                ),
-                query: e.query,
-              });
-            }}
-          />
-        </div>
+        {selectedOptions[0] === insightsOption && (
+          <div className="gf-form">
+            <InlineFormLabel width="auto">State</InlineFormLabel>
+            <Segment
+              value={query.state ?? 'All'}
+              options={['All', 'Active', 'Closed'].map(val => ({ value: val, label: val }))}
+              onChange={value => {
+                onChange({
+                  ...query,
+                  state: value.value,
+                });
+              }}
+            />
+          </div>
+        )}
+        {selectedOptions[0] !== insightsOption && (
+          <div style={{ flex: 1, display: 'flex' }}>
+            <InlineFormLabel width="auto">Query</InlineFormLabel>
+            <XRayQueryField
+              query={query}
+              history={[]}
+              datasource={datasource}
+              onRunQuery={onRunQuery}
+              onChange={e => {
+                onChange({
+                  ...query,
+                  queryType: queryTypeOptionToQueryType(
+                    selectedOptions.map(option => option.value),
+                    e.query
+                  ),
+                  query: e.query,
+                });
+              }}
+            />
+          </div>
+        )}
       </div>
       {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form">

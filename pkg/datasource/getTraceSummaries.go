@@ -1,13 +1,14 @@
 package datasource
 
 import (
-  "context"
-  "encoding/json"
-  "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/service/xray"
-  "github.com/grafana/grafana-plugin-sdk-go/backend"
-  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
-  "github.com/grafana/grafana-plugin-sdk-go/data"
+	"context"
+	"encoding/json"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"github.com/grafana/grafana-plugin-sdk-go/data"
+	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 type GetTraceSummariesQueryData struct {
@@ -54,10 +55,10 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 		data.NewField("Annotations", nil, []*int64{}),
 	)
 
-  var filterExpression *string
-  if queryData.Query != "" {
-    filterExpression = &queryData.Query
-  }
+	var filterExpression *string
+	if queryData.Query != "" {
+		filterExpression = &queryData.Query
+	}
 
 	request := &xray.GetTraceSummariesInput{
 		StartTime:        &query.TimeRange.From,

@@ -1,20 +1,21 @@
 package datasource
 
 import (
-  "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/aws/request"
-  "net/http"
+	"net/http"
 
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+
 	"github.com/grafana/x-ray-datasource/pkg/client"
 	"github.com/grafana/x-ray-datasource/pkg/configuration"
+	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 )
 
-// newDatasource returns datasource.ServeOpts.
+// GetServeOpts returns datasource.ServeOpts.
 func GetServeOpts() datasource.ServeOpts {
 	// creates a instance manager for your plugin. The function passed
 	// into `NewInstanceManger` is called when the instance is created
@@ -53,20 +54,21 @@ type Datasource struct {
 }
 
 const (
-	QueryGetTrace                       = "getTrace"
-	QueryGetTraceSummaries              = "getTraceSummaries"
-	QueryGetTimeSeriesServiceStatistics = "getTimeSeriesServiceStatistics"
-  QueryGetAnalyticsRootCauseResponseTimeService = "getAnalyticsRootCauseResponseTimeService"
-  QueryGetAnalyticsRootCauseResponseTimePath = "getAnalyticsRootCauseResponseTimePath"
-  QueryGetAnalyticsRootCauseErrorService = "getAnalyticsRootCauseErrorService"
-  QueryGetAnalyticsRootCauseErrorPath = "getAnalyticsRootCauseErrorPath"
-  QueryGetAnalyticsRootCauseErrorMessage = "getAnalyticsRootCauseErrorMessage"
-  QueryGetAnalyticsRootCauseFaultService = "getAnalyticsRootCauseFaultService"
-  QueryGetAnalyticsRootCauseFaultPath = "getAnalyticsRootCauseFaultPath"
-  QueryGetAnalyticsRootCauseFaultMessage = "getAnalyticsRootCauseFaultMessage"
-  QueryGetAnalyticsUrl = "getAnalyticsUrl"
-  QueryGetAnalyticsUser = "getAnalyticsUser"
-  QueryGetAnalyticsStatusCode = "getAnalyticsStatusCode"
+	QueryGetTrace                                 = "getTrace"
+	QueryGetTraceSummaries                        = "getTraceSummaries"
+	QueryGetTimeSeriesServiceStatistics           = "getTimeSeriesServiceStatistics"
+	QueryGetAnalyticsRootCauseResponseTimeService = "getAnalyticsRootCauseResponseTimeService"
+	QueryGetAnalyticsRootCauseResponseTimePath    = "getAnalyticsRootCauseResponseTimePath"
+	QueryGetAnalyticsRootCauseErrorService        = "getAnalyticsRootCauseErrorService"
+	QueryGetAnalyticsRootCauseErrorPath           = "getAnalyticsRootCauseErrorPath"
+	QueryGetAnalyticsRootCauseErrorMessage        = "getAnalyticsRootCauseErrorMessage"
+	QueryGetAnalyticsRootCauseFaultService        = "getAnalyticsRootCauseFaultService"
+	QueryGetAnalyticsRootCauseFaultPath           = "getAnalyticsRootCauseFaultPath"
+	QueryGetAnalyticsRootCauseFaultMessage        = "getAnalyticsRootCauseFaultMessage"
+	QueryGetAnalyticsUrl                          = "getAnalyticsUrl"
+	QueryGetAnalyticsUser                         = "getAnalyticsUser"
+	QueryGetAnalyticsStatusCode                   = "getAnalyticsStatusCode"
+	QueryGetInsights                              = "getInsights"
 )
 
 func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) (XrayClient, error)) *Datasource {
@@ -78,17 +80,18 @@ func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) 
 	mux.HandleFunc(QueryGetTrace, ds.getTrace)
 	mux.HandleFunc(QueryGetTraceSummaries, ds.getTraceSummaries)
 	mux.HandleFunc(QueryGetTimeSeriesServiceStatistics, ds.getTimeSeriesServiceStatistics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimeService, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimePath, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseErrorService, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseErrorPath, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseErrorMessage, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseFaultService, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseFaultPath, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsRootCauseFaultMessage, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsUser, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsUrl, ds.getAnalytics)
-  mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimeService, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimePath, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseErrorService, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseErrorPath, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseErrorMessage, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseFaultService, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseFaultPath, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsRootCauseFaultMessage, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsUser, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsUrl, ds.getAnalytics)
+	mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
+	mux.HandleFunc(QueryGetInsights, ds.getInsights)
 
 	ds.QueryMux = mux
 	return ds
@@ -109,10 +112,11 @@ func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
 type XrayClient interface {
 	BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
 	GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error
-  GetTimeSeriesServiceStatisticsPagesWithContext(
-    aws.Context,
-    *xray.GetTimeSeriesServiceStatisticsInput,
-    func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
-    ...request.Option,
-  ) error
+	GetTimeSeriesServiceStatisticsPagesWithContext(
+		aws.Context,
+		*xray.GetTimeSeriesServiceStatisticsInput,
+		func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
+		...request.Option,
+	) error
+	GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error)
 }
