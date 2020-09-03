@@ -1,5 +1,11 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
+export type Group = {
+  FilterExpression?: string;
+  GroupARN: string;
+  GroupName: string;
+};
+
 // TODO: would make sense at this point to change to discriminated union type
 export interface XrayQuery extends DataQuery {
   queryType?: XrayQueryType;
@@ -13,6 +19,8 @@ export interface XrayQuery extends DataQuery {
 
   // Used in case of getInsights to filter by state
   state?: string;
+
+  group?: Group;
 }
 
 export enum XrayQueryType {

@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
 // GetServeOpts returns datasource.ServeOpts.
@@ -25,6 +26,7 @@ func GetServeOpts() datasource.ServeOpts {
 
 	return datasource.ServeOpts{
 		QueryDataHandler:   ds.QueryMux,
+		CallResourceHandler: ds.ResourceMux,
 		CheckHealthHandler: ds,
 	}
 }
@@ -50,6 +52,7 @@ type Datasource struct {
 	// but a best practice that we recommend that you follow.
 	im                instancemgmt.InstanceManager
 	QueryMux          *datasource.QueryTypeMux
+  ResourceMux       backend.CallResourceHandler
 	xrayClientFactory func(pluginContext *backend.PluginContext) (XrayClient, error)
 }
 
@@ -94,6 +97,10 @@ func NewDatasource(xrayClientFactory func(pluginContext *backend.PluginContext) 
 	mux.HandleFunc(QueryGetInsights, ds.getInsights)
 
 	ds.QueryMux = mux
+
+  resMux := http.NewServeMux()
+  resMux.HandleFunc("/groups", ds.getGroups)
+  ds.ResourceMux = httpadapter.New(resMux)
 	return ds
 }
 
@@ -119,4 +126,5 @@ type XrayClient interface {
 		...request.Option,
 	) error
 	GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error)
+	GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool ) error
 }

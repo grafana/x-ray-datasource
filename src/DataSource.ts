@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
+  Group,
   MetricRequest,
   TSDBResponse,
   XrayJsonData,
@@ -48,6 +49,10 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     );
   }
 
+  async getGroups(): Promise<Group[]> {
+    return this.getResource('/groups');
+  }
+
   async getRegions(): Promise<Array<{ label: string; value: string; text: string }>> {
     const response = await this.awsRequest({
       queries: [
@@ -73,7 +78,9 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return result.data;
   }
 
-  transformSuggestDataFromTable(suggestData: TSDBResponse): Array<{ text: string; value: string; label: string }> {
+  private transformSuggestDataFromTable(
+    suggestData: TSDBResponse
+  ): Array<{ text: string; value: string; label: string }> {
     return suggestData.results['metricFindQuery'].tables[0].rows.map(value => ({
       text: value,
       value,
@@ -182,6 +189,17 @@ function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: Templ
 
       // Variable interpolation
       newTarget.query = templateSrv.replace(newTarget.query, request.scopedVars);
+
+      // Add Group filter expression to the query filter expression. This seems to mimic what x-ray console is doing
+      // as there are APIs that do not expect group just the filter expression. At the same time some APIs like Insights
+      // do not accept filter expression just the groupARN so this will have to be adjusted for them.
+      if (target.group && target.group.FilterExpression && target.queryType !== XrayQueryType.getTrace) {
+        if (newTarget.query) {
+          newTarget.query = target.group.FilterExpression + ' AND ' + newTarget.query;
+        } else {
+          newTarget.query = target.group.FilterExpression;
+        }
+      }
 
       return newTarget;
     }),

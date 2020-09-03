@@ -177,6 +177,25 @@ func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummarie
 	}, nil
 }
 
+func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error {
+	output := &xray.GetGroupsOutput{
+		Groups: []*xray.GroupSummary{
+			{
+				GroupARN:         aws.String("arn:1"),
+				GroupName:        aws.String("Default"),
+				FilterExpression: aws.String(""),
+			},
+			{
+				GroupARN:         aws.String("arn:2"),
+				GroupName:        aws.String("GroupTest"),
+				FilterExpression: aws.String("service(\"test\")"),
+			},
+		},
+	}
+	fn(output, false)
+	return nil
+}
+
 type StatsType string
 
 const (
@@ -243,11 +262,32 @@ func queryDatasource(ds *datasource.Datasource, queryType string, query interfac
 	)
 }
 
+type MockSender struct {
+	fn func(resp *backend.CallResourceResponse)
+}
+
+func (sender *MockSender) Send(resp *backend.CallResourceResponse) error {
+	sender.fn(resp)
+	return nil
+}
+
+func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourceRequest) (*backend.CallResourceResponse, error) {
+	var resp *backend.CallResourceResponse
+	err := ds.ResourceMux.CallResource(
+		context.Background(),
+		req,
+		&MockSender{fn: func(r *backend.CallResourceResponse) {
+			resp = r
+		}},
+	)
+	return resp, err
+}
+
 func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All"})
+		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xray.Group{GroupName: aws.String("Grafana")}})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
@@ -440,6 +480,21 @@ func TestDatasource(t *testing.T) {
 				float64(100),
 			},
 		})
+	})
+
+	t.Run("getGroups query", func(t *testing.T) {
+		resp, err := queryDatasourceResource(ds, &backend.CallResourceRequest{
+			Path:   "/groups",
+			Method: "GET",
+		})
+		require.NoError(t, err)
+
+		var data []*xray.GroupSummary
+		err = json.Unmarshal(resp.Body, &data)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(data))
+		require.Equal(t, "Default", *data[0].GroupName)
+		require.Equal(t, "GroupTest", *data[1].GroupName)
 	})
 }
 
