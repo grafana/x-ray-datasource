@@ -17,6 +17,9 @@ export interface XrayQuery extends DataQuery {
   // Interval of the getTimeSeriesServiceStatistics aggregation time bucket
   resolution?: number;
 
+  // Used in case of getInsights to filter by state
+  state?: string;
+
   group?: Group;
 }
 
@@ -35,6 +38,7 @@ export enum XrayQueryType {
   getAnalyticsUser = 'getAnalyticsUser',
   getAnalyticsUrl = 'getAnalyticsUrl',
   getAnalyticsStatusCode = 'getAnalyticsStatusCode',
+  getInsights = 'getInsights',
 }
 
 export interface XrayJsonData extends DataSourceJsonData {
@@ -157,7 +161,7 @@ interface Http {
 
 interface Cause {
   working_directory: string;
-  exceptions: Array<{ message: string; type: string; stack: Array<{ path: string; line: number; label: string }> }>;
+  exceptions?: Array<{ message: string; type: string; stack: Array<{ path: string; line: number; label: string }> }>;
 }
 
 export type XrayTraceDataSegmentDocument = {

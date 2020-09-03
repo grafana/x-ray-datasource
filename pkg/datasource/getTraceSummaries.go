@@ -1,13 +1,14 @@
 package datasource
 
 import (
-  "context"
-  "encoding/json"
-  "github.com/aws/aws-sdk-go/aws"
-  "github.com/aws/aws-sdk-go/service/xray"
-  "github.com/grafana/grafana-plugin-sdk-go/backend"
-  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
-  "github.com/grafana/grafana-plugin-sdk-go/data"
+	"context"
+	"encoding/json"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"github.com/grafana/grafana-plugin-sdk-go/data"
+	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 type GetTraceSummariesQueryData struct {
@@ -54,10 +55,10 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 		data.NewField("Annotations", nil, []*int64{}),
 	)
 
-  var filterExpression *string
-  if queryData.Query != "" {
-    filterExpression = &queryData.Query
-  }
+	var filterExpression *string
+	if queryData.Query != "" {
+		filterExpression = &queryData.Query
+	}
 
 	request := &xray.GetTraceSummariesInput{
 		StartTime:        &query.TimeRange.From,
@@ -82,8 +83,13 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 			)
 		}
 
-		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
-		return true
+		count, err := responseDataFrame.RowLen()
+		if err != nil {
+		  // This should not happen, if it does it's probably a programmatic error.
+		  log.DefaultLogger.Error("could not count the rows in response dataframe", "error", err)
+    }
+    // Hardcode to have similar limit to x-ray console.
+		return count < 1000
 	})
 
 	if err != nil {

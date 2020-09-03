@@ -95,10 +95,25 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         return parseTraceResponse(response);
       case 'TraceSummaries':
         return parseTracesListResponse(response, this.instanceSettings.uid);
+      case 'InsightSummaries':
+        return parseInsightsResponse(response, this.instanceSettings.jsonData.defaultRegion!);
       default:
         return response;
     }
   }
+}
+
+function parseInsightsResponse(response: DataFrame, region: string): DataFrame {
+  const urlToAwsConsole = `https://${region}.console.aws.amazon.com/xray/home?region=${region}#/insights/`;
+  const idField = response.fields.find(f => f.name === 'InsightId');
+  if (idField) {
+    idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
+  }
+  const duration = response.fields.find(f => f.name === 'Duration');
+  if (duration) {
+    duration.config.unit = 'dtdurationms';
+  }
+  return response;
 }
 
 /**
