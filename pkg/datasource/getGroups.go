@@ -2,9 +2,9 @@ package datasource
 
 import (
   "encoding/json"
-  "github.com/aws/aws-sdk-go/service/xray"
   "github.com/grafana/grafana-plugin-sdk-go/backend/log"
   "github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+  "github.com/grafana/x-ray-datasource/pkg/xray"
   "net/http"
 )
 

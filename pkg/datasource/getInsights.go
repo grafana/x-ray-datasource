@@ -16,7 +16,7 @@ import (
 
 type GetInsightsQueryData struct {
 	State string `json:"state"`
-	Group string `json:"group"`
+	Group *xray.Group `json:"group"`
 }
 
 func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -46,7 +46,7 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 		}
 	}
 
-	var states []string = []string{strings.ToUpper(queryData.State)}
+	var states = []string{strings.ToUpper(queryData.State)}
 
 	log.DefaultLogger.Debug("getSingleInsight", "states", states, "group", queryData.Group)
 
@@ -58,7 +58,7 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 		StartTime: &query.TimeRange.From,
 		EndTime:   &query.TimeRange.To,
 		States:    aws.StringSlice(states),
-		GroupName: aws.String("Grafana"),
+		GroupName: queryData.Group.GroupName,
 	})
 
 	if err != nil {

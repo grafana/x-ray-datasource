@@ -180,23 +180,46 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
   return (
     <div>
       <div className="gf-form">
+        <InlineFormLabel width="auto">Query Type</InlineFormLabel>
+        <ButtonCascader
+          value={selectedOptions.map(option => option.value)}
+          options={queryTypeOptions}
+          onChange={value => {
+            const newQueryType = queryTypeOptionToQueryType(value, query.query || '');
+            onChange({
+              ...query,
+              queryType: newQueryType,
+              columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
+            } as any);
+          }}
+        >
+          {selectedOptions[selectedOptions.length - 1].label}
+        </ButtonCascader>
+      </div>
+      {selectedOptions[0] !== insightsOption && (
         <div className="gf-form">
-          <InlineFormLabel width="auto">Query Type</InlineFormLabel>
-          <ButtonCascader
-            value={selectedOptions.map(option => option.value)}
-            options={queryTypeOptions}
-            onChange={value => {
-              const newQueryType = queryTypeOptionToQueryType(value, query.query || '');
-              onChange({
-                ...query,
-                queryType: newQueryType,
-                columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
-              } as any);
-            }}
-          >
-            {selectedOptions[selectedOptions.length - 1].label}
-          </ButtonCascader>
+          <div style={{ flex: 1, display: 'flex' }}>
+            <InlineFormLabel width="auto">Query</InlineFormLabel>
+            <XRayQueryField
+              query={query}
+              history={[]}
+              datasource={datasource}
+              onRunQuery={onRunQuery}
+              onChange={e => {
+                onChange({
+                  ...query,
+                  queryType: queryTypeOptionToQueryType(
+                    selectedOptions.map(option => option.value),
+                    e.query
+                  ),
+                  query: e.query,
+                });
+              }}
+            />
+          </div>
         </div>
+      )}
+      <div className="gf-form">
         <div className="gf-form">
           <InlineFormLabel width="auto">Group</InlineFormLabel>
           <Segment
@@ -228,30 +251,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             />
           </div>
         )}
-        {selectedOptions[0] !== insightsOption && (
-          <div style={{ flex: 1, display: 'flex' }}>
-            <InlineFormLabel width="auto">Query</InlineFormLabel>
-            <XRayQueryField
-              query={query}
-              history={[]}
-              datasource={datasource}
-              onRunQuery={onRunQuery}
-              onChange={e => {
-                onChange({
-                  ...query,
-                  queryType: queryTypeOptionToQueryType(
-                    selectedOptions.map(option => option.value),
-                    e.query
-                  ),
-                  query: e.query,
-                });
-              }}
-            />
-          </div>
-        )}
-      </div>
-      {selectedOptions[0] === traceStatisticsOption && (
-        <div className="gf-form">
+        {selectedOptions[0] === traceStatisticsOption && (
           <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
             <InlineFormLabel width="auto">Resolution</InlineFormLabel>
             <Segment
@@ -265,10 +265,12 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
               }}
             />
           </div>
-          <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
-            <InlineFormLabel width="auto">Columns</InlineFormLabel>
-            <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
-          </div>
+        )}
+      </div>
+      {selectedOptions[0] === traceStatisticsOption && (
+        <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
+          <InlineFormLabel width="auto">Columns</InlineFormLabel>
+          <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
         </div>
       )}
     </div>
