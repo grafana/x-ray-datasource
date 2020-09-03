@@ -117,7 +117,12 @@ function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
     ...segmentToTag({ http: segment.http }),
     ...segmentToTag({ annotations: segment.annotations }),
     ...segmentToTag({ metadata: segment.metadata }),
+    { key: 'in progress', value: Boolean(segment.in_progress), type: 'boolean' },
   ];
+
+  if (segment.origin) {
+    tags.push({ key: 'origin', value: segment.origin, type: 'string' });
+  }
 
   const isError = segment.error || segment.fault || segment.throttle;
 
