@@ -177,23 +177,23 @@ func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummarie
 	}, nil
 }
 
-func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool ) error {
-  output := &xray.GetGroupsOutput{
-    Groups: []*xray.GroupSummary{
-      {
-        GroupARN: aws.String("arn:1"),
-        GroupName: aws.String("Default"),
-        FilterExpression: aws.String(""),
-      },
-      {
-        GroupARN: aws.String("arn:2"),
-        GroupName: aws.String("GroupTest"),
-        FilterExpression: aws.String("service(\"test\")"),
-      },
-    },
-  }
-  fn(output, false)
-  return nil
+func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error {
+	output := &xray.GetGroupsOutput{
+		Groups: []*xray.GroupSummary{
+			{
+				GroupARN:         aws.String("arn:1"),
+				GroupName:        aws.String("Default"),
+				FilterExpression: aws.String(""),
+			},
+			{
+				GroupARN:         aws.String("arn:2"),
+				GroupName:        aws.String("GroupTest"),
+				FilterExpression: aws.String("service(\"test\")"),
+			},
+		},
+	}
+	fn(output, false)
+	return nil
 }
 
 type StatsType string
@@ -263,30 +263,31 @@ func queryDatasource(ds *datasource.Datasource, queryType string, query interfac
 }
 
 type MockSender struct {
-  fn func(resp *backend.CallResourceResponse)
+	fn func(resp *backend.CallResourceResponse)
 }
+
 func (sender *MockSender) Send(resp *backend.CallResourceResponse) error {
-  sender.fn(resp)
-  return nil
+	sender.fn(resp)
+	return nil
 }
 
 func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourceRequest) (*backend.CallResourceResponse, error) {
-  var resp *backend.CallResourceResponse
-  err := ds.ResourceMux.CallResource(
-    context.Background(),
-    req,
-    &MockSender{fn: func(r *backend.CallResourceResponse) {
-      resp = r
-    }},
-  )
-  return resp, err
+	var resp *backend.CallResourceResponse
+	err := ds.ResourceMux.CallResource(
+		context.Background(),
+		req,
+		&MockSender{fn: func(r *backend.CallResourceResponse) {
+			resp = r
+		}},
+	)
+	return resp, err
 }
 
 func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All"})
+		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xray.Group{GroupName: aws.String("Grafana")}})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
@@ -421,80 +422,80 @@ func TestDatasource(t *testing.T) {
 	// RootCauseError
 	//
 
-  t.Run("getAnalyticsRootCauseErrorService query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorService, [][]interface{}{
-      {"service_name_1 (service_type_1)", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseErrorService query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorService, [][]interface{}{
+			{"service_name_1 (service_type_1)", int64(2), float64(100)},
+		})
+	})
 
-  t.Run("getAnalyticsRootCauseErrorPath query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorPath, [][]interface{}{
-      {"service_name_1 (service_type_1) -> Test exception", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseErrorPath query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorPath, [][]interface{}{
+			{"service_name_1 (service_type_1) -> Test exception", int64(2), float64(100)},
+		})
+	})
 
-  t.Run("getAnalyticsRootCauseErrorMessage query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorMessage, [][]interface{}{
-      {"Test exception message", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseErrorMessage query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorMessage, [][]interface{}{
+			{"Test exception message", int64(2), float64(100)},
+		})
+	})
 
-  //
-  // RootCauseFault
-  //
+	//
+	// RootCauseFault
+	//
 
-  t.Run("getAnalyticsRootCauseFaultService query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultService, [][]interface{}{
-      {"faulty_service_name_1 (faulty_service_type_1)", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseFaultService query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultService, [][]interface{}{
+			{"faulty_service_name_1 (faulty_service_type_1)", int64(2), float64(100)},
+		})
+	})
 
-  t.Run("getAnalyticsRootCauseFaultPath query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultPath, [][]interface{}{
-      {"faulty_service_name_1 (faulty_service_type_1) -> Test fault", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseFaultPath query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultPath, [][]interface{}{
+			{"faulty_service_name_1 (faulty_service_type_1) -> Test fault", int64(2), float64(100)},
+		})
+	})
 
-  t.Run("getAnalyticsRootCauseFaultMessage query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultMessage, [][]interface{}{
-      {"Test fault message", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseFaultMessage query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultMessage, [][]interface{}{
+			{"Test fault message", int64(2), float64(100)},
+		})
+	})
 
-  //
-  // RootCauseResponseTime
-  //
+	//
+	// RootCauseResponseTime
+	//
 
-  t.Run("getAnalyticsRootCauseResponseTimeService query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimeService, [][]interface{}{
-      {"response_service_name_2 (response_service_type_2)", int64(2), float64(100) },
-    })
-  })
+	t.Run("getAnalyticsRootCauseResponseTimeService query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimeService, [][]interface{}{
+			{"response_service_name_2 (response_service_type_2)", int64(2), float64(100)},
+		})
+	})
 
-  t.Run("getAnalyticsRootCauseResponseTimePath query", func(t *testing.T) {
-    testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimePath, [][]interface{}{
-      {
-        "response_service_name_1 (response_service_type_1) -> response_sub_service_name_1 => response_service_name_2 (response_service_type_2) -> response_sub_service_name_2",
-        int64(2),
-        float64(100),
-      },
-    })
-  })
+	t.Run("getAnalyticsRootCauseResponseTimePath query", func(t *testing.T) {
+		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimePath, [][]interface{}{
+			{
+				"response_service_name_1 (response_service_type_1) -> response_sub_service_name_1 => response_service_name_2 (response_service_type_2) -> response_sub_service_name_2",
+				int64(2),
+				float64(100),
+			},
+		})
+	})
 
-  t.Run("getGroups query", func(t *testing.T) {
-    resp, err := queryDatasourceResource(ds, &backend.CallResourceRequest{
-      Path:          "/groups",
-      Method:        "GET",
-    })
-    require.NoError(t, err)
+	t.Run("getGroups query", func(t *testing.T) {
+		resp, err := queryDatasourceResource(ds, &backend.CallResourceRequest{
+			Path:   "/groups",
+			Method: "GET",
+		})
+		require.NoError(t, err)
 
-    var data []*xray.GroupSummary
-    err = json.Unmarshal(resp.Body, &data)
-    require.NoError(t, err)
-    require.Equal(t, 2, len(data))
-    require.Equal(t, "Default", *data[0].GroupName)
-    require.Equal(t, "GroupTest", *data[1].GroupName)
-  })
+		var data []*xray.GroupSummary
+		err = json.Unmarshal(resp.Body, &data)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(data))
+		require.Equal(t, "Default", *data[0].GroupName)
+		require.Equal(t, "GroupTest", *data[1].GroupName)
+	})
 }
 
 func testAnalytics(t *testing.T, ds *datasource.Datasource, queryType string, data [][]interface{}) {
