@@ -48,7 +48,7 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 
 	var states []string = []string{strings.ToUpper(queryData.State)}
 
-	log.DefaultLogger.Debug("states", "states", states)
+	log.DefaultLogger.Debug("getSingleInsight", "states", states, "group", queryData.Group)
 
 	if queryData.State == "All" || len(queryData.State) == 0 {
 		states = nil
