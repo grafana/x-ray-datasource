@@ -94,7 +94,7 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	// First get the columns user actually wants. There is no query language for this so we filter it here after we get
 	// the response.
 	var requestedColumns []ValueDef
-	if queryData.Columns[0] == "all" {
+	if len(queryData.Columns) == 0 {
 		// Add all columns
 		requestedColumns = valueDefs
 	} else {

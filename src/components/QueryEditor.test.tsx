@@ -92,44 +92,21 @@ describe('QueryEditor', () => {
   });
 
   it('can add and remove column filters', async () => {
-    let { onChange, rerender } = await renderWithQuery({
+    let { onChange } = await renderWithQuery({
       query: '',
-      columns: ['all'],
+      columns: [],
       queryType: XrayQueryType.getTimeSeriesServiceStatistics,
     });
 
-    let segment = screen.getByText(/all/i, { selector: 'a' });
-    fireEvent.click(segment);
-    let option = screen.getByText(/Success Count/i, { selector: 'div' });
+    let select = screen.getByText('All columns');
+    fireEvent.mouseDown(select);
+    let option = screen.getByText(/Success Count/i);
     fireEvent.click(option);
 
     expect(onChange).toBeCalledWith({
       refId: 'A',
       query: '',
       columns: ['OkCount'],
-      queryType: XrayQueryType.getTimeSeriesServiceStatistics,
-    });
-
-    onChange = (
-      await renderWithQuery(
-        {
-          query: '',
-          columns: ['OkCount'],
-          queryType: XrayQueryType.getTimeSeriesServiceStatistics,
-        },
-        rerender
-      )
-    ).onChange;
-
-    segment = screen.getByText(/Success Count/i, { selector: 'a' });
-    fireEvent.click(segment);
-    option = screen.getByText(/remove/i, { selector: 'div' });
-    fireEvent.click(option);
-
-    expect(onChange).toBeCalledWith({
-      refId: 'A',
-      query: '',
-      columns: ['all'],
       queryType: XrayQueryType.getTimeSeriesServiceStatistics,
     });
   });

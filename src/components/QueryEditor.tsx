@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ButtonCascader, InlineFormLabel, Segment } from '@grafana/ui';
+import { ButtonCascader, InlineFormLabel, MultiSelect, Segment } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
 import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../types';
 import { XRayQueryField } from './XRayQueryField';
-import { ColumnFilter } from './ColumnFilter';
 import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
 
 const traceListOption = { label: 'Trace List', value: 'traceList' };
@@ -289,12 +288,38 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
           <InlineFormLabel className="query-keyword" width="auto">
             Columns
           </InlineFormLabel>
-          <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
+          <div style={{ flex: 1 }}>
+            <MultiSelect
+              allowCustomValue={false}
+              options={Object.keys(columnNames).map(c => ({
+                label: columnNames[c],
+                value: c,
+              }))}
+              value={(query.columns || []).map(c => ({
+                label: columnNames[c],
+                value: c,
+              }))}
+              onChange={values => onChange({ ...query, columns: values.map(v => v.value!) })}
+              closeMenuOnSelect={false}
+              isClearable={true}
+              placeholder="All columns"
+              menuPlacement="bottom"
+            />
+          </div>
         </div>
       )}
     </div>
   );
 }
+
+const columnNames: { [key: string]: string } = {
+  'ErrorStatistics.ThrottleCount': 'Throttle Count',
+  'ErrorStatistics.TotalCount': 'Error Count',
+  'FaultStatistics.TotalCount': 'Fault Count',
+  OkCount: 'Success Count',
+  TotalCount: 'Total Count',
+  'Computed.AverageResponseTime': 'Average Response Time',
+};
 
 /**
  * Inits the query with queryType so the segment component is filled in.
