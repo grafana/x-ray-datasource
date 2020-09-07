@@ -4,8 +4,10 @@ import {
   DataQueryRequest,
   DataQueryResponse,
   DataSourceInstanceSettings,
+  DateTimeDuration,
   FieldType,
   MutableDataFrame,
+  toDuration,
 } from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
@@ -110,10 +112,34 @@ function parseInsightsResponse(response: DataFrame, region: string): DataFrame {
     idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
   }
   const duration = response.fields.find(f => f.name === 'Duration');
+
   if (duration) {
-    duration.config.unit = 'dtdurationms';
+    duration.display = val => {
+      const momentDuration = toDuration(val);
+      return {
+        numeric: val,
+        text: getDurationText(momentDuration),
+      };
+    };
   }
   return response;
+}
+
+function getDurationText(duration: DateTimeDuration) {
+  let result = '';
+
+  if (duration.hours()) {
+    result = `${duration.hours()} hours `;
+  }
+
+  if (duration.minutes()) {
+    result += `${duration.minutes()} minutes `;
+  }
+
+  if (duration.seconds()) {
+    result += `${duration.seconds()} seconds`;
+  }
+  return result;
 }
 
 /**
