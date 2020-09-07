@@ -157,6 +157,11 @@ at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aw
           value: 400,
         },
         {
+          key: 'in progress',
+          type: 'boolean',
+          value: false,
+        },
+        {
           key: 'error',
           type: 'boolean',
           value: true,
@@ -186,6 +191,16 @@ at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aw
           key: 'annotations.theme',
           type: 'string',
           value: 'flatly',
+        },
+        {
+          key: 'in progress',
+          type: 'boolean',
+          value: false,
+        },
+        {
+          key: 'origin',
+          type: 'string',
+          value: 'AWS::EC2::Instance',
         },
       ],
       traceID: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
@@ -217,6 +232,16 @@ at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aw
           key: 'metadata.http.dns.addresses[1].IP',
           type: 'string',
           value: '22.23.14.122',
+        },
+        {
+          key: 'in progress',
+          type: 'boolean',
+          value: false,
+        },
+        {
+          key: 'origin',
+          type: 'string',
+          value: 'AWS::DynamoDB::Table',
         },
         {
           key: 'error',
