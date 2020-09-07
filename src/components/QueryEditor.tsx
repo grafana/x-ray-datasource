@@ -182,7 +182,9 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
       {selectedOptions[0] !== insightsOption && (
         <div className="gf-form">
           <div style={{ flex: 1, display: 'flex' }}>
-            <InlineFormLabel width="auto">Query</InlineFormLabel>
+            <InlineFormLabel className="query-keyword" width="auto">
+              Query
+            </InlineFormLabel>
             <XRayQueryField
               query={query}
               history={[]}
@@ -204,7 +206,9 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
       )}
       <div className="gf-form">
         <div className="gf-form">
-          <InlineFormLabel width="auto">Query Type</InlineFormLabel>
+          <InlineFormLabel className="query-keyword" width="auto">
+            Query Type
+          </InlineFormLabel>
           <ButtonCascader
             value={selectedOptions.map(option => option.value)}
             options={queryTypeOptions}
@@ -222,7 +226,9 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         </div>
 
         <div className="gf-form">
-          <InlineFormLabel width="auto">Group</InlineFormLabel>
+          <InlineFormLabel className="query-keyword" width="auto">
+            Group
+          </InlineFormLabel>
           <Segment
             value={query.group?.GroupName}
             options={groups.map((group: Group) => ({
@@ -241,7 +247,9 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         <div className="gf-form">
           {selectedOptions[0] === insightsOption && (
             <div className="gf-form">
-              <InlineFormLabel width="auto">State</InlineFormLabel>
+              <InlineFormLabel className="query-keyword" width="auto">
+                State
+              </InlineFormLabel>
               <Segment
                 value={query.state ?? 'All'}
                 options={['All', 'Active', 'Closed'].map(val => ({ value: val, label: val }))}
@@ -259,7 +267,9 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         <div className="gf-form">
           {selectedOptions[0] === traceStatisticsOption && (
             <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
-              <InlineFormLabel width="auto">Resolution</InlineFormLabel>
+              <InlineFormLabel className="query-keyword" width="auto">
+                Resolution
+              </InlineFormLabel>
               <Segment
                 value={query.resolution ? query.resolution.toString() + 's' : 'auto'}
                 options={['auto', '60s', '300s'].map(val => ({ value: val, label: val }))}
@@ -276,7 +286,9 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
       </div>
       {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
-          <InlineFormLabel width="auto">Columns</InlineFormLabel>
+          <InlineFormLabel className="query-keyword" width="auto">
+            Columns
+          </InlineFormLabel>
           <ColumnFilter columns={query.columns || []} onChange={columns => onChange({ ...query, columns })} />
         </div>
       )}
