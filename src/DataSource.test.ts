@@ -73,6 +73,18 @@ describe('XrayDataSource', () => {
       });
     });
 
+    it('should parse insight response correctly', async () => {
+      const ds = makeDatasourceWithResponse(makeInsightResponse());
+      const response = await ds.query(makeQuery({ queryType: XrayQueryType.getInsights, query: '' })).toPromise();
+      const df: DataFrame = response.data[0];
+      expect(df.fields[0].config.links?.[0].url).toBe(
+        'https://us-east.console.aws.amazon.com/xray/home?region=us-east#/insights/${__value.raw}'
+      );
+      expect(df.fields[1].display?.(df.fields[1].values.get(0)).text).toBe('1 hours 16 minutes 30 seconds');
+      expect(df.fields[1].display?.(df.fields[1].values.get(1)).text).toBe('23 minutes 42 seconds');
+      expect(df.fields[1].display?.(df.fields[1].values.get(2)).text).toBe('42 seconds');
+    });
+
     it('adds correct resolution based on interval', async () => {
       const ds = makeDatasourceWithResponse({} as any);
       await ds
@@ -184,6 +196,24 @@ function makeTraceSummariesResponse(): DataFrame {
   });
 }
 
+function makeInsightResponse(): DataFrame {
+  return new MutableDataFrame({
+    name: 'InsightSummaries',
+    fields: [
+      {
+        name: 'InsightId',
+        type: FieldType.string,
+        values: new ArrayVector(['12345', '67890', 'sss']),
+      },
+      {
+        name: 'Duration',
+        type: FieldType.number,
+        values: new ArrayVector([4590000, 1422000, 42000]),
+      },
+    ],
+  });
+}
+
 function makeTraceResponse(trace: XrayTraceDataRaw): DataFrame {
   return new MutableDataFrame({
     name: 'Traces',
@@ -200,6 +230,7 @@ function makeTraceResponse(trace: XrayTraceDataRaw): DataFrame {
 function makeDatasourceWithResponse(response: DataFrame): XrayDataSource {
   const ds = new XrayDataSource({
     uid: 'xrayUid',
+    jsonData: { defaultRegion: 'us-east' },
   } as DataSourceInstanceSettings<XrayJsonData>);
   ((ds as any).mockQuery as jest.Mock).mockReturnValueOnce(
     of({
