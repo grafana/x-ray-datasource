@@ -371,7 +371,7 @@ function useGroups(datasource: XrayDataSource, queryType: QueryTypeOption) {
     setGroups([]);
     datasource.getGroups().then(groups => {
       if (queryType === insightsOption) {
-        setGroups([...groups, allGroup]);
+        setGroups([allGroup, ...groups]);
       } else {
         setGroups(groups);
       }
@@ -380,7 +380,7 @@ function useGroups(datasource: XrayDataSource, queryType: QueryTypeOption) {
 
   useEffect(() => {
     if (queryType === insightsOption) {
-      setGroups([...groups, allGroup]);
+      setGroups([allGroup, ...groups]);
     } else {
       setGroups(groups.filter(group => group.GroupName !== allGroup.GroupName));
     }
