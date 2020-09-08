@@ -114,6 +114,7 @@ function parseInsightsResponse(response: DataFrame, region: string): DataFrame {
   const duration = response.fields.find(f => f.name === 'Duration');
 
   if (duration) {
+    duration.type = FieldType.string;
     duration.display = val => {
       const momentDuration = toDuration(val);
       return {
