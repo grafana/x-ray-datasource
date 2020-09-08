@@ -295,13 +295,13 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, "Overall, 54% of the requests to zappa-grafana (AWS::S3::Bucket) failed due to errors.", response.Responses["A"].Frames[0].Fields[1].At(0))
 
 		// duration should be 20 minutes which is 1 200 000 milliseconds
-		require.Equal(t, int64(1200000), response.Responses["A"].Frames[0].Fields[2].At(0))
+		require.Equal(t, int64(1200000), response.Responses["A"].Frames[0].Fields[3].At(0))
 
 		// RootCauseServiceId should be Name (Type)
-		require.Equal(t, "graf (AWS)", response.Responses["A"].Frames[0].Fields[3].At(0))
+		require.Equal(t, "graf (AWS)", response.Responses["A"].Frames[0].Fields[4].At(0))
 
 		// TopAnomalousServices should be Name (Type)
-		require.Equal(t, "graf2 (AWS2)", response.Responses["A"].Frames[0].Fields[4].At(0))
+		require.Equal(t, "graf2 (AWS2)", response.Responses["A"].Frames[0].Fields[5].At(0))
 	})
 
 	t.Run("getTrace query", func(t *testing.T) {

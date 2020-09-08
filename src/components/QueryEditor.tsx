@@ -165,9 +165,9 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
 
 type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
-  const groups = useGroups(datasource);
-  useInitQuery(query, onChange, groups);
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
+  const groups = useGroups(datasource, selectedOptions[0]);
+  useInitQuery(query, onChange, groups);
 
   const onRunQuery = () => {
     onChange(query);
@@ -319,14 +319,27 @@ function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void, gr
   }, [query, groups]);
 }
 
-function useGroups(datasource: XrayDataSource) {
+function useGroups(datasource: XrayDataSource, queryType: QueryTypeOption) {
   const [groups, setGroups] = useState<Group[]>([]);
+  const allGroup = { GroupName: 'All', GroupARN: 'All' };
   useEffect(() => {
     // This should run in case we change between different x-ray datasources and so should clear old groups.
     setGroups([]);
     datasource.getGroups().then(groups => {
-      setGroups(groups);
+      if (queryType === insightsOption) {
+        setGroups([...groups, allGroup]);
+      } else {
+        setGroups(groups);
+      }
     });
   }, [datasource]);
+
+  useEffect(() => {
+    if (queryType === insightsOption) {
+      setGroups([...groups, allGroup]);
+    } else {
+      setGroups(groups.filter(group => group.GroupName !== allGroup.GroupName));
+    }
+  }, [queryType]);
   return groups;
 }
