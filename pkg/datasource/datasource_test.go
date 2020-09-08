@@ -327,7 +327,7 @@ func TestDatasource(t *testing.T) {
 		response, err := queryDatasource(
 			ds,
 			datasource.QueryGetTimeSeriesServiceStatistics,
-			datasource.GetTimeSeriesServiceStatisticsQueryData{Query: "traceID", Columns: []string{"all"}},
+			datasource.GetTimeSeriesServiceStatisticsQueryData{Query: "traceID", Columns: []string{}},
 		)
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
