@@ -54,7 +54,8 @@ func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.Da
 		"InsightSummaries",
 		data.NewField("InsightId", nil, []*string{}),
 		data.NewField("Description", nil, []string{}),
-		data.NewField("State", nil, []*string{}),
+		data.NewField("State", nil, []string{}),
+		data.NewField("Categories", nil, []string{}),
 		data.NewField("Duration", nil, []int64{}),
 		data.NewField("Root cause service", nil, []string{}),
 		data.NewField("Anomalous services", nil, []string{}),
@@ -114,15 +115,15 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 	}
 
 	for _, insight := range insightsResponse.InsightSummaries {
-		description := strings.Split(aws.StringValue(insight.Summary), ".")[1]
-		description = strings.TrimSpace(description) + "."
+
 		rootCauseService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.RootCauseServiceId.Name), aws.StringValue(insight.RootCauseServiceId.Type))
 		anomalousService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Name), aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Type))
 		responseDataFrame.AppendRow(
 			insight.InsightId,
-			description,
-			insight.State,
-			int64(insight.EndTime.Sub(aws.TimeValue(insight.StartTime))/time.Millisecond),
+			getDescription(insight),
+			strings.Title(strings.ToLower(*insight.State)),
+			getCategories(aws.StringValueSlice(insight.Categories)),
+			getDuration(insight.StartTime, insight.EndTime),
 			rootCauseService,
 			anomalousService,
 			insight.GroupName,
@@ -130,4 +131,29 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 		)
 	}
 	return err
+}
+
+func getCategories(categories []string) string {
+	for index, category := range categories {
+		categories[index] = strings.Title(strings.ToLower(category))
+	}
+	return strings.Join(categories, ", ")
+}
+
+func getDescription(insight *xray.InsightSummary) string {
+	if insight.EndTime == nil {
+		return aws.StringValue(insight.Summary)
+	}
+
+	description := strings.Split(aws.StringValue(insight.Summary), ".")[1]
+	description = strings.TrimSpace(description) + "."
+	return description
+}
+
+func getDuration(startTime *time.Time, endTime *time.Time) int64 {
+	if endTime == nil {
+		endTime = aws.Time(time.Now())
+	}
+
+	return int64(endTime.Sub(aws.TimeValue(startTime)) / time.Millisecond)
 }
