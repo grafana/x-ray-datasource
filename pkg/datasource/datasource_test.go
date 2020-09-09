@@ -161,17 +161,32 @@ func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(con
 	return nil
 }
 
+const insightSummary = "some text. some more."
+
 func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error) {
 	return &xray.GetInsightSummariesOutput{
 		InsightSummaries: []*xray.InsightSummary{
 			{
-				Summary:              aws.String("The incident lasted for 25 minutes. Overall, 54% of the requests to zappa-grafana (AWS::S3::Bucket) failed due to errors."),
+				Summary:              aws.String(insightSummary),
 				StartTime:            aws.Time(time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC)),
 				EndTime:              aws.Time(time.Date(2020, 6, 20, 1, 20, 1, 0, time.UTC)),
+				State:                aws.String("CLOSED"),
+				Categories:           aws.StringSlice([]string{"FAULT", "ERROR"}),
 				GroupName:            aws.String("Grafana"),
 				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
 				TopAnomalousServices: []*xray.ImpactedService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
 				InsightId:            aws.String("ID"),
+			},
+			{
+				Summary:              aws.String(insightSummary),
+				StartTime:            aws.Time(time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC)),
+				EndTime:              nil,
+				Categories:           aws.StringSlice([]string{"a", "b"}),
+				State:                aws.String("ACTIVE"),
+				GroupName:            aws.String("Grafana"),
+				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
+				TopAnomalousServices: []*xray.ImpactedService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
+				InsightId:            aws.String("ID2"),
 			},
 		},
 	}, nil
@@ -287,21 +302,31 @@ func TestDatasource(t *testing.T) {
 	ds := datasource.NewDatasource(clientFactory)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
+		// Insight with nil EndTime should not throw error
 		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xray.Group{GroupName: aws.String("Grafana")}})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
 		// it should remove the first sentence from the summary
-		require.Equal(t, "Overall, 54% of the requests to zappa-grafana (AWS::S3::Bucket) failed due to errors.", response.Responses["A"].Frames[0].Fields[1].At(0))
+		require.Equal(t, "some more.", response.Responses["A"].Frames[0].Fields[1].At(0))
+
+		// Insight with nil EndTime should return the whole Summary
+		require.Equal(t, insightSummary, response.Responses["A"].Frames[0].Fields[1].At(1))
+
+		// State should be in Title case
+		require.Equal(t, "Active", response.Responses["A"].Frames[0].Fields[2].At(1))
+
+		// Categories should be converted to Title case and one string
+		require.Equal(t, "Fault, Error", response.Responses["A"].Frames[0].Fields[3].At(0))
 
 		// duration should be 20 minutes which is 1 200 000 milliseconds
-		require.Equal(t, int64(1200000), response.Responses["A"].Frames[0].Fields[2].At(0))
+		require.Equal(t, int64(1200000), response.Responses["A"].Frames[0].Fields[4].At(0))
 
 		// RootCauseServiceId should be Name (Type)
-		require.Equal(t, "graf (AWS)", response.Responses["A"].Frames[0].Fields[3].At(0))
+		require.Equal(t, "graf (AWS)", response.Responses["A"].Frames[0].Fields[5].At(0))
 
 		// TopAnomalousServices should be Name (Type)
-		require.Equal(t, "graf2 (AWS2)", response.Responses["A"].Frames[0].Fields[4].At(0))
+		require.Equal(t, "graf2 (AWS2)", response.Responses["A"].Frames[0].Fields[6].At(0))
 	})
 
 	t.Run("getTrace query", func(t *testing.T) {
