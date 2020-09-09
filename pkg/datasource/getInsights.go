@@ -120,7 +120,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 		anomalousService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Name), aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Type))
 		responseDataFrame.AppendRow(
 			insight.InsightId,
-			getDescription(insight),
+			getDescription(insight, rootCauseService),
 			strings.Title(strings.ToLower(*insight.State)),
 			getCategories(aws.StringValueSlice(insight.Categories)),
 			getDuration(insight.StartTime, insight.EndTime),
@@ -140,14 +140,18 @@ func getCategories(categories []string) string {
 	return strings.Join(categories, ", ")
 }
 
-func getDescription(insight *xray.InsightSummary) string {
+func getDescription(insight *xray.InsightSummary, rootCauseService string) string {
 	if insight.EndTime == nil {
 		return aws.StringValue(insight.Summary)
 	}
 
 	description := strings.Split(aws.StringValue(insight.Summary), ".")[1]
-	description = strings.TrimSpace(description) + "."
-	return description
+
+	if description == "" {
+		return "There were failures in " + rootCauseService + " due to " + *insight.Categories[0] + "."
+	}
+
+	return strings.TrimSpace(description) + "."
 }
 
 func getDuration(startTime *time.Time, endTime *time.Time) int64 {
