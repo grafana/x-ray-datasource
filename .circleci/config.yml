@@ -211,7 +211,7 @@ jobs:
 
   code_coverage_backend:
     executor: e2e_exec
-    working_directory: /go/src/github.com/grafana/azure-data-explorer-datasource
+    working_directory: /go/src/github.com/grafana/x-ray-datasource
     steps:
       - checkout
       - attach_workspace:
@@ -495,7 +495,7 @@ jobs:
             fi
 
   publish_github_release:
-    working_directory: ~/azure-data-explorer-datasource
+    working_directory: ~/x-ray-datasource
     docker:
       - image: cibuilds/github:0.13.0
     steps:
