@@ -263,7 +263,7 @@ jobs:
       - run:
           name: Package Distribution (for signing/etc)
           command: |
-            EXEC_PREFIX=gpx_adx
+            EXEC_PREFIX=gpx_x-ray-datasource
             #
             # ci-package will create the zip file
             #
