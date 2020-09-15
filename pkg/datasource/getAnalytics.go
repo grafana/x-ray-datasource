@@ -236,8 +236,7 @@ func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, 
     return true
   })
 
-  return count, err
-
+  return count / 2, err
 }
 
 type DataProcessor struct {
