@@ -134,11 +134,11 @@ function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTy
  * if query contains single traceID.
  */
 export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
-  if (!queryType || queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
+  if (queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
     return [traceStatisticsOption];
   }
 
-  if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
+  if (!queryType || queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
     return [traceListOption];
   }
 
@@ -166,7 +166,6 @@ type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   const groups = useGroups(datasource, selectedOptions[0]);
-  useInitQuery(query, onChange, groups);
 
   const onRunQuery = () => {
     onChange(query);
@@ -229,7 +228,7 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
             Group
           </InlineFormLabel>
           <Segment
-            value={query.group?.GroupName}
+            value={query.group?.GroupName ?? 'Default'}
             options={groups.map((group: Group) => ({
               value: group.GroupARN,
               label: group.GroupName,
@@ -320,48 +319,6 @@ const columnNames: { [key: string]: string } = {
   TotalCount: 'Total Count',
   'Computed.AverageResponseTime': 'Average Response Time',
 };
-
-/**
- * Inits the query with queryType so the segment component is filled in.
- */
-function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void, groups: Group[]) {
-  useEffect(() => {
-    let queryType;
-    // We assume that if there is no queryType during mount there should not be any query so we do not need to
-    // check if query has traceId or not as we do with the QueryTypeOptions mapping.
-    if (!query.queryType) {
-      queryType = XrayQueryType.getTraceSummaries;
-    }
-
-    let group;
-    let sameArnGroup = groups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
-    if (!sameArnGroup) {
-      // We assume here the "Default" group is always there.
-      group = groups.find((g: Group) => g.GroupName === 'Default');
-    } else if (
-      // This is the case when the group changes ie has the same ARN but different filter for example. I assume this can
-      // happen but not 100% sure.
-      sameArnGroup.GroupName !== query.group?.GroupName ||
-      sameArnGroup.FilterExpression !== query.group?.FilterExpression
-    ) {
-      group = sameArnGroup;
-    }
-
-    if (queryType || group) {
-      const change: Partial<XrayQuery> = {};
-      if (queryType) {
-        change.queryType = queryType;
-      }
-      if (group) {
-        change.group = group;
-      }
-      onChange({
-        ...query,
-        ...change,
-      });
-    }
-  }, [query, groups]);
-}
 
 function useGroups(datasource: XrayDataSource, queryType: QueryTypeOption) {
   const [groups, setGroups] = useState<Group[]>([]);
