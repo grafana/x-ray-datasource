@@ -60,13 +60,13 @@ The most important field in the editor is the query type. There are four query t
 - Trace Analytics (Analytics in AWS)
 - Insights
 
-{{< docs-imagebox img="/img/docs/v72/x-ray-query-editor.png" max-width="800px" class="docs-image--left" caption="X-Ray query editor" >}}
+![x-ray-query-editor](https://user-images.githubusercontent.com/13729989/93520935-8f3adc80-f92f-11ea-9399-e88f67f6aa07.png)
 
 ### Trace List
 
 The Trace List type allows you to search for traces which will be shown in a table. Clicking on the trace id in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or you can insert a single trace ID there that will be shown in a trace view. You can find more details about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
 
-{{< docs-imagebox img="/img/docs/v72/x-ray-trace-list.png" caption="X-Ray Trace List in Grafana" >}}
+![x-ray-trace-list](https://user-images.githubusercontent.com/13729989/93521002-ada0d800-f92f-11ea-9b8b-3f97cd55a763.png)
 
 > **Note:** The Trace List will only show the first 1000 traces.
 
@@ -74,7 +74,7 @@ The Trace List type allows you to search for traces which will be shown in a tab
 
 In Trace Statistics you can see a graph and a table showing information about error, fault, throttle, success, and total count. You can use the columns field in the query editor to only see specified columns.
 
-{{< docs-imagebox img="/img/docs/v72/x-ray-trace-statistics.png" caption="X-Ray Trace Statistics in Grafana" >}}
+![x-ray-trace-statistics](https://user-images.githubusercontent.com/13729989/93521032-b691a980-f92f-11ea-894c-534a9e5093d5.png)
 
 ### Trace Analytics
 
