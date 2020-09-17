@@ -66,8 +66,13 @@ export default function XRayCheatSheet({ onClickExample }: ExploreStartPageProps
           <div className="cheat-sheet-item__title">Filter keywords</div>
           <table
             className={css`
-              td {
-                padding: 5px 10px 5px 10px;
+              td,
+              th {
+                padding: 8px;
+              }
+              td:first-child,
+              th:first-child {
+                padding-left: 0;
               }
             `}
           >
