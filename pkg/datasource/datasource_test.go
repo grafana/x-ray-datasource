@@ -112,21 +112,26 @@ func makeSummary() *xray.TraceSummary {
 }
 
 func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
+  resp, err := client.GetTraceSummariesWithContext(context.Background(), input)
+	fn(resp, true)
+	return err
+}
 
-	// To make sure we don't panic in this case.
-	nilHttpSummary := makeSummary()
-	nilHttpSummary.Http.ClientIp = nil
-	nilHttpSummary.Http.HttpURL = nil
-	nilHttpSummary.Http.HttpMethod = nil
-	nilHttpSummary.Http.HttpStatus = nil
 
-	output := &xray.GetTraceSummariesOutput{
-		ApproximateTime: aws.Time(time.Now()),
-		TraceSummaries:  []*xray.TraceSummary{makeSummary(), nilHttpSummary},
-	}
-	fn(output, true)
+func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error) {
+  // To make sure we don't panic in this case.
+  nilHttpSummary := makeSummary()
+  nilHttpSummary.Http.ClientIp = nil
+  nilHttpSummary.Http.HttpURL = nil
+  nilHttpSummary.Http.HttpMethod = nil
+  nilHttpSummary.Http.HttpStatus = nil
 
-	return nil
+  output := &xray.GetTraceSummariesOutput{
+    ApproximateTime: aws.Time(time.Now()),
+    TraceSummaries:  []*xray.TraceSummary{makeSummary(), nilHttpSummary},
+  }
+
+  return output, nil
 }
 
 func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error) {
@@ -449,19 +454,19 @@ func TestDatasource(t *testing.T) {
 
 	t.Run("getAnalyticsRootCauseErrorService query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorService, [][]interface{}{
-			{"service_name_1 (service_type_1)", int64(2), float64(100)},
+			{"service_name_1 (service_type_1)", int64(8), float64(100)},
 		})
 	})
 
 	t.Run("getAnalyticsRootCauseErrorPath query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorPath, [][]interface{}{
-			{"service_name_1 (service_type_1) -> Test exception", int64(2), float64(100)},
+			{"service_name_1 (service_type_1) -> Test exception", int64(8), float64(100)},
 		})
 	})
 
 	t.Run("getAnalyticsRootCauseErrorMessage query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseErrorMessage, [][]interface{}{
-			{"Test exception message", int64(2), float64(100)},
+			{"Test exception message", int64(8), float64(100)},
 		})
 	})
 
@@ -471,19 +476,19 @@ func TestDatasource(t *testing.T) {
 
 	t.Run("getAnalyticsRootCauseFaultService query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultService, [][]interface{}{
-			{"faulty_service_name_1 (faulty_service_type_1)", int64(2), float64(100)},
+			{"faulty_service_name_1 (faulty_service_type_1)", int64(8), float64(100)},
 		})
 	})
 
 	t.Run("getAnalyticsRootCauseFaultPath query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultPath, [][]interface{}{
-			{"faulty_service_name_1 (faulty_service_type_1) -> Test fault", int64(2), float64(100)},
+			{"faulty_service_name_1 (faulty_service_type_1) -> Test fault", int64(8), float64(100)},
 		})
 	})
 
 	t.Run("getAnalyticsRootCauseFaultMessage query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseFaultMessage, [][]interface{}{
-			{"Test fault message", int64(2), float64(100)},
+			{"Test fault message", int64(8), float64(100)},
 		})
 	})
 
@@ -493,7 +498,7 @@ func TestDatasource(t *testing.T) {
 
 	t.Run("getAnalyticsRootCauseResponseTimeService query", func(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimeService, [][]interface{}{
-			{"response_service_name_2 (response_service_type_2)", int64(2), float64(100)},
+			{"response_service_name_2 (response_service_type_2)", int64(8), float64(100)},
 		})
 	})
 
@@ -501,7 +506,7 @@ func TestDatasource(t *testing.T) {
 		testAnalytics(t, ds, datasource.QueryGetAnalyticsRootCauseResponseTimePath, [][]interface{}{
 			{
 				"response_service_name_1 (response_service_type_1) -> response_sub_service_name_1 => response_service_name_2 (response_service_type_2) -> response_sub_service_name_2",
-				int64(2),
+				int64(8),
 				float64(100),
 			},
 		})
