@@ -21,9 +21,7 @@ type XrayClientMock struct {
 func NewXrayClientMock(traces ...[]*xray.TraceSummary) *XrayClientMock {
   var allTraces []*xray.TraceSummary
   for _, l := range traces {
-    for _, t := range l {
-      allTraces = append(allTraces, t)
-    }
+    allTraces = append(allTraces, l...)
   }
   return &XrayClientMock{
     traces: allTraces,
