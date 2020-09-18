@@ -71,7 +71,6 @@ func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query bac
 	log.DefaultLogger.Debug("getTraceSummariesData", "query", queryData.Query)
 
   diff := query.TimeRange.To.Sub(query.TimeRange.From)
-  log.DefaultLogger.Debug("getTraceSummariesData", "diff", diff.Minutes())
   diffQuarter := diff.Nanoseconds() / 4
 
   var traces []*xray.TraceSummary
@@ -109,7 +108,6 @@ func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query bac
   hasTokens := true
 
   for hasTokens {
-    log.DefaultLogger.Debug("getTraceSummariesData loop start")
     // Run the four parallel requests, returns when all are done
     responses, err := runRequests(ctx, xrayClient, requests, tokens)
     if err != nil {
@@ -131,12 +129,10 @@ func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query bac
     // Check if we still have at least one next token. Some requests can end paging sooner than other ones.
     hasTokens = false
     for _, t := range tokens {
-      log.DefaultLogger.Debug("getTraceSummariesData", "tokens", tokens)
       if len(t) > 0 {
         hasTokens = true
         break
       }
-      log.DefaultLogger.Debug("getTraceSummariesData no more tokens")
     }
 
     // If we have more traces and did not compute correct sampling beforehand, sample what we already have, set a new
@@ -410,10 +406,10 @@ func (dataProcessor *DataProcessor) dataframe() *data.Frame {
 		labels[dataProcessor.queryType],
 		data.NewField(labels[dataProcessor.queryType], nil, []string{}),
 		data.NewField("Count", nil, []int64{}),
-		data.NewField("Percent", nil, []float64{}),
+		data.NewField("Percent", nil, []float64{}).SetConfig(&data.FieldConfig{Unit: "percent", Decimals: aws.Uint16(2)}),
 	)
 
-	for key, value := range dataProcessor.counts {
+for key, value := range dataProcessor.counts {
 		frame.AppendRow(key, value, float64(value)/float64(dataProcessor.total)*100)
 	}
 
