@@ -58,6 +58,15 @@ describe('QueryEditor', () => {
     expect(screen.getByText(expected)).not.toBeNull();
   });
 
+  it('inits the query with query type', async () => {
+    const { onChange } = await renderWithQuery({ query: '' });
+    expect(onChange).toBeCalledWith({
+      refId: 'A',
+      query: '',
+      queryType: XrayQueryType.getTraceSummaries,
+    });
+  });
+
   it('shows column filter and resolution only if query type is getTimeSeriesServiceStatistics', async () => {
     const { rerender } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
     expect(screen.queryByTestId('column-filter')).toBeNull();
