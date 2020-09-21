@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ButtonCascader, InlineFormLabel, MultiSelect, Segment } from '@grafana/ui';
+import { ButtonCascader, Icon, InlineFormLabel, MultiSelect, Segment, Tooltip } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
 import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../types';
@@ -182,6 +182,15 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
           <div style={{ flex: 1, display: 'flex' }}>
             <InlineFormLabel className="query-keyword" width="auto">
               Query
+              <Tooltip placement="top" content="Filter expressions help" theme="info">
+                <a
+                  href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html?icmpid=docs_xray_console"
+                  target="_blank"
+                  className="gf-form-help-icon gf-form-help-icon--right-normal"
+                >
+                  <Icon name="info-circle" size="sm" style={{ marginLeft: '10px' }} />
+                </a>
+              </Tooltip>
             </InlineFormLabel>
             <XRayQueryField
               query={query}
