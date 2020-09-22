@@ -14,14 +14,10 @@
       "name": "Grafana",
       "url": "grafana.com"
     },
-    "keywords": [
-      "aws",
-      "x-ray",
-      "tracing"
-    ],
+    "keywords": ["aws", "x-ray", "tracing"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "img/AWS-X-Ray.svg",
+      "large": "img/AWS-X-Ray.svg"
     },
     "links": [
       {
