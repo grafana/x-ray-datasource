@@ -96,14 +96,14 @@ function getIconColor(segment: XrayTraceDataSegmentDocument) {
   return undefined;
 }
 
-function getStackTrace(segment: XrayTraceDataSegmentDocument) {
+function getStackTrace(segment: XrayTraceDataSegmentDocument): string[] | undefined {
   if (!segment.cause?.exceptions) {
     return undefined;
   }
   const stackTraces: string[] = [];
   segment.cause.exceptions.forEach(exception => {
     let stackTrace = `${exception.type}: ${exception.message}\n`;
-    exception.stack.forEach(stack => {
+    exception.stack?.forEach(stack => {
       stackTrace = stackTrace.concat(`at ${stack.label} (${stack.path}:${stack.line})\n`);
     });
     stackTraces.push(stackTrace);
