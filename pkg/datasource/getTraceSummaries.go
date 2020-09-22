@@ -49,7 +49,7 @@ func getTraceSummariesForSingleQuery(xrayClient XrayClient, query backend.DataQu
 		data.NewField("Id", nil, []*string{}),
 		data.NewField("Method", nil, []*string{}),
 		data.NewField("Response", nil, []*int64{}),
-		data.NewField("Response Time", nil, []*float64{}),
+		data.NewField("Response Time", nil, []*float64{}).SetConfig(&data.FieldConfig{Unit: "s"}),
 		data.NewField("URL", nil, []*string{}),
 		data.NewField("Client IP", nil, []*string{}),
 		data.NewField("Annotations", nil, []*int64{}),
