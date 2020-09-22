@@ -102,9 +102,9 @@ function getStackTrace(segment: XrayTraceDataSegmentDocument): string[] | undefi
   }
   const stackTraces: string[] = [];
   segment.cause.exceptions.forEach(exception => {
-    let stackTrace = `${exception.type}: ${exception.message}\n`;
+    let stackTrace = `${exception.type}: ${exception.message}`;
     exception.stack?.forEach(stack => {
-      stackTrace = stackTrace.concat(`at ${stack.label} (${stack.path}:${stack.line})\n`);
+      stackTrace = stackTrace.concat(`\nat ${stack.label} (${stack.path}:${stack.line})`);
     });
     stackTraces.push(stackTrace);
   });
