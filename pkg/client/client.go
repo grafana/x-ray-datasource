@@ -1,14 +1,17 @@
 package client
 
 import (
-	"fmt"
+  "fmt"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
+  "os"
+  "runtime"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/grafana/x-ray-datasource/pkg/configuration"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/request"
+  "github.com/aws/aws-sdk-go/aws/session"
+  "github.com/aws/aws-sdk-go/service/ec2"
+  "github.com/grafana/x-ray-datasource/pkg/configuration"
+  xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
@@ -20,9 +23,8 @@ func CreateXrayClient(datasourceInfo *configuration.DatasourceInfo) (*xray.XRay,
 
 	clt := xray.New(sess, config)
 	clt.Handlers.Send.PushFront(func(r *request.Request) {
-		// TODO: fix, get from the GF_VERSION env var
-		//r.HTTPRequest.Header.Set("User-Agent", fmt.Sprintf("Grafana/%s", setting.BuildVersion))
-		r.HTTPRequest.Header.Set("User-Agent", fmt.Sprintf("Grafana/%s", "7.1"))
+		r.HTTPRequest.Header.Set("User-Agent", userAgentString())
+    log.DefaultLogger.Debug("CreateXrayClient", "userAgent", userAgentString())
 	})
 
 	return clt, nil
@@ -37,9 +39,7 @@ func CreateEc2Client(datasourceInfo *configuration.DatasourceInfo) (*ec2.EC2, er
 
 	ec2Client := ec2.New(sess, config)
 	ec2Client.Handlers.Send.PushFront(func(r *request.Request) {
-		// TODO: fix, get from the GF_VERSION env var
-		//r.HTTPRequest.Header.Set("User-Agent", fmt.Sprintf("Grafana/%s", setting.BuildVersion))
-		r.HTTPRequest.Header.Set("User-Agent", fmt.Sprintf("Grafana/%s", "7.1"))
+		r.HTTPRequest.Header.Set("User-Agent", userAgentString())
 	})
 	return ec2Client, nil
 }
@@ -55,4 +55,8 @@ func createConfigAndSession(datasourceInfo *configuration.DatasourceInfo) (*aws.
 	}
 
 	return cfg, sess, nil
+}
+
+func userAgentString() string {
+  return fmt.Sprintf("%s/%s (%s; %s) Grafana/%s", aws.SDKName, aws.SDKVersion, runtime.Version(), runtime.GOOS, os.Getenv("GF_VERSION"))
 }
