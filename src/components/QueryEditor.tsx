@@ -213,7 +213,7 @@ function QueryEditorForm({
     }
   };
 
-  const allGroups = selectedOptions[0] === insightsOption ? [{ GroupName: 'All', GroupARN: 'All' }, ...groups] : groups;
+  const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
 
   return (
     <div>
@@ -379,6 +379,9 @@ const columnNames: { [key: string]: string } = {
   'Computed.AverageResponseTime': 'Average Response Time',
 };
 
+// Dummy group that can be selected only in insights;
+const dummyAllGroup = { GroupName: 'All', GroupARN: 'All' };
+
 /**
  * Inits the query on mount or on datasource change.
  */
@@ -404,7 +407,12 @@ function useInitQuery(
     } else {
       // Check if we can keep the group from previous x-ray datasource or we need to set it to default again.
       let group = query.group;
-      let sameArnGroup = groups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
+      let allGroups = groups;
+      if (query.queryType === XrayQueryType.getInsights) {
+        allGroups = [dummyAllGroup, ...groups];
+      }
+
+      let sameArnGroup = allGroups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
       if (!sameArnGroup) {
         group = defaultGroup;
       } else if (
@@ -425,7 +433,7 @@ function useInitQuery(
     // Technically it should dep on all the arguments. Issue is I don't want this to run on every query change as it
     // should not be possible currently to clear the query, change the onChange or groups without changing the
     // datasource so this is sort of shorthand.
-  }, [dataSource]);
+  }, [query, dataSource]);
 }
 
 function useGroups(datasource: XrayDataSource): Group[] | undefined {
