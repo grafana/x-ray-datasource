@@ -72,94 +72,94 @@ export default function CheatSheet({ onClickExample }: ExploreStartPageProps) {
             `}
           >
             <thead>
-            <tr>
-              <th>Attribute</th>
-              <th>Type</th>
-              <th>Description</th>
-            </tr>
+              <tr>
+                <th>Attribute</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
             </thead>
             <tbody>
-            <tr>
-              <td>ok</td>
-              <td>Boolean</td>
-              <td>Response status code was 2XX Success.</td>
-            </tr>
-            <tr>
-              <td>error</td>
-              <td>Boolean</td>
-              <td>Response status code was 4XX Client Error.</td>
-            </tr>
-            <tr>
-              <td>fault</td>
-              <td>Boolean</td>
-              <td>Response status code was 5XX Server Error.</td>
-            </tr>
-            <tr>
-              <td>partial</td>
-              <td>Boolean</td>
-              <td>Request has incomplete segments.</td>
-            </tr>
-            <tr>
-              <td>responsetime</td>
-              <td>Number</td>
-              <td>Time that the server took to send a response.</td>
-            </tr>
-            <tr>
-              <td>duration</td>
-              <td>Number</td>
-              <td>Total request duration including all downstream calls.</td>
-            </tr>
-            <tr>
-              <td>http.status</td>
-              <td>Number</td>
-              <td>Response status code.</td>
-            </tr>
-            <tr>
-              <td>http.url</td>
-              <td>String</td>
-              <td>Request URL.</td>
-            </tr>
-            <tr>
-              <td>http.method</td>
-              <td>String</td>
-              <td>Request method.</td>
-            </tr>
-            <tr>
-              <td>http.useragent</td>
-              <td>String</td>
-              <td>Request user agent string.</td>
-            </tr>
-            <tr>
-              <td>http.clientip</td>
-              <td>String</td>
-              <td>Requestor's IP address.</td>
-            </tr>
-            <tr>
-              <td>user</td>
-              <td>String</td>
-              <td>Value of user field on any segment in the trace.</td>
-            </tr>
-            <tr>
-              <td>annotation.*key*</td>
-              <td>String</td>
-              <td>Value of annotation with field *key*.</td>
-            </tr>
-            <tr>
-              <td>service(*name*) {}</td>
-              <td>Complex</td>
-              <td>
-                Service with name *name*. Optional curly braces can contain a filter expression that applies to
-                segments created by the service.
-              </td>
-            </tr>
-            <tr>
-              <td>edge(*source*, *destination*) {}</td>
-              <td>Complex</td>
-              <td>
-                Connection between services *source* and *destination*. Optional curly braces can contain a filter
-                expression that applies to segments on this connection.
-              </td>
-            </tr>
+              <tr>
+                <td>ok</td>
+                <td>Boolean</td>
+                <td>Response status code was 2XX Success.</td>
+              </tr>
+              <tr>
+                <td>error</td>
+                <td>Boolean</td>
+                <td>Response status code was 4XX Client Error.</td>
+              </tr>
+              <tr>
+                <td>fault</td>
+                <td>Boolean</td>
+                <td>Response status code was 5XX Server Error.</td>
+              </tr>
+              <tr>
+                <td>partial</td>
+                <td>Boolean</td>
+                <td>Request has incomplete segments.</td>
+              </tr>
+              <tr>
+                <td>responsetime</td>
+                <td>Number</td>
+                <td>Time that the server took to send a response.</td>
+              </tr>
+              <tr>
+                <td>duration</td>
+                <td>Number</td>
+                <td>Total request duration including all downstream calls.</td>
+              </tr>
+              <tr>
+                <td>http.status</td>
+                <td>Number</td>
+                <td>Response status code.</td>
+              </tr>
+              <tr>
+                <td>http.url</td>
+                <td>String</td>
+                <td>Request URL.</td>
+              </tr>
+              <tr>
+                <td>http.method</td>
+                <td>String</td>
+                <td>Request method.</td>
+              </tr>
+              <tr>
+                <td>http.useragent</td>
+                <td>String</td>
+                <td>Request user agent string.</td>
+              </tr>
+              <tr>
+                <td>http.clientip</td>
+                <td>String</td>
+                <td>Requestor's IP address.</td>
+              </tr>
+              <tr>
+                <td>user</td>
+                <td>String</td>
+                <td>Value of user field on any segment in the trace.</td>
+              </tr>
+              <tr>
+                <td>annotation.*key*</td>
+                <td>String</td>
+                <td>Value of annotation with field *key*.</td>
+              </tr>
+              <tr>
+                <td>service(*name*) {}</td>
+                <td>Complex</td>
+                <td>
+                  Service with name *name*. Optional curly braces can contain a filter expression that applies to
+                  segments created by the service.
+                </td>
+              </tr>
+              <tr>
+                <td>edge(*source*, *destination*) {}</td>
+                <td>Complex</td>
+                <td>
+                  Connection between services *source* and *destination*. Optional curly braces can contain a filter
+                  expression that applies to segments on this connection.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
