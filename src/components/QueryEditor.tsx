@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ButtonCascader, Icon, InlineFormLabel, MultiSelect, Segment, Tooltip } from '@grafana/ui';
+import { ButtonCascader, Icon, InlineFormLabel, MultiSelect, Segment, stylesFactory, Tooltip } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
 import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../types';
 import { XRayQueryField } from './XRayQueryField';
 import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
+import { css } from 'emotion';
 
 const traceListOption = { label: 'Trace List', value: 'traceList' };
 const insightsOption = { label: 'Insights', value: 'insights', queryType: XrayQueryType.getInsights };
@@ -162,10 +163,21 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
   }
 }
 
+const getStyles = stylesFactory(() => ({
+  tooltipLink: css`
+    color: #33a2e5;
+    &:hover {
+      color: #33a2e5;
+      filter: brightness(120%);
+    }
+  `,
+}));
+
 type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
 export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   const groups = useGroups(datasource, selectedOptions[0]);
+  const styles = getStyles();
   useInitQuery(query, onChange, groups);
 
   const onRunQuery = () => {
@@ -182,15 +194,25 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
         <div className="gf-form">
           <div style={{ flex: 1, display: 'flex' }}>
             <InlineFormLabel className="query-keyword" width="auto">
-              Query
-              <Tooltip placement="top" content="Filter expressions help" theme="info">
-                <a
-                  href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html?icmpid=docs_xray_console"
-                  target="_blank"
-                  className="gf-form-help-icon gf-form-help-icon--right-normal"
-                >
-                  <Icon name="info-circle" size="sm" style={{ marginLeft: '10px' }} />
-                </a>
+              Query&nbsp;
+              <Tooltip
+                placement="top"
+                content={
+                  <span>
+                    See{' '}
+                    <a
+                      href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html?icmpid=docs_xray_console"
+                      target="_blank"
+                      className={styles.tooltipLink}
+                    >
+                      X-Ray documentation
+                    </a>{' '}
+                    for filter expression help.
+                  </span>
+                }
+                theme="info"
+              >
+                <Icon className="gf-form-help-icon gf-form-help-icon--right-normal" name="info-circle" size="sm" />
               </Tooltip>
             </InlineFormLabel>
             <XRayQueryField
