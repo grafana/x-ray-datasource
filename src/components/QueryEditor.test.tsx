@@ -113,7 +113,25 @@ describe('QueryEditor', () => {
 
   it('sets the query type to getTrace if query is a traceID', () => {
     const queryType = queryTypeOptionToQueryType([queryTypeOptions[0].value], '1-5f048fc1-4f1c9b022d6233dacd96fb84');
-
     expect(queryType).toBe(XrayQueryType.getTrace);
+  });
+
+  it('waits until groups are loaded', async () => {
+    await act(async () => {
+      render(
+        <QueryEditor
+          {...{
+            ...defaultProps,
+            query: {
+              refId: 'A',
+            } as any,
+          }}
+          onChange={() => {}}
+        />
+      );
+      // No ideal selector but spinner does not seem to have any better thing to select by
+      expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+      await waitFor(() => expect(screen.getByText('Query')).toBeDefined());
+    });
   });
 });

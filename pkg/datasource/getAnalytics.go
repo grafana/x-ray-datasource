@@ -1,20 +1,24 @@
 package datasource
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"strconv"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/data"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
+  "context"
+  "encoding/json"
+  "fmt"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/grafana/grafana-plugin-sdk-go/backend"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
+  "github.com/grafana/grafana-plugin-sdk-go/data"
+  "github.com/grafana/x-ray-datasource/pkg/xray"
+  "golang.org/x/sync/errgroup"
+  "math"
+  "math/rand"
+  "strconv"
+  "time"
 )
 
 type GetAnalyticsQueryData struct {
 	Query string `json:"query"`
+	Group *xray.Group `json:"Group"`
 }
 
 func (ds *Datasource) getAnalytics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -27,19 +31,19 @@ func (ds *Datasource) getAnalytics(ctx context.Context, req *backend.QueryDataRe
 		Responses: make(map[string]backend.DataResponse),
 	}
 
+	// TODO this could be parallelized
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getSingleAnalyticsResult(xrayClient, query)
+		response.Responses[query.RefID] = getSingleAnalyticsQueryResult(ctx, xrayClient, query)
 	}
 
 	return response, nil
 }
 
-func getSingleAnalyticsResult(xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func getSingleAnalyticsQueryResult(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "type", query.QueryType, "RefID", query.RefID)
 
-	processor := NewDataProcessor(query.QueryType)
-	err := getTraceSummariesData(xrayClient, query, processor.processSummary)
-	log.DefaultLogger.Debug("getSingleAnalyticsResult", "processor.total", processor.total)
+  const maxTraces = 10000
+	traces, err := getTraceSummariesData(ctx, xrayClient, query, maxTraces)
 
 	if err != nil {
 		log.DefaultLogger.Debug("getSingleAnalyticsResult", "error", err)
@@ -48,47 +52,219 @@ func getSingleAnalyticsResult(xrayClient XrayClient, query backend.DataQuery) ba
 		}
 	}
 
+  log.DefaultLogger.Debug("getSingleAnalyticsResult", "len(traces)", len(traces))
+  processor := NewDataProcessor(query.QueryType)
+  processor.processTraces(traces)
+
 	return backend.DataResponse{
 		Frames: []*data.Frame{processor.dataframe()},
 	}
 }
 
-func getTraceSummariesData(xrayClient XrayClient, query backend.DataQuery, processFn func(*xray.TraceSummary)) error {
+func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query backend.DataQuery, maxTraces int) ([]*xray.TraceSummary, error) {
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
-	log.DefaultLogger.Debug("getTraceSummaries", "query", queryData.Query)
+	log.DefaultLogger.Debug("getTraceSummariesData", "query", queryData.Query)
 
-	var filterExpression *string
-	if queryData.Query != "" {
-		filterExpression = &queryData.Query
-	}
+  diff := query.TimeRange.To.Sub(query.TimeRange.From)
+  diffQuarter := diff.Nanoseconds() / 4
 
-	request := &xray.GetTraceSummariesInput{
-		StartTime:        &query.TimeRange.From,
-		EndTime:          &query.TimeRange.To,
-		FilterExpression: filterExpression,
-		TimeRangeType:    aws.String("Event"),
-		Sampling:         aws.Bool(true),
-		SamplingStrategy: &xray.SamplingStrategy{
-			Name:  aws.String("FixedRate"),
-			Value: aws.Float64(1),
-		},
-	}
-	err = xrayClient.GetTraceSummariesPages(request, func(page *xray.GetTraceSummariesOutput, lastPage bool) bool {
-		log.DefaultLogger.Debug("getTraceSummaries", "TracesProcessedCount", page.TracesProcessedCount, "lastPage", lastPage, "nextToken", page.NextToken)
-		for _, summary := range page.TraceSummaries {
-			processFn(summary)
-		}
-		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
-		return true
-	})
-	return err
+  var traces []*xray.TraceSummary
+  var requests []*xray.GetTraceSummariesInput
+  sampling := float64(1)
+  adaptiveSampling := true
+
+  if queryData.Query == "" {
+    var groupARN *string
+    if queryData.Group != nil {
+      groupARN = queryData.Group.GroupARN
+    }
+    // Get count of all the traces so we can compute sampling. The API used does not allow for filter expression so
+    // we can do this only if we don't have one.
+    count, err := getTracesCount(ctx, xrayClient, query.TimeRange.From, query.TimeRange.To, groupARN)
+    if err != nil {
+      return nil, err
+    }
+    sampling = math.Min(float64(maxTraces) / float64(count), 1)
+    log.DefaultLogger.Debug("getTraceSummariesData static sampling", "sampling", sampling, "maxTraces", maxTraces, "count", count)
+    adaptiveSampling = false
+  }
+
+  for i := 0; i < 4; i++ {
+    requests = append(requests, makeRequest(
+      query.TimeRange.From.Add(time.Duration(diffQuarter * int64(i))),
+      query.TimeRange.From.Add(time.Duration(diffQuarter * int64(i + 1))),
+      sampling,
+      queryData.Query,
+    ))
+  }
+
+  tokens := []string{"first", "first", "first", "first"}
+
+  hasTokens := true
+
+  for hasTokens {
+    // Run the four parallel requests, returns when all are done
+    responses, err := runRequests(ctx, xrayClient, requests, tokens)
+    if err != nil {
+      return nil, err
+    }
+
+    // Append traces and get tokens for next page for each request
+    for i, resp := range responses {
+      if resp != nil {
+        traces = append(traces, resp.TraceSummaries...)
+        if resp.NextToken != nil {
+          tokens[i] = *resp.NextToken
+        } else {
+          tokens[i] = ""
+        }
+      }
+    }
+
+    // Check if we still have at least one next token. Some requests can end paging sooner than other ones.
+    hasTokens = false
+    for _, t := range tokens {
+      if len(t) > 0 {
+        hasTokens = true
+        break
+      }
+    }
+
+    // If we have more traces and did not compute correct sampling beforehand, sample what we already have, set a new
+    // sampling value and update requests for next run.
+    if len(traces) > maxTraces && adaptiveSampling {
+      var originalLen = len(traces)
+      traces = sampleTraces(traces)
+      sampling = sampling / 2
+      for _, req := range requests {
+        req.SamplingStrategy.Value = aws.Float64(sampling)
+      }
+
+      log.DefaultLogger.Debug("getTraceSummariesData", "len(traces)", originalLen, "maxTraces", maxTraces, "len(sampled)", len(traces), "newSampling", sampling)
+    }
+  }
+
+  return traces, err
 }
 
+func makeRequest(from time.Time, to time.Time, sampling float64, filterExpression string) *xray.GetTraceSummariesInput {
+  var filterExpressionNormalised *string
+  if filterExpression != "" {
+    filterExpressionNormalised = &filterExpression
+  }
+
+  return &xray.GetTraceSummariesInput{
+    StartTime:        aws.Time(from),
+    EndTime:          aws.Time(to),
+    FilterExpression: filterExpressionNormalised,
+    TimeRangeType:    aws.String("Event"),
+    Sampling:         aws.Bool(true),
+    SamplingStrategy: &xray.SamplingStrategy{
+      Name:  aws.String("FixedRate"),
+      Value: aws.Float64(sampling),
+    },
+  }
+}
+
+var seed int64
+
+// sampleTraces just filters 50% of the traces from the provided list.
+func sampleTraces(traces []*xray.TraceSummary) []*xray.TraceSummary {
+  var samples []*xray.TraceSummary
+  s := rand.NewSource(time.Now().UnixNano())
+  if seed != 0 {
+    s = rand.NewSource(seed)
+  }
+  r := rand.New(s)
+
+  for _, trace := range traces {
+    if r.Intn(2) == 1 {
+      samples = append(samples, trace)
+    }
+  }
+  return samples
+}
+
+// runRequests runs 4 trace summary requests in parallel and returns slice of responses once all are done.
+func runRequests(ctx context.Context, xrayClient XrayClient, requests []*xray.GetTraceSummariesInput, tokens []string) ([]*xray.GetTraceSummariesOutput, error) {
+  group, groupCtx := errgroup.WithContext(ctx)
+
+  // We need to keep the responses ordered the same way the requests were. Reason is we need to update the requests with
+  // NextToken for the next run and each request pages through different time range so they need to be correctly matched
+  // later on.
+  responses := []*xray.GetTraceSummariesOutput{nil, nil, nil, nil}
+
+  for i, request := range requests {
+    if len(tokens[i]) > 0 {
+      if tokens[i] != "first" {
+        request.NextToken = aws.String(tokens[i])
+      }
+      // Capture these for the go routine closure
+      index := i
+      req := *request
+      group.Go(func() error {
+        resp, err := getTraceSummaries(groupCtx, xrayClient, req)
+        if err != nil {
+          return err
+        }
+        responses[index] = resp
+        return nil
+      })
+    }
+  }
+
+  if err := group.Wait(); err != nil {
+    return nil, err
+  }
+  return responses, nil
+}
+
+func getTraceSummaries(ctx context.Context, xrayClient XrayClient, request xray.GetTraceSummariesInput) (*xray.GetTraceSummariesOutput, error) {
+  resp, err := xrayClient.GetTraceSummariesWithContext(ctx, &request)
+  if err != nil {
+    return nil, err
+  }
+  log.DefaultLogger.Debug( "getTraceSummaries", "from", request.StartTime, "to", request.EndTime, "len(traces)", len(resp.TraceSummaries))
+  return resp, nil
+}
+
+// getTracesCount returns count of all the traces in the time range. It uses TimeSeries API for that to go through
+// counts per service or edge which should be the most efficient way to do that right now. One caveat is that it does
+// not allow for filter expression (or it does but only in some subset of expressions).
+func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, to time.Time, groupArn *string) (int64, error) {
+  log.DefaultLogger.Debug("getTracesCount", "from", from, "to", to, "groupARN", groupArn)
+  input := &xray.GetTimeSeriesServiceStatisticsInput{
+    StartTime: aws.Time(from),
+    EndTime:   aws.Time(to),
+    GroupARN:  groupArn,
+    Period:    aws.Int64(60) ,
+  }
+
+  count := int64(0)
+  err := xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, input, func(output *xray.GetTimeSeriesServiceStatisticsOutput, b bool) bool {
+    for _, stats := range output.TimeSeriesServiceStatistics {
+      // Not sure if this can return ServiceSummaryStatistics. It should be returned only if a service filter expression
+      // is defined for a particular service but I would assume a Group can also trigger this.
+      if stats.ServiceSummaryStatistics != nil {
+        count += *stats.ServiceSummaryStatistics.TotalCount
+      } else if stats.EdgeSummaryStatistics != nil {
+        count += *stats.EdgeSummaryStatistics.TotalCount
+      }
+    }
+    return true
+  })
+
+  return count, err
+}
+
+// DataProcessor is responsible for counting and aggregating the trace data byt different columns. It is stateful mainly
+// because before it just provided a callback to process one trace at the time. After sampling was added this processes
+// the whole array of traces so could be refactored to stateless function.
 type DataProcessor struct {
 	counts    map[string]int64
 	total     int64
@@ -102,7 +278,15 @@ func NewDataProcessor(queryType string) *DataProcessor {
 	}
 }
 
-func (dataProcessor *DataProcessor) processSummary(summary *xray.TraceSummary) {
+func (dataProcessor *DataProcessor) processTraces(traces []*xray.TraceSummary) {
+  for _, trace := range traces {
+    dataProcessor.processSingleTrace(trace)
+  }
+}
+
+// processSingleTrace mainly figures out the proper aggregation key for the trace. There is lots of duplication because
+// even though various attributes in the trace summary have the same structure they have different types.
+func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummary) {
 	switch dataProcessor.queryType {
 	case QueryGetAnalyticsRootCauseResponseTimeService, QueryGetAnalyticsRootCauseResponseTimePath:
 		if len(summary.ResponseTimeRootCauses) == 0 {
@@ -217,20 +401,22 @@ func (dataProcessor *DataProcessor) processSummary(summary *xray.TraceSummary) {
 }
 
 func (dataProcessor *DataProcessor) dataframe() *data.Frame {
+  log.DefaultLogger.Debug("dataframe()", "label", labels[dataProcessor.queryType], "query", dataProcessor.queryType)
 	frame := data.NewFrame(
 		labels[dataProcessor.queryType],
 		data.NewField(labels[dataProcessor.queryType], nil, []string{}),
 		data.NewField("Count", nil, []int64{}),
-		data.NewField("Percent", nil, []float64{}),
+		data.NewField("Percent", nil, []float64{}).SetConfig(&data.FieldConfig{Unit: "percent", Decimals: aws.Uint16(2)}),
 	)
 
-	for key, value := range dataProcessor.counts {
+for key, value := range dataProcessor.counts {
 		frame.AppendRow(key, value, float64(value)/float64(dataProcessor.total)*100)
 	}
 
 	return frame
 }
 
+// Labels that will be used for column name.
 var labels = map[string]string{
 	QueryGetAnalyticsRootCauseResponseTimeService: "Response Time Root Cause",
 	QueryGetAnalyticsRootCauseResponseTimePath:    "Response Time Root Cause Path",
@@ -240,6 +426,9 @@ var labels = map[string]string{
 	QueryGetAnalyticsRootCauseFaultService:        "Fault Root Cause",
 	QueryGetAnalyticsRootCauseFaultPath:           "Fault Root Cause Path",
 	QueryGetAnalyticsRootCauseFaultMessage:        "Fault Root Cause Message",
+  QueryGetAnalyticsUrl:                          "URL",
+  QueryGetAnalyticsUser:                         "User",
+  QueryGetAnalyticsStatusCode:                   "Status Code",
 }
 
 func getErrorMessage(cause *xray.ErrorRootCause) string {

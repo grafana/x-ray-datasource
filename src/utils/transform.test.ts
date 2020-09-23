@@ -53,6 +53,11 @@ const awsResponse = {
                     },
                   ],
                 },
+                {
+                  message: 'Undefined stack exception',
+                  type: 'UndefinedStackException',
+                  stack: undefined,
+                },
               ],
             },
           },
@@ -136,8 +141,8 @@ const result = {
       stackTraces: [
         `ConditionalCheckFailedException: The conditional request failed
 at features.constructor.captureAWSRequest [as customRequestHandler] (/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js:66)
-at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aws-sdk/lib/service.js:266)
-`,
+at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aws-sdk/lib/service.js:266)`,
+        `UndefinedStackException: Undefined stack exception`,
       ],
       startTime: 1591872073754000,
       tags: [

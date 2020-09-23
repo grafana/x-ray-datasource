@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ButtonCascader, Icon, InlineFormLabel, MultiSelect, Segment, stylesFactory, Tooltip } from '@grafana/ui';
+import {
+  ButtonCascader,
+  Icon,
+  InlineFormLabel,
+  MultiSelect,
+  Segment,
+  Spinner,
+  stylesFactory,
+  Tooltip,
+} from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../DataSource';
 import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../types';
@@ -163,6 +172,18 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
   }
 }
 
+type XrayQueryEditorProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
+export function QueryEditor(props: XrayQueryEditorProps) {
+  const groups = useGroups(props.datasource);
+  // We need this wrapper to wait for the groups and only after that run the useInitQuery as it needs to know the groups
+  // at that point.
+  if (!groups) {
+    return <Spinner />;
+  } else {
+    return <QueryEditorForm {...{ ...props, groups: groups! }} />;
+  }
+}
+
 const getStyles = stylesFactory(() => ({
   tooltipLink: css`
     color: #33a2e5;
@@ -173,12 +194,16 @@ const getStyles = stylesFactory(() => ({
   `,
 }));
 
-type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData>;
-export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuerySuper }: Props) {
+function QueryEditorForm({
+  query,
+  onChange,
+  datasource,
+  onRunQuery: onRunQuerySuper,
+  groups,
+}: XrayQueryEditorProps & { groups: Group[] }) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
-  const groups = useGroups(datasource, selectedOptions[0]);
+  useInitQuery(query, onChange, groups, datasource);
   const styles = getStyles();
-  useInitQuery(query, onChange, groups);
 
   const onRunQuery = () => {
     onChange(query);
@@ -187,6 +212,8 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
       onRunQuerySuper();
     }
   };
+
+  const allGroups = selectedOptions[0] === insightsOption ? [{ GroupName: 'All', GroupARN: 'All' }, ...groups] : groups;
 
   return (
     <div>
@@ -261,14 +288,14 @@ export function QueryEditor({ query, onChange, datasource, onRunQuery: onRunQuer
           </InlineFormLabel>
           <Segment
             value={query.group?.GroupName}
-            options={groups.map((group: Group) => ({
+            options={allGroups.map((group: Group) => ({
               value: group.GroupARN,
               label: group.GroupName,
             }))}
             onChange={value => {
               onChange({
                 ...query,
-                group: groups.find((g: Group) => g.GroupARN === value.value),
+                group: allGroups.find((g: Group) => g.GroupARN === value.value),
               } as any);
             }}
           />
@@ -353,68 +380,63 @@ const columnNames: { [key: string]: string } = {
 };
 
 /**
- * Inits the query with queryType so the segment component is filled in.
+ * Inits the query on mount or on datasource change.
  */
-function useInitQuery(query: XrayQuery, onChange: (value: XrayQuery) => void, groups: Group[]) {
+function useInitQuery(
+  query: XrayQuery,
+  onChange: (value: XrayQuery) => void,
+  groups: Group[],
+  dataSource: XrayDataSource
+) {
   useEffect(() => {
-    let queryType;
+    // We assume here the "Default" group is always there.
+    const defaultGroup = groups.find((g: Group) => g.GroupName === 'Default')!;
+
     // We assume that if there is no queryType during mount there should not be any query so we do not need to
     // check if query has traceId or not as we do with the QueryTypeOptions mapping.
     if (!query.queryType) {
-      queryType = XrayQueryType.getTraceSummaries;
-    }
-
-    let group;
-    let sameArnGroup = groups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
-    if (!sameArnGroup) {
-      // We assume here the "Default" group is always there.
-      group = groups.find((g: Group) => g.GroupName === 'Default');
-    } else if (
-      // This is the case when the group changes ie has the same ARN but different filter for example. I assume this can
-      // happen but not 100% sure.
-      sameArnGroup.GroupName !== query.group?.GroupName ||
-      sameArnGroup.FilterExpression !== query.group?.FilterExpression
-    ) {
-      group = sameArnGroup;
-    }
-
-    if (queryType || group) {
-      const change: Partial<XrayQuery> = {};
-      if (queryType) {
-        change.queryType = queryType;
-      }
-      if (group) {
-        change.group = group;
-      }
       onChange({
         ...query,
-        ...change,
+        queryType: XrayQueryType.getTraceSummaries,
+        query: '',
+        group: defaultGroup,
       });
+    } else {
+      // Check if we can keep the group from previous x-ray datasource or we need to set it to default again.
+      let group = query.group;
+      let sameArnGroup = groups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
+      if (!sameArnGroup) {
+        group = defaultGroup;
+      } else if (
+        // This is the case when the group changes ie has the same ARN but different filter for example. I assume this can
+        // happen but not 100% sure.
+        sameArnGroup.GroupName !== query.group?.GroupName ||
+        sameArnGroup.FilterExpression !== query.group?.FilterExpression
+      ) {
+        group = sameArnGroup;
+      }
+      if (group !== query.group) {
+        onChange({
+          ...query,
+          group: group,
+        });
+      }
     }
-  }, [query, groups]);
+    // Technically it should dep on all the arguments. Issue is I don't want this to run on every query change as it
+    // should not be possible currently to clear the query, change the onChange or groups without changing the
+    // datasource so this is sort of shorthand.
+  }, [dataSource]);
 }
 
-function useGroups(datasource: XrayDataSource, queryType: QueryTypeOption) {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const allGroup = { GroupName: 'All', GroupARN: 'All' };
-  useEffect(() => {
-    // This should run in case we change between different x-ray datasources and so should clear old groups.
-    setGroups([]);
-    datasource.getGroups().then(groups => {
-      if (queryType === insightsOption) {
-        setGroups([allGroup, ...groups]);
-      } else {
-        setGroups(groups);
-      }
-    });
-  }, [datasource]);
+function useGroups(datasource: XrayDataSource): Group[] | undefined {
+  const [groups, setGroups] = useState<Group[] | undefined>(undefined);
 
   useEffect(() => {
-    if (queryType === insightsOption) {
-      setGroups([allGroup, ...groups]);
-    } else {
-      setGroups(groups.filter(group => group.GroupName !== allGroup.GroupName));
-    }
-  }, [queryType]);
+    // This should run in case we change between different x-ray datasources and so should clear old groups.
+    setGroups(undefined);
+    datasource.getGroups().then(groups => {
+      setGroups(groups);
+    });
+  }, [datasource]);
   return groups;
 }

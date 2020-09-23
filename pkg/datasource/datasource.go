@@ -118,6 +118,7 @@ func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
 
 type XrayClient interface {
 	BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
+  GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error)
 	GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error
 	GetTimeSeriesServiceStatisticsPagesWithContext(
 		aws.Context,
