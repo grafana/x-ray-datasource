@@ -5,7 +5,7 @@ import { QueryEditorForm, XrayQueryEditorFormProps } from './QueryEditorForm';
 
 /**
  * Simple wrapper that is only responsible to load groups and delay actual render of the QueryEditorForm. Main reason
- * for that is that there is queryInit code that requires groups to be already loaded and is separate hook wo it
+ * for that is that there is queryInit code that requires groups to be already loaded and is separate hook and it
  * cannot be inside a condition. There are other ways to put it into single component but this seems cleaner than
  * alternatives.
  */
