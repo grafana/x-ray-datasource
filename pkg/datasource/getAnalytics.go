@@ -357,7 +357,11 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummar
 
 					for _, path := range service.EntityPath {
 						for _, exception := range path.Exceptions {
-							key += fmt.Sprintf(" -> %s", *exception.Name)
+						  if exception != nil && exception.Name != nil {
+                key += fmt.Sprintf(" -> %s", *exception.Name)
+              } else {
+                key += fmt.Sprintf(" -> unknown")
+              }
 						}
 					}
 					if index < len(cause.Services)-1 {
