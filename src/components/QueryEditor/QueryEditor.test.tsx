@@ -9,6 +9,12 @@ const defaultProps = {
     async getGroups() {
       return [];
     },
+    getServiceMapUrl() {
+      return 'service-map';
+    },
+    getXrayUrlForQuery() {
+      return 'console';
+    },
   } as any,
 };
 
