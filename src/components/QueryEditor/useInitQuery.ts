@@ -1,0 +1,58 @@
+import { Group, XrayQuery, XrayQueryType } from '../../types';
+import { XrayDataSource } from '../../DataSource';
+import { useEffect } from 'react';
+import { dummyAllGroup } from './constants';
+
+/**
+ * Inits the query on mount or on datasource change.
+ */
+export function useInitQuery(
+  query: XrayQuery,
+  onChange: (value: XrayQuery) => void,
+  groups: Group[],
+  dataSource: XrayDataSource
+) {
+  useEffect(() => {
+    // We assume here the "Default" group is always there.
+    const defaultGroup = groups.find((g: Group) => g.GroupName === 'Default')!;
+
+    // We assume that if there is no queryType during mount there should not be any query so we do not need to
+    // check if query has traceId or not as we do with the QueryTypeOptions mapping.
+    if (!query.queryType) {
+      onChange({
+        ...query,
+        queryType: XrayQueryType.getTraceSummaries,
+        query: '',
+        group: defaultGroup,
+      });
+    } else {
+      // Check if we can keep the group from previous x-ray datasource or we need to set it to default again.
+      let group = query.group;
+      let allGroups = groups;
+      if (query.queryType === XrayQueryType.getInsights) {
+        allGroups = [dummyAllGroup, ...groups];
+      }
+
+      let sameArnGroup = allGroups.find((g: Group) => g.GroupARN === query.group?.GroupARN);
+      if (!sameArnGroup) {
+        group = defaultGroup;
+      } else if (
+        // This is the case when the group changes ie has the same ARN but different filter for example. I assume this can
+        // happen but not 100% sure.
+        sameArnGroup.GroupName !== query.group?.GroupName ||
+        sameArnGroup.FilterExpression !== query.group?.FilterExpression
+      ) {
+        group = sameArnGroup;
+      }
+      if (group !== query.group) {
+        onChange({
+          ...query,
+          group: group,
+        });
+      }
+    }
+    // Technically it should dep on all the arguments. Issue is I don't want this to run on every query change as it
+    // should not be possible currently to clear the query, change the onChange or groups without changing the
+    // datasource so this is sort of shorthand.
+  }, [query, dataSource]);
+}

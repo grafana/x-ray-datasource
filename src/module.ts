@@ -1,7 +1,7 @@
 import { DataSourcePlugin } from '@grafana/data';
 import { XrayDataSource } from './DataSource';
 import { ConfigEditor } from './ConfigEditor';
-import { QueryEditor } from './components/QueryEditor';
+import { QueryEditor } from './components/QueryEditor/QueryEditor';
 import { XrayQuery, XrayJsonData, XraySecureJsonData } from './types';
 import CheatSheet from './components/CheatSheet';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
-import { QueryEditor, queryTypeOptionToQueryType, queryTypeOptions } from './QueryEditor';
-import { XrayQuery, XrayQueryType } from '../types';
+import { QueryEditor } from './QueryEditor';
+import { XrayQuery, XrayQueryType } from '../../types';
 
 const defaultProps = {
   onRunQuery: undefined as any,
@@ -109,11 +109,6 @@ describe('QueryEditor', () => {
       columns: ['OkCount'],
       queryType: XrayQueryType.getTimeSeriesServiceStatistics,
     });
-  });
-
-  it('sets the query type to getTrace if query is a traceID', () => {
-    const queryType = queryTypeOptionToQueryType([queryTypeOptions[0].value], '1-5f048fc1-4f1c9b022d6233dacd96fb84');
-    expect(queryType).toBe(XrayQueryType.getTrace);
   });
 
   it('waits until groups are loaded', async () => {
