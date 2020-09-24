@@ -119,8 +119,13 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
     // Check if we either dropped the params because they are not needed for some query types or they are empty.
     let queryParams = urlQuery?.toString()
-      ? // X-ray does not handle + sign for spaces
-        '?' + urlQuery?.toString().replace(/\+/g, '%20')
+      ? // For some reason the analytics view of X-ray does not handle some url escapes
+        '?' +
+        urlQuery
+          ?.toString()
+          .replace(/\+/g, '%20')
+          .replace(/%3A/g, ':')
+          .replace(/%7E/g, '~')
       : '';
     return `${this.getXrayUrl()}#/${section}${queryParams}`;
   }
