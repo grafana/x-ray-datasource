@@ -24,7 +24,7 @@ export function XRayQueryField(props: XRayQueryFieldProps) {
 
   useEffect(() => {
     queryType.current = props.query.queryType;
-  }, [props.query.queryType]);
+  }, [props.query, props.query.queryType]);
 
   useEffect(() => {
     Prism.languages[PRISM_LANGUAGE] = tokenizer;

@@ -8,6 +8,7 @@ import {
   FieldType,
   MutableDataFrame,
   toDuration,
+  TimeRange,
 } from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
@@ -26,7 +27,6 @@ import {
 } from './types';
 import { transformResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
-import { TimeRange } from '@grafana/data/types/time';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -148,32 +148,32 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       case 'TraceSummaries':
         return parseTracesListResponse(response, this.instanceSettings.uid);
       case 'InsightSummaries':
-        return parseInsightsResponse(response, this.instanceSettings.jsonData.defaultRegion!);
+        return this.parseInsightsResponse(response);
       default:
         return response;
     }
   }
-}
 
-function parseInsightsResponse(response: DataFrame, region: string): DataFrame {
-  const urlToAwsConsole = `https://${region}.console.aws.amazon.com/xray/home?region=${region}#/insights/`;
-  const idField = response.fields.find(f => f.name === 'InsightId');
-  if (idField) {
-    idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
-  }
-  const duration = response.fields.find(f => f.name === 'Duration');
+  private parseInsightsResponse(response: DataFrame): DataFrame {
+    const urlToAwsConsole = `${this.getXrayUrl()}#/insights/`;
+    const idField = response.fields.find(f => f.name === 'InsightId');
+    if (idField) {
+      idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
+    }
+    const duration = response.fields.find(f => f.name === 'Duration');
 
-  if (duration) {
-    duration.type = FieldType.string;
-    duration.display = val => {
-      const momentDuration = toDuration(val);
-      return {
-        numeric: val,
-        text: getDurationText(momentDuration),
+    if (duration) {
+      duration.type = FieldType.string;
+      duration.display = val => {
+        const momentDuration = toDuration(val);
+        return {
+          numeric: val,
+          text: getDurationText(momentDuration),
+        };
       };
-    };
+    }
+    return response;
   }
-  return response;
 }
 
 function getDurationText(duration: DateTimeDuration) {

@@ -11,10 +11,11 @@ import {
 } from './constants';
 import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory } from '@grafana/ui';
 import React from 'react';
-import { QueryEditorProps, TimeRange } from '@grafana/data';
+import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
 import { css } from 'emotion';
+import { XrayLinks } from './XrayLinks';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -207,40 +208,6 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-const getLinksStyles = stylesFactory(() => ({
-  container: css`
-    display: flex;
-  `,
-  link: css`
-    white-space: nowrap;
-  `,
-}));
-type XrayLinksProps = {
-  datasource: XrayDataSource;
-  query: XrayQuery;
-  range?: TimeRange;
-};
-function XrayLinks({ datasource, query, range }: XrayLinksProps) {
-  const styles = getLinksStyles();
-  return (
-    <div className={styles.container}>
-      {[
-        ['To X-Ray service map', datasource.getServiceMapUrl()],
-        ['Open in X-Ray console', datasource.getXrayUrlForQuery(query, range)],
-      ].map(([text, href]) => {
-        return (
-          <a href={href} target="_blank" rel="noopener">
-            <span className={`gf-form-label gf-form-label--btn ${styles.link}`}>
-              <i className="fa fa-share-square-o" />
-              &nbsp;{text}
-            </span>
-          </a>
-        );
-      })}
     </div>
   );
 }
