@@ -39,10 +39,6 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     this.instanceSettings = instanceSettings;
   }
 
-  defaultRegion(): string {
-    return this.instanceSettings.jsonData.defaultRegion!;
-  }
-
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
     const processedRequest = processRequest(request, getTemplateSrv());
     const response = super.query(processedRequest);
