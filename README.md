@@ -29,9 +29,10 @@ In this section we will go through the different type of authentication you can 
 
 If the Auth Provider is `Credentials file`, then Grafana tries to get credentials in the following order:
 
-- Environment variables (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`)
 - Hard-code credentials
-- Shared credentials file
+- Environment variables (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`)
+- Existing default config files
+- ~/.aws/credentials
 - IAM role for Amazon EC2
 
 Refer to [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html) in the AWS documentation for more information.
@@ -102,7 +103,7 @@ In Insights you can see the summary table for Insights. Clicking the InsightId w
 
 ### Alerting
 
-Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting]({{< relref "../../alerting/alerts-overview.md" >}}) documentation for more on Grafana alerts.
+Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](https://grafana.com/docs/grafana/latest/alerting/alerts-overview/) documentation for more on Grafana alerts.
 
 ## Pricing
 
@@ -111,7 +112,7 @@ Since X-Ray queries can return numeric data, alerts are supported. See the [Aler
 
 ## Configure the data source with provisioning
 
-You can configure data sources using config files with Grafana's provisioning system. You can read more about how it works and all the settings you can set for data sources on the [provisioning docs page]({{< relref "../../administration/provisioning/#datasources" >}}).
+You can configure data sources using config files with Grafana's provisioning system. You can read more about how it works and all the settings you can set for data sources on the [provisioning docs page](https://grafana.com/docs/grafana/latest/administration/provisioning/).
 
 Here are some provisioning examples for this data source.
 
