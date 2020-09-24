@@ -8,8 +8,6 @@ import { QueryEditorForm, XrayQueryEditorFormProps } from './QueryEditorForm';
  * for that is that there is queryInit code that requires groups to be already loaded and is separate hook wo it
  * cannot be inside a condition. There are other ways to put it into single component but this seems cleaner than
  * alternatives.
- * @param props
- * @constructor
  */
 export function QueryEditor(props: Omit<XrayQueryEditorFormProps, 'groups'>) {
   const groups = useGroups(props.datasource);
