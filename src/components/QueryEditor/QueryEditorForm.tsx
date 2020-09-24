@@ -9,11 +9,13 @@ import {
   traceListOption,
   traceStatisticsOption,
 } from './constants';
-import { ButtonCascader, InlineFormLabel, MultiSelect, Segment } from '@grafana/ui';
+import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory } from '@grafana/ui';
 import React from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
+import { css } from 'emotion';
+import { XrayLinks } from './XrayLinks';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -67,13 +69,23 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
   }
 }
 
+const getStyles = stylesFactory(() => ({
+  queryParamsRow: css`
+    flex-wrap: wrap;
+  `,
+  spring: css`
+    flex: 1;
+  `,
+}));
+
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & { groups: Group[] };
-export function QueryEditorForm({ query, onChange, datasource, onRunQuery, groups }: XrayQueryEditorFormProps) {
+export function QueryEditorForm({ query, onChange, datasource, onRunQuery, groups, range }: XrayQueryEditorFormProps) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   useInitQuery(query, onChange, groups, datasource);
 
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
 
+  const styles = getStyles();
   return (
     <div>
       {selectedOptions[0] !== insightsOption && (
@@ -87,7 +99,7 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
           />
         </div>
       )}
-      <div className="gf-form">
+      <div className={`gf-form ${styles.queryParamsRow}`}>
         <div className="gf-form">
           <InlineFormLabel className="query-keyword" width="auto">
             Query Type
@@ -166,6 +178,10 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
             </div>
           )}
         </div>
+
+        {/* spring to push the sections apart */}
+        <div className={styles.spring} />
+        <XrayLinks datasource={datasource} query={query} range={range} />
       </div>
       {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>

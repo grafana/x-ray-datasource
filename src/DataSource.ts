@@ -8,6 +8,7 @@ import {
   FieldType,
   MutableDataFrame,
   toDuration,
+  TimeRange,
 } from '@grafana/data';
 import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
@@ -80,6 +81,55 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return result.data;
   }
 
+  getServiceMapUrl(): string {
+    return `${this.getXrayUrl()}#/service-map/`;
+  }
+
+  getXrayUrlForQuery(query: XrayQuery, timeRange?: TimeRange): string {
+    let section;
+    let urlQuery: URLSearchParams | undefined = new URLSearchParams();
+    if (query.query) {
+      urlQuery.append('filter', query.query);
+    }
+    if (timeRange) {
+      urlQuery.append('timeRange', `${timeRange.from.toISOString()}~${timeRange.to.toISOString()}`);
+    }
+    if (query.group && query.group.GroupName !== 'Default') {
+      urlQuery.append('group', query.group.GroupName);
+    }
+
+    switch (query.queryType) {
+      case XrayQueryType.getTraceSummaries:
+        section = 'traces';
+        break;
+      case XrayQueryType.getTrace:
+        section = `traces/${query.query}`;
+        urlQuery = undefined;
+        break;
+      case XrayQueryType.getInsights:
+        // Insights don't use url params
+        section = 'insights';
+        urlQuery = undefined;
+        break;
+      // There is not real equivalent for this so lets point to analytics
+      case XrayQueryType.getTimeSeriesServiceStatistics:
+      default:
+        section = 'analytics';
+    }
+
+    // Check if we either dropped the params because they are not needed for some query types or they are empty.
+    let queryParams = urlQuery?.toString()
+      ? // X-ray does not handle + sign for spaces
+        '?' + urlQuery?.toString().replace(/\+/g, '%20')
+      : '';
+    return `${this.getXrayUrl()}#/${section}${queryParams}`;
+  }
+
+  private getXrayUrl(): string {
+    const region = this.instanceSettings.jsonData.defaultRegion!;
+    return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
+  }
+
   private transformSuggestDataFromTable(
     suggestData: TSDBResponse
   ): Array<{ text: string; value: string; label: string }> {
@@ -98,32 +148,32 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       case 'TraceSummaries':
         return parseTracesListResponse(response, this.instanceSettings.uid);
       case 'InsightSummaries':
-        return parseInsightsResponse(response, this.instanceSettings.jsonData.defaultRegion!);
+        return this.parseInsightsResponse(response);
       default:
         return response;
     }
   }
-}
 
-function parseInsightsResponse(response: DataFrame, region: string): DataFrame {
-  const urlToAwsConsole = `https://${region}.console.aws.amazon.com/xray/home?region=${region}#/insights/`;
-  const idField = response.fields.find(f => f.name === 'InsightId');
-  if (idField) {
-    idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
-  }
-  const duration = response.fields.find(f => f.name === 'Duration');
+  private parseInsightsResponse(response: DataFrame): DataFrame {
+    const urlToAwsConsole = `${this.getXrayUrl()}#/insights/`;
+    const idField = response.fields.find(f => f.name === 'InsightId');
+    if (idField) {
+      idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
+    }
+    const duration = response.fields.find(f => f.name === 'Duration');
 
-  if (duration) {
-    duration.type = FieldType.string;
-    duration.display = val => {
-      const momentDuration = toDuration(val);
-      return {
-        numeric: val,
-        text: getDurationText(momentDuration),
+    if (duration) {
+      duration.type = FieldType.string;
+      duration.display = val => {
+        const momentDuration = toDuration(val);
+        return {
+          numeric: val,
+          text: getDurationText(momentDuration),
+        };
       };
-    };
+    }
+    return response;
   }
-  return response;
 }
 
 function getDurationText(duration: DateTimeDuration) {

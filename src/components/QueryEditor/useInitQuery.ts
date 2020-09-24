@@ -51,8 +51,5 @@ export function useInitQuery(
         });
       }
     }
-    // Technically it should dep on all the arguments. Issue is I don't want this to run on every query change as it
-    // should not be possible currently to clear the query, change the onChange or groups without changing the
-    // datasource so this is sort of shorthand.
-  }, [query, dataSource]);
+  }, [query, groups, onChange, dataSource]);
 }
