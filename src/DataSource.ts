@@ -26,6 +26,7 @@ import {
 } from './types';
 import { transformResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
+import { TimeRange } from '@grafana/data/types/time';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -36,6 +37,10 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
     this.languageProvider = new XRayLanguageProvider(this);
     this.instanceSettings = instanceSettings;
+  }
+
+  defaultRegion(): string {
+    return this.instanceSettings.jsonData.defaultRegion!;
   }
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
@@ -78,6 +83,55 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
     const result = await getBackendSrv().datasourceRequest(options);
     return result.data;
+  }
+
+  getServiceMapUrl(): string {
+    return `${this.getXrayUrl()}#/service-map/`;
+  }
+
+  getXrayUrlForQuery(query: XrayQuery, timeRange?: TimeRange): string {
+    let section;
+    let urlQuery: URLSearchParams | undefined = new URLSearchParams();
+    if (query.query) {
+      urlQuery.append('filter', query.query);
+    }
+    if (timeRange) {
+      urlQuery.append('timeRange', `${timeRange.from.toISOString()}~${timeRange.to.toISOString()}`);
+    }
+    if (query.group && query.group.GroupName !== 'Default') {
+      urlQuery.append('group', query.group.GroupName);
+    }
+
+    switch (query.queryType) {
+      case XrayQueryType.getTraceSummaries:
+        section = 'traces';
+        break;
+      case XrayQueryType.getTrace:
+        section = `traces/${query.query}`;
+        urlQuery = undefined;
+        break;
+      case XrayQueryType.getInsights:
+        // Insights don't use url params
+        section = 'insights';
+        urlQuery = undefined;
+        break;
+      // There is not real equivalent for this so lets point to analytics
+      case XrayQueryType.getTimeSeriesServiceStatistics:
+      default:
+        section = 'analytics';
+    }
+
+    // Check if we either dropped the params because they are not needed for some query types or they are empty.
+    let queryParams = urlQuery?.toString()
+      ? // X-ray does not handle + sign for spaces
+        '?' + urlQuery?.toString().replace(/\+/g, '%20')
+      : '';
+    return `${this.getXrayUrl()}#/${section}${queryParams}`;
+  }
+
+  private getXrayUrl(): string {
+    const region = this.instanceSettings.jsonData.defaultRegion!;
+    return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
   }
 
   private transformSuggestDataFromTable(

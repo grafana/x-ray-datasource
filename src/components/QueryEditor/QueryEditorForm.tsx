@@ -11,7 +11,7 @@ import {
 } from './constants';
 import { ButtonCascader, InlineFormLabel, MultiSelect, Segment } from '@grafana/ui';
 import React from 'react';
-import { QueryEditorProps } from '@grafana/data';
+import { QueryEditorProps, TimeRange } from '@grafana/data';
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
 
@@ -68,7 +68,7 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
 }
 
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & { groups: Group[] };
-export function QueryEditorForm({ query, onChange, datasource, onRunQuery, groups }: XrayQueryEditorFormProps) {
+export function QueryEditorForm({ query, onChange, datasource, onRunQuery, groups, range }: XrayQueryEditorFormProps) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   useInitQuery(query, onChange, groups, datasource);
 
@@ -87,7 +87,7 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
           />
         </div>
       )}
-      <div className="gf-form">
+      <div className="gf-form" style={{ flexWrap: 'wrap' }}>
         <div className="gf-form">
           <InlineFormLabel className="query-keyword" width="auto">
             Query Type
@@ -166,6 +166,10 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
             </div>
           )}
         </div>
+
+        {/* strut to pull the sections apart */}
+        <div style={{ flex: 1 }} />
+        <XrayLinks datasource={datasource} query={query} range={range} />
       </div>
       {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
@@ -192,6 +196,31 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+type XrayLinksProps = {
+  datasource: XrayDataSource;
+  query: XrayQuery;
+  range?: TimeRange;
+};
+function XrayLinks({ datasource, query, range }: XrayLinksProps) {
+  return (
+    <div style={{ display: 'flex' }}>
+      {[
+        ['To X-Ray service map', datasource.getServiceMapUrl()],
+        ['Open in X-Ray console', datasource.getXrayUrlForQuery(query, range)],
+      ].map(([text, href]) => {
+        return (
+          <a href={href} target="_blank" rel="noopener">
+            <span className={`gf-form-label gf-form-label--btn`} style={{ whiteSpace: 'nowrap' }}>
+              <i className="fa fa-share-square-o" />
+              &nbsp;{text}
+            </span>
+          </a>
+        );
+      })}
     </div>
   );
 }

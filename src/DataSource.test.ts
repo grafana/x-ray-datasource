@@ -136,6 +136,26 @@ describe('XrayDataSource', () => {
       expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("from group") AND service("something")');
     });
   });
+  describe('.getXrayUrlForQuery', () => {
+    const ds = makeDatasourceWithResponse({} as any);
+    it.each<[XrayQueryType, Partial<XrayQuery>, string]>([
+      [XrayQueryType.getTrace, { query: 'traceID' }, 'traces/traceID'],
+      [XrayQueryType.getTraceSummaries, { query: 'filter' }, 'traces?filter=filter'],
+      [XrayQueryType.getTimeSeriesServiceStatistics, { query: 'filter' }, 'analytics?filter=filter'],
+      [XrayQueryType.getInsights, { query: 'filter' }, 'insights'],
+      [
+        XrayQueryType.getAnalyticsRootCauseErrorMessage,
+        { query: 'filter', group: { GroupARN: '', GroupName: 'TestGroup' } },
+        'analytics?filter=filter&group=TestGroup',
+      ],
+    ])('handles query type option when query type is %s', async (type, data, expected) => {
+      const url = ds.getXrayUrlForQuery({
+        queryType: type,
+        ...data,
+      } as XrayQuery);
+      expect(url).toBe(`https://us-east.console.aws.amazon.com/xray/home?region=us-east#/${expected}`);
+    });
+  });
 });
 
 function makeQuery(
