@@ -9,11 +9,12 @@ import {
   traceListOption,
   traceStatisticsOption,
 } from './constants';
-import { ButtonCascader, InlineFormLabel, MultiSelect, Segment } from '@grafana/ui';
+import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory } from '@grafana/ui';
 import React from 'react';
 import { QueryEditorProps, TimeRange } from '@grafana/data';
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
+import { css } from 'emotion';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -67,6 +68,15 @@ export function queryTypeOptionToQueryType(selected: string[], query: string): X
   }
 }
 
+const getStyles = stylesFactory(() => ({
+  queryParamsRow: css`
+    flex-wrap: wrap;
+  `,
+  spring: css`
+    flex: 1;
+  `,
+}));
+
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & { groups: Group[] };
 export function QueryEditorForm({ query, onChange, datasource, onRunQuery, groups, range }: XrayQueryEditorFormProps) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
@@ -74,6 +84,7 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
 
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
 
+  const styles = getStyles();
   return (
     <div>
       {selectedOptions[0] !== insightsOption && (
@@ -87,7 +98,7 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
           />
         </div>
       )}
-      <div className="gf-form" style={{ flexWrap: 'wrap' }}>
+      <div className={`gf-form ${styles.queryParamsRow}`}>
         <div className="gf-form">
           <InlineFormLabel className="query-keyword" width="auto">
             Query Type
@@ -167,8 +178,8 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
           )}
         </div>
 
-        {/* strut to pull the sections apart */}
-        <div style={{ flex: 1 }} />
+        {/* spring to push the sections apart */}
+        <div className={styles.spring} />
         <XrayLinks datasource={datasource} query={query} range={range} />
       </div>
       {selectedOptions[0] === traceStatisticsOption && (
@@ -200,21 +211,30 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
   );
 }
 
+const getLinksStyles = stylesFactory(() => ({
+  container: css`
+    display: flex;
+  `,
+  link: css`
+    white-space: nowrap;
+  `,
+}));
 type XrayLinksProps = {
   datasource: XrayDataSource;
   query: XrayQuery;
   range?: TimeRange;
 };
 function XrayLinks({ datasource, query, range }: XrayLinksProps) {
+  const styles = getLinksStyles();
   return (
-    <div style={{ display: 'flex' }}>
+    <div className={styles.container}>
       {[
         ['To X-Ray service map', datasource.getServiceMapUrl()],
         ['Open in X-Ray console', datasource.getXrayUrlForQuery(query, range)],
       ].map(([text, href]) => {
         return (
           <a href={href} target="_blank" rel="noopener">
-            <span className={`gf-form-label gf-form-label--btn`} style={{ whiteSpace: 'nowrap' }}>
+            <span className={`gf-form-label gf-form-label--btn ${styles.link}`}>
               <i className="fa fa-share-square-o" />
               &nbsp;{text}
             </span>
