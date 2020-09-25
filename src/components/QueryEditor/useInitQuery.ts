@@ -13,8 +13,9 @@ export function useInitQuery(
   dataSource: XrayDataSource
 ) {
   useEffect(() => {
-    // We assume here the "Default" group is always there.
-    const defaultGroup = groups.find((g: Group) => g.GroupName === 'Default')!;
+    // We assume here the "Default" group is always there but lets fallback to first group if not. In case there are
+    // no groups we don't have to actually crash as most queryTypes don't need group to be defined
+    const defaultGroup = groups.find((g: Group) => g.GroupName === 'Default') || groups[0];
 
     // We assume that if there is no queryType during mount there should not be any query so we do not need to
     // check if query has traceId or not as we do with the QueryTypeOptions mapping.
