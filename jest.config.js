@@ -5,4 +5,9 @@
 const standard = require('@grafana/toolkit/src/config/jest.plugin.config');
 
 // This process will use the same config that `yarn test` is using
-module.exports = { ...standard.jestConfig(), testEnvironment: 'jest-environment-jsdom-sixteen' };
+module.exports = {
+  ...standard.jestConfig(),
+  testEnvironment: 'jest-environment-jsdom-sixteen',
+  // Need to raise this because rendering MultiSelect in QueryEditor tests just takes too much time for some reason
+  testTimeout: 10000,
+};
