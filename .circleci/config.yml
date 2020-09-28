@@ -49,13 +49,13 @@ workflows:
       - test_integration:
           requires:
             - package
-      - report:
-          requires:
-            - test_integration
+#      - report:
+#          requires:
+#            - test_integration
       - approve_release:
           type: approval
           requires:
-            - report
+            - test_integration
           filters: *filter-only-release
       - publish_github_release:
           requires:
@@ -439,20 +439,20 @@ jobs:
       - store_artifacts:
           path: ci/jobs/test_integration
 
-  report:
-    executor: default_exec
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          name: restore node_modules
-          keys:
-            - build-cache-{{ .Environment.CACHE_VERSION }}-{{ checksum "yarn.lock" }}
-      - run:
-          name: Toolkit report
-          command: |
-            ./node_modules/.bin/grafana-toolkit plugin:ci-report
+#  report:
+#    executor: default_exec
+#    steps:
+#      - checkout
+#      - attach_workspace:
+#          at: .
+#      - restore_cache:
+#          name: restore node_modules
+#          keys:
+#            - build-cache-{{ .Environment.CACHE_VERSION }}-{{ checksum "yarn.lock" }}
+#      - run:
+#          name: Toolkit report
+#          command: |
+#            ./node_modules/.bin/grafana-toolkit plugin:ci-report
 
   publish_gcs_release:
     executor: cloud_sdk_exec
