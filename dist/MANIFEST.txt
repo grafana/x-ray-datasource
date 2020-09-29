@@ -1,0 +1,29 @@
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+{
+  "plugin": "grafana-x-ray-datasource",
+  "version": "1.0.1",
+  "files": {
+    "LICENSE": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+    "README.md": "d5d82b11dddb907300f2b5641f731187a887f768de51b5ac15c01153cfacf685",
+    "gpx_x-ray-datasource_darwin_amd64": "dd5483f457b3694712505c90b7e166880034e1bea22eb341da0bb8f4ce306d71",
+    "module.js": "80699996e10d1920468414211607bd18f08706fdff2fa35aeb77de93b4616252",
+    "module.js.LICENSE.txt": "0d8f66cd4afb566cb5b7e1540c68f43b939d3eba12ace290f18abc4f4cb53ed0",
+    "module.js.map": "a209d7d2a8fdc89264ce788cd642df1dae8bf076aab9dea98bca2b980c6eaab5",
+    "plugin.json": "a0f947469847d2140ed76dd2dee07b461e447b1ee6d56ba2ed72504ffefc5a8d"
+  },
+  "time": 1601396675166,
+  "keyId": "7e4d0c6a708866e7"
+}
+-----BEGIN PGP SIGNATURE-----
+Version: OpenPGP.js v4.10.1
+Comment: https://openpgpjs.org
+
+wqEEARMKAAYFAl9zX8MACgkQfk0ManCIZucL2AIGOxqj+z+fGXm27126Uile
+nj/iSQcEchWlgUJ4eRKZQT22wKT0UHuHxGSHA703E6Iz9Wo2CXdCRq4xqhaF
+elD+S40CCQELHn1I0ePT7WPLIYxAKU/Q3OH0/HJ0kfVO3ymSBKwJC58Det/a
+SPSlzHmh9xrIa1ZPwkQdD1jIt1oDBAqsPNQtqw==
+=pUrN
+-----END PGP SIGNATURE-----
