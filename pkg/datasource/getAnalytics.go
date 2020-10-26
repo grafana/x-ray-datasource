@@ -361,7 +361,7 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummar
 						  if exception != nil && exception.Name != nil {
                 key += fmt.Sprintf(" -> %s", *exception.Name)
               } else {
-                key += fmt.Sprintf(" -> unknown")
+                key += " -> unknown"
               }
 						}
 					}

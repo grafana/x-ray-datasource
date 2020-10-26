@@ -16,5 +16,5 @@ export function useError(message: string, error?: Error) {
       // TODO change when that is allowed.
       (error as any).isHandled = true;
     }
-  }, [error]);
+  }, [error, message]);
 }
