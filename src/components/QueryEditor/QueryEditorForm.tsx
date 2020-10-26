@@ -1,4 +1,4 @@
-import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
+import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { useInitQuery } from './useInitQuery';
 import {
   columnNames,
@@ -9,7 +9,7 @@ import {
   traceListOption,
   traceStatisticsOption,
 } from './constants';
-import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory } from '@grafana/ui';
+import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory, Select } from '@grafana/ui';
 import React from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../../DataSource';
@@ -76,12 +76,27 @@ const getStyles = stylesFactory(() => ({
   spring: css`
     flex: 1;
   `,
+  regionSelect: css`
+    margin-right: 4px;
+  `,
 }));
 
-export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & { groups: Group[] };
-export function QueryEditorForm({ query, onChange, datasource, onRunQuery, groups, range }: XrayQueryEditorFormProps) {
+export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {
+  groups: Group[];
+  regions: Region[];
+};
+export function QueryEditorForm({
+  query,
+  onChange,
+  datasource,
+  onRunQuery,
+  groups,
+  range,
+  regions,
+}: XrayQueryEditorFormProps) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
-  useInitQuery(query, onChange, groups, datasource);
+  const allRegions = [{ label: 'default', value: 'default', text: 'default' }, ...regions];
+  useInitQuery(query, onChange, groups, allRegions, datasource);
 
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
 
@@ -100,6 +115,26 @@ export function QueryEditorForm({ query, onChange, datasource, onRunQuery, group
         </div>
       )}
       <div className={`gf-form ${styles.queryParamsRow}`}>
+        <div className="gf-form">
+          <InlineFormLabel className="query-keyword" width="auto">
+            Region
+          </InlineFormLabel>
+          <Select
+            className={styles.regionSelect}
+            options={allRegions}
+            value={query.region}
+            onChange={v =>
+              onChange({
+                ...query,
+                region: v.value,
+              })
+            }
+            width={18}
+            placeholder="Choose Region"
+            menuPlacement="bottom"
+            maxMenuHeight={500}
+          />
+        </div>
         <div className="gf-form">
           <InlineFormLabel className="query-keyword" width="auto">
             Query Type

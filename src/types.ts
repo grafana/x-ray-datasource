@@ -6,6 +6,12 @@ export type Group = {
   GroupName: string;
 };
 
+export type Region = {
+  label: string;
+  value: string;
+  text: string;
+};
+
 // TODO: would make sense at this point to change to discriminated union type
 export interface XrayQuery extends DataQuery {
   queryType?: XrayQueryType;
@@ -19,8 +25,10 @@ export interface XrayQuery extends DataQuery {
 
   // Used in case of getInsights to filter by state
   state?: string;
-
   group?: Group;
+
+  // Can be used to override the default region set in data source config
+  region?: string;
 }
 
 export enum XrayQueryType {

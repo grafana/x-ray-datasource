@@ -116,14 +116,13 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	// Create the data frames. Separate dataframe for each column. Not 100% this is needed to show each as separate
 	// series.
 	// TODO: check if it isn't simpler to create one dataframe with all the columns
-	var frames []*data.Frame
+	frame := data.NewFrame(
+	  "",
+	  // This needs to be called time so the default join in Explore works and knows which column to join on.
+	  data.NewField("Time", nil, []*time.Time{}),
+  )
 	for _, value := range requestedColumns {
-		frames = append(frames, data.NewFrame(
-			"",
-			// This needs to be called time so the default join in Explore works and knows which column to join on.
-			data.NewField("Time", nil, []*time.Time{}),
-			data.NewField(value.label, nil, value.valueType),
-		))
+	  frame.Fields = append(frame.Fields, data.NewField(value.label, nil, value.valueType))
 	}
 
 	resolution := int64(60)
@@ -145,8 +144,10 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	}
 	err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, lastPage bool) bool {
 		for _, statistics := range page.TimeSeriesServiceStatistics {
+		  var values []interface{}
+      values = append(values, statistics.Timestamp)
 			// Use reflection to append values to correct data frame based on the requested columns.
-			for i, column := range requestedColumns {
+			for _, column := range requestedColumns {
 				var val reflect.Value
 
 				// There seems to be cases when EdgeSummaryStatistics is nil. Not sure why it does not seem to be the case
@@ -169,11 +170,9 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 					}
 				}
 
-				frames[i].AppendRow(
-					statistics.Timestamp,
-					val.Interface(),
-				)
+				values = append(values, val.Interface())
 			}
+			frame.AppendRow(values...)
 		}
 
 		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
@@ -187,7 +186,7 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	}
 
 	return backend.DataResponse{
-		Frames: frames,
+		Frames: data.Frames{frame},
 	}
 }
 

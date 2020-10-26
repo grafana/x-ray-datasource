@@ -1,3 +1,4 @@
+import { sortBy } from 'lodash';
 import {
   ArrayVector,
   DataFrame,
@@ -10,14 +11,13 @@ import {
   toDuration,
   TimeRange,
 } from '@grafana/data';
-import { DataSourceWithBackend, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { DataSourceWithBackend, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
   Group,
-  MetricRequest,
-  TSDBResponse,
+  Region,
   XrayJsonData,
   XrayQuery,
   XrayQueryType,
@@ -56,29 +56,18 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return this.getResource('/groups');
   }
 
-  async getRegions(): Promise<Array<{ label: string; value: string; text: string }>> {
-    const response = await this.awsRequest({
-      queries: [
-        {
-          refId: 'getRegions',
-          datasourceId: this.id,
-          type: 'getRegions',
-        },
-      ],
-    });
-    const suggestions = this.transformSuggestDataFromTable(response);
-    return [{ label: 'default', value: 'default', text: 'default' }, ...suggestions];
-  }
-
-  async awsRequest(data: MetricRequest) {
-    const options = {
-      method: 'POST',
-      url: '/api/tsdb/query',
-      data,
-    };
-
-    const result = await getBackendSrv().datasourceRequest(options);
-    return result.data;
+  async getRegions(): Promise<Region[]> {
+    const response = await this.getResource('/regions', { showErrorAlert: false });
+    return [
+      ...sortBy(
+        response.map((r: any) => ({
+          label: r.RegionName,
+          value: r.RegionName,
+          text: r.RegionName,
+        })),
+        'label'
+      ),
+    ];
   }
 
   getServiceMapUrl(): string {
@@ -133,16 +122,6 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   private getXrayUrl(): string {
     const region = this.instanceSettings.jsonData.defaultRegion!;
     return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
-  }
-
-  private transformSuggestDataFromTable(
-    suggestData: TSDBResponse
-  ): Array<{ text: string; value: string; label: string }> {
-    return suggestData.results['metricFindQuery'].tables[0].rows.map(value => ({
-      text: value,
-      value,
-      label: value,
-    }));
   }
 
   private parseResponse(response: DataFrame): DataFrame {
