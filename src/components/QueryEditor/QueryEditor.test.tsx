@@ -1,13 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { QueryEditor } from './QueryEditor';
-import { XrayQuery, XrayQueryType } from '../../types';
+import { Group, Region, XrayQuery, XrayQueryType } from '../../types';
 
 const defaultProps = {
   onRunQuery: undefined as any,
   datasource: {
-    async getGroups() {
-      return [];
+    async getGroups(): Promise<Group[]> {
+      return [{ GroupName: 'Default', GroupARN: 'DefaultARN' }];
+    },
+    async getRegions(): Promise<Region[]> {
+      return [{ label: 'region1', text: 'region1', value: 'region1' }];
     },
     getServiceMapUrl() {
       return 'service-map';
@@ -26,6 +29,19 @@ jest.mock('./XRayQueryField', () => {
     )),
   };
 });
+
+jest.mock(
+  'grafana/app/core/app_events',
+  () => {
+    return {
+      __esModule: true,
+      default: {
+        emit: jest.fn(),
+      },
+    };
+  },
+  { virtual: true }
+);
 
 async function renderWithQuery(query: Omit<XrayQuery, 'refId'>, rerender?: any) {
   const renderFunc = rerender || render;
@@ -70,6 +86,8 @@ describe('QueryEditor', () => {
       refId: 'A',
       query: '',
       queryType: XrayQueryType.getTraceSummaries,
+      region: 'default',
+      group: { GroupName: 'Default', GroupARN: 'DefaultARN' },
     });
   });
 
@@ -90,7 +108,9 @@ describe('QueryEditor', () => {
 
     fireEvent.change(field, { target: { value: '1-5f160a8b-83190adad07f429219c0e259' } });
 
-    expect(onChange.mock.calls[0][0]).toEqual({
+    // First call would be the query init call. We do not update the query based on that so when doing this second one
+    // it's done without default region or group.
+    expect(onChange.mock.calls[1][0]).toEqual({
       refId: 'A',
       query: '1-5f160a8b-83190adad07f429219c0e259',
       queryType: XrayQueryType.getTrace,
@@ -117,7 +137,7 @@ describe('QueryEditor', () => {
     });
   });
 
-  it('waits until groups are loaded', async () => {
+  it('waits until groups and regions are loaded', async () => {
     await act(async () => {
       render(
         <QueryEditor

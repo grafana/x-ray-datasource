@@ -80,13 +80,13 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
   adaptiveSampling := true
 
   if queryData.Query == "" {
-    var groupARN *string
+    var groupName *string
     if queryData.Group != nil {
-      groupARN = queryData.Group.GroupARN
+      groupName = queryData.Group.GroupName
     }
     // Get count of all the traces so we can compute sampling. The API used does not allow for filter expression so
     // we can do this only if we don't have one.
-    count, err := getTracesCount(ctx, xrayClient, query.TimeRange.From, query.TimeRange.To, groupARN)
+    count, err := getTracesCount(ctx, xrayClient, query.TimeRange.From, query.TimeRange.To, groupName)
     if err != nil {
       return nil, err
     }
@@ -237,12 +237,12 @@ func getTraceSummaries(ctx context.Context, xrayClient XrayClient, request xray.
 // getTracesCount returns count of all the traces in the time range. It uses TimeSeries API for that to go through
 // counts per service or edge which should be the most efficient way to do that right now. One caveat is that it does
 // not allow for filter expression (or it does but only in some subset of expressions).
-func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, to time.Time, groupArn *string) (int64, error) {
-  log.DefaultLogger.Debug("getTracesCount", "from", from, "to", to, "groupARN", groupArn)
+func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, to time.Time, groupName *string) (int64, error) {
+  log.DefaultLogger.Debug("getTracesCount", "from", from, "to", to, "groupName", groupName)
   input := &xray.GetTimeSeriesServiceStatisticsInput{
     StartTime: aws.Time(from),
     EndTime:   aws.Time(to),
-    GroupARN:  groupArn,
+    GroupName: groupName,
     Period:    aws.Int64(60) ,
   }
 

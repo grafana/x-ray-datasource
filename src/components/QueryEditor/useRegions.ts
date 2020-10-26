@@ -1,11 +1,8 @@
-import { useEffect } from 'react';
 import useAsync from 'react-use/lib/useAsync';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { XrayDataSource } from '../../DataSource';
 import { Region } from '../../types';
-// @ts-ignore
-import appEvents from 'grafana/app/core/app_events';
-import { AppEvents } from '@grafana/data';
+import { useError } from './useError';
 
 type Options = { datasource: XrayDataSource } | { name: string };
 
@@ -25,25 +22,13 @@ export function useRegions(options: Options): Region[] | undefined {
     return datasource.getRegions();
   }, ['datasource' in options ? options.datasource : options.name]);
 
-  useEffect(() => {
-    if (result.error) {
-      appEvents.emit(AppEvents.alertWarning, [
-        'Could not load regions from AWS, showing default regions instead.',
-        (result.error as any)?.data?.message,
-      ]);
-      // This is going to be deprecated. Should be using this
-      // https://github.com/grafana/grafana/blob/9305117902a3698fcefc5d3063f58867717e34ce/public/app/core/services/backend_srv.ts#L265
-      // instead but DataSourceWithBackend.getResource does not allow us to send the config right now.
-      // TODO change when that is allowed.
-      (result.error as any).isHandled = true;
-    }
-  }, [result.error]);
+  useError('Failed to load regions from AWS, showing default regions instead.', result.error);
 
   if (result.error) {
     return defaultRegions;
   }
 
-  return result.value;
+  return result.loading ? undefined : result.value;
 }
 
 const defaultRegions = [
