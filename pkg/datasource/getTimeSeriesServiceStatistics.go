@@ -19,20 +19,16 @@ type GetTimeSeriesServiceStatisticsQueryData struct {
 	Query      string   `json:"query"`
 	Columns    []string `json:"columns"`
 	Resolution int64    `json:"resolution"`
+  Region     string   `json:"region"`
 }
 
 func (ds *Datasource) getTimeSeriesServiceStatistics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
 	response := &backend.QueryDataResponse{
 		Responses: make(map[string]backend.DataResponse),
 	}
 
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getTimeSeriesServiceStatisticsForSingleQuery(ctx, xrayClient, query)
+		response.Responses[query.RefID] = ds.getTimeSeriesServiceStatisticsForSingleQuery(ctx, query, &req.PluginContext)
 	}
 
 	return response, nil
@@ -79,7 +75,7 @@ var valueDefs = []ValueDef{
 	},
 }
 
-func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	queryData := &GetTimeSeriesServiceStatisticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
@@ -88,6 +84,14 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 			Error: err,
 		}
 	}
+
+  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+  if err != nil {
+    return backend.DataResponse{
+      Error: err,
+    }
+  }
+
 
 	log.DefaultLogger.Debug("getTimeSeriesServiceStatisticsForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
 
@@ -116,13 +120,14 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	// Create the data frames. Separate dataframe for each column. Not 100% this is needed to show each as separate
 	// series.
 	// TODO: check if it isn't simpler to create one dataframe with all the columns
-	frame := data.NewFrame(
-	  "",
-	  // This needs to be called time so the default join in Explore works and knows which column to join on.
-	  data.NewField("Time", nil, []*time.Time{}),
-  )
+	var frames []*data.Frame
 	for _, value := range requestedColumns {
-	  frame.Fields = append(frame.Fields, data.NewField(value.label, nil, value.valueType))
+		frames = append(frames, data.NewFrame(
+			"",
+			// This needs to be called time so the default join in Explore works and knows which column to join on.
+			data.NewField("Time", nil, []*time.Time{}),
+			data.NewField(value.label, nil, value.valueType),
+		))
 	}
 
 	resolution := int64(60)
@@ -144,10 +149,8 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	}
 	err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, lastPage bool) bool {
 		for _, statistics := range page.TimeSeriesServiceStatistics {
-		  var values []interface{}
-      values = append(values, statistics.Timestamp)
 			// Use reflection to append values to correct data frame based on the requested columns.
-			for _, column := range requestedColumns {
+			for i, column := range requestedColumns {
 				var val reflect.Value
 
 				// There seems to be cases when EdgeSummaryStatistics is nil. Not sure why it does not seem to be the case
@@ -170,9 +173,11 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 					}
 				}
 
-				values = append(values, val.Interface())
+				frames[i].AppendRow(
+					statistics.Timestamp,
+					val.Interface(),
+				)
 			}
-			frame.AppendRow(values...)
 		}
 
 		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
@@ -186,7 +191,7 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 	}
 
 	return backend.DataResponse{
-		Frames: data.Frames{frame},
+		Frames: frames,
 	}
 }
 

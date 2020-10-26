@@ -3,8 +3,9 @@ package datasource
 import (
 	"encoding/json"
 	"net/http"
+  "net/url"
 
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/grafana/x-ray-datasource/pkg/xray"
 )
@@ -15,8 +16,18 @@ func (ds *Datasource) getGroups(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	urlQuery, err := url.ParseQuery(req.URL.RawQuery)
+  if err != nil {
+    sendError(rw, err)
+    return
+  }
+
+  region := urlQuery.Get("region")
+
+  log.DefaultLogger.Debug("getGroups", "region", region)
+
 	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
-	xrayClient, err := ds.xrayClientFactory(&pluginConfig)
+	xrayClient, err := ds.xrayClientFactory(&pluginConfig, region)
 
 	if err != nil {
 		sendError(rw, err)

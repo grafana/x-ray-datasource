@@ -15,36 +15,39 @@ import (
 )
 
 type GetInsightsQueryData struct {
-	State string      `json:"state"`
-	Group *xray.Group `json:"group"`
+	State  string      `json:"state"`
+	Group  *xray.Group `json:"group"`
+  Region string      `json:"region"`
 }
 
 func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
 	response := &backend.QueryDataResponse{
 		Responses: make(map[string]backend.DataResponse),
 	}
 
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getSingleInsight(xrayClient, query)
+		response.Responses[query.RefID] = ds.getSingleInsight(query, &req.PluginContext)
 	}
 
 	return response, nil
 }
 
-func getSingleInsight(xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func (ds *Datasource) getSingleInsight(query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	queryData := &GetInsightsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
-
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,
 		}
 	}
+
+  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+  if err != nil {
+    return backend.DataResponse{
+      Error: err,
+    }
+  }
+
 
 	var states = []string{strings.ToUpper(queryData.State)}
 

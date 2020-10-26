@@ -18,32 +18,28 @@ import (
 
 type GetAnalyticsQueryData struct {
 	Query string `json:"query"`
-	Group *xray.Group `json:"Group"`
+	Group *xray.Group `json:"group"`
+  Region string `json:"region"`
 }
 
 func (ds *Datasource) getAnalytics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
 	response := &backend.QueryDataResponse{
 		Responses: make(map[string]backend.DataResponse),
 	}
 
 	// TODO this could be parallelized
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getSingleAnalyticsQueryResult(ctx, xrayClient, query)
+		response.Responses[query.RefID] = ds.getSingleAnalyticsQueryResult(ctx, query, &req.PluginContext)
 	}
 
 	return response, nil
 }
 
-func getSingleAnalyticsQueryResult(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "type", query.QueryType, "RefID", query.RefID)
 
   const maxTraces = 10000
-	traces, err := getTraceSummariesData(ctx, xrayClient, query, maxTraces)
+	traces, err := ds.getTraceSummariesData(ctx, query, maxTraces, pluginContext)
 
 	if err != nil {
 		log.DefaultLogger.Debug("getSingleAnalyticsResult", "error", err)
@@ -61,13 +57,18 @@ func getSingleAnalyticsQueryResult(ctx context.Context, xrayClient XrayClient, q
 	}
 }
 
-func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query backend.DataQuery, maxTraces int) ([]*xray.TraceSummary, error) {
+func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.DataQuery, maxTraces int, pluginContext *backend.PluginContext) ([]*xray.TraceSummary, error) {
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
+  if err != nil {
+    return nil, err
+  }
 
-	if err != nil {
-		return nil, err
-	}
+  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+  if err != nil {
+    return nil, err
+  }
+
 	log.DefaultLogger.Debug("getTraceSummariesData", "query", queryData.Query)
 
   diff := query.TimeRange.To.Sub(query.TimeRange.From)

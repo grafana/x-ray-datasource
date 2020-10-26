@@ -11,8 +11,8 @@ import { useRegions } from './useRegions';
  * alternatives.
  */
 export function QueryEditor(props: Omit<XrayQueryEditorFormProps, 'groups' | 'regions'>) {
-  const groups = useGroups(props.datasource);
   const regions = useRegions({ datasource: props.datasource });
+  const groups = useGroups(props.datasource, props.query.region);
 
   // We need this wrapper to wait for the groups and regions and only after that run the useInitQuery as it needs to
   // know both at that point.

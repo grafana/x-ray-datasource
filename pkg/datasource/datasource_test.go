@@ -3,7 +3,8 @@ package datasource_test
 import (
 	"context"
 	"encoding/json"
-	"testing"
+  "github.com/aws/aws-sdk-go/service/ec2"
+  "testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -269,8 +270,12 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func clientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient, error) {
+func xrayClientFactory(pluginContext *backend.PluginContext, region string) (datasource.XrayClient, error) {
 	return &XrayClientMock{}, nil
+}
+
+func ec2clientFactory(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
+  return nil, nil
 }
 
 func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
@@ -304,7 +309,7 @@ func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourc
 }
 
 func TestDatasource(t *testing.T) {
-	ds := datasource.NewDatasource(clientFactory)
+	ds := datasource.NewDatasource(xrayClientFactory, ec2clientFactory)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
 		// Insight with nil EndTime should not throw error

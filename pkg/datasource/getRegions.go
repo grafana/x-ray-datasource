@@ -16,7 +16,8 @@ func (ds *Datasource) getRegions(rw http.ResponseWriter, req *http.Request) {
   }
 
   pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
-  ec2Client, err := ds.ec2ClientFactory(&pluginConfig)
+  // getRegions should not require region itself
+  ec2Client, err := ds.ec2ClientFactory(&pluginConfig, "")
 
   if err != nil {
     sendError(rw, err)

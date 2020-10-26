@@ -52,8 +52,13 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     );
   }
 
-  async getGroups(): Promise<Group[]> {
-    return this.getResource('/groups');
+  async getGroups(region?: string): Promise<Group[]> {
+    let searchString = '';
+    if (region) {
+      const params = new URLSearchParams({ region });
+      searchString = '?' + params.toString();
+    }
+    return this.getResource(`/groups${searchString}`);
   }
 
   async getRegions(): Promise<Region[]> {
