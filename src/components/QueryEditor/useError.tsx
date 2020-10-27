@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+// This isn't exported in the sdk yet
 // @ts-ignore
 import appEvents from 'grafana/app/core/app_events';
 import { AppEvents } from '@grafana/data';
