@@ -11,7 +11,7 @@ import { useRegions } from './useRegions';
  * alternatives.
  */
 export function QueryEditor(props: Omit<XrayQueryEditorFormProps, 'groups' | 'regions'>) {
-  const regions = useRegions({ datasource: props.datasource });
+  const regions = useRegions(props.datasource);
   // Use groups will return old groups after region change so it does not flash loading state. in case datasource
   // changes regions will return undefined so that will do the loading state.
   const groups = useGroups(props.datasource, props.query.region);

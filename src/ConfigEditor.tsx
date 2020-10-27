@@ -1,5 +1,5 @@
 import React from 'react';
-import { InlineFormLabel, LegacyForms, Button, Spinner } from '@grafana/ui';
+import { InlineFormLabel, LegacyForms, Button } from '@grafana/ui';
 const { Select, Input } = LegacyForms;
 import {
   DataSourcePluginOptionsEditorProps,
@@ -10,7 +10,7 @@ import {
 } from '@grafana/data';
 import { SelectableValue } from '@grafana/data';
 import { XrayJsonData, XraySecureJsonData } from './types';
-import { useRegions } from './components/QueryEditor/useRegions';
+import { defaultRegions } from './components/QueryEditor/useRegions';
 
 const authProviderOptions = [
   { label: 'Access & secret key', value: 'keys' },
@@ -23,7 +23,6 @@ export type Props = DataSourcePluginOptionsEditorProps<XrayJsonData, XraySecureJ
 export function ConfigEditor(props: Props) {
   const { options } = props;
   const secureJsonData = (options.secureJsonData || {}) as XraySecureJsonData;
-  const regions = useRegions({ name: options.name });
 
   return (
     <>
@@ -159,17 +158,16 @@ export function ConfigEditor(props: Props) {
             >
               Default Region
             </InlineFormLabel>
-            {!regions ? (
-              <Spinner />
-            ) : (
-              <Select
-                className="width-30"
-                value={regions.find(region => region.value === options.jsonData.defaultRegion)}
-                options={regions}
-                defaultValue={options.jsonData.defaultRegion}
-                onChange={onUpdateDatasourceJsonDataOptionSelect(props, 'defaultRegion')}
-              />
-            )}
+            {/*Ideally we would use the useRegions hook and load it from AWS but there are some issues. We do not have*/}
+            {/*access to the datasource and it may not have credentials at the moment so this is simple solution for*/}
+            {/*now to use just the static regions here.*/}
+            <Select
+              className="width-30"
+              value={defaultRegions.find(region => region.value === options.jsonData.defaultRegion)}
+              options={defaultRegions}
+              defaultValue={options.jsonData.defaultRegion}
+              onChange={onUpdateDatasourceJsonDataOptionSelect(props, 'defaultRegion')}
+            />
           </div>
         </div>
       </div>
