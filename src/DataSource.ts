@@ -62,7 +62,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 
   async getRegions(): Promise<Region[]> {
-    const response = await this.getResource('/regions', { showErrorAlert: false });
+    const response = await this.getResource('/regions');
     return [
       ...sortBy(
         response.map((r: any) => ({
