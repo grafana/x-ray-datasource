@@ -33,7 +33,7 @@ func GetDatasourceInfo(datasourceSettings *backend.DataSourceInstanceSettings, r
 
   dsInfo := &DatasourceInfo{}
   defaultRegion := jsonData.Get("defaultRegion").MustString("")
-  if region == "default" {
+  if region == "default" || region == "" {
     region = defaultRegion
   }
   dsInfo.Region = region

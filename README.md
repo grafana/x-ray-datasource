@@ -25,6 +25,45 @@ build dashboards or use Explore with X-Ray to look at traces, analytics, or insi
 
 In this section we will go through the different type of authentication you can use for X-Ray data source.
 
+### IAM Roles
+
+Currently all access to X-Ray is done server side by the Grafana backend using the official AWS SDK. If your Grafana
+server is running on AWS you can use IAM Roles and authentication will be handled automatically.
+
+See the AWS documentation on [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+
+> **Note:** [AWS Role Switching](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-cli.html) is not supported at the moment.
+
+## IAM Policies
+
+Grafana needs permissions granted via IAM to be able to read X-Ray data
+and EC2 tags/instances/regions. You can attach these permissions to IAM roles and
+utilize Grafana's built-in support for assuming roles.
+
+Here is a minimal policy example:
+
+```bash
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "xray:BatchGetTraces",
+        "xray:GetTraceSummaries",
+        "xray:GetTraceGraph",
+        "xray:GetGroups",
+        "xray:GetTimeSeriesServiceStatistics",
+        "xray:GetInsightSummaries",
+        "xray:GetInsight",
+        "ec2:DescribeRegions"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
 ### Example AWS credentials
 
 If the Auth Provider is `Credentials file`, then Grafana tries to get credentials in the following order:

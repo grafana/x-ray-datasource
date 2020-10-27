@@ -18,32 +18,28 @@ import (
 
 type GetAnalyticsQueryData struct {
 	Query string `json:"query"`
-	Group *xray.Group `json:"Group"`
+	Group *xray.Group `json:"group"`
+  Region string `json:"region"`
 }
 
 func (ds *Datasource) getAnalytics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
 	response := &backend.QueryDataResponse{
 		Responses: make(map[string]backend.DataResponse),
 	}
 
 	// TODO this could be parallelized
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getSingleAnalyticsQueryResult(ctx, xrayClient, query)
+		response.Responses[query.RefID] = ds.getSingleAnalyticsQueryResult(ctx, query, &req.PluginContext)
 	}
 
 	return response, nil
 }
 
-func getSingleAnalyticsQueryResult(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "type", query.QueryType, "RefID", query.RefID)
 
   const maxTraces = 10000
-	traces, err := getTraceSummariesData(ctx, xrayClient, query, maxTraces)
+	traces, err := ds.getTraceSummariesData(ctx, query, maxTraces, pluginContext)
 
 	if err != nil {
 		log.DefaultLogger.Debug("getSingleAnalyticsResult", "error", err)
@@ -61,13 +57,18 @@ func getSingleAnalyticsQueryResult(ctx context.Context, xrayClient XrayClient, q
 	}
 }
 
-func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query backend.DataQuery, maxTraces int) ([]*xray.TraceSummary, error) {
+func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.DataQuery, maxTraces int, pluginContext *backend.PluginContext) ([]*xray.TraceSummary, error) {
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
+  if err != nil {
+    return nil, err
+  }
 
-	if err != nil {
-		return nil, err
-	}
+  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+  if err != nil {
+    return nil, err
+  }
+
 	log.DefaultLogger.Debug("getTraceSummariesData", "query", queryData.Query)
 
   diff := query.TimeRange.To.Sub(query.TimeRange.From)
@@ -79,13 +80,13 @@ func getTraceSummariesData(ctx context.Context, xrayClient XrayClient, query bac
   adaptiveSampling := true
 
   if queryData.Query == "" {
-    var groupARN *string
+    var groupName *string
     if queryData.Group != nil {
-      groupARN = queryData.Group.GroupARN
+      groupName = queryData.Group.GroupName
     }
     // Get count of all the traces so we can compute sampling. The API used does not allow for filter expression so
     // we can do this only if we don't have one.
-    count, err := getTracesCount(ctx, xrayClient, query.TimeRange.From, query.TimeRange.To, groupARN)
+    count, err := getTracesCount(ctx, xrayClient, query.TimeRange.From, query.TimeRange.To, groupName)
     if err != nil {
       return nil, err
     }
@@ -236,12 +237,12 @@ func getTraceSummaries(ctx context.Context, xrayClient XrayClient, request xray.
 // getTracesCount returns count of all the traces in the time range. It uses TimeSeries API for that to go through
 // counts per service or edge which should be the most efficient way to do that right now. One caveat is that it does
 // not allow for filter expression (or it does but only in some subset of expressions).
-func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, to time.Time, groupArn *string) (int64, error) {
-  log.DefaultLogger.Debug("getTracesCount", "from", from, "to", to, "groupARN", groupArn)
+func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, to time.Time, groupName *string) (int64, error) {
+  log.DefaultLogger.Debug("getTracesCount", "from", from, "to", to, "groupName", groupName)
   input := &xray.GetTimeSeriesServiceStatisticsInput{
     StartTime: aws.Time(from),
     EndTime:   aws.Time(to),
-    GroupARN:  groupArn,
+    GroupName: groupName,
     Period:    aws.Int64(60) ,
   }
 
@@ -360,7 +361,7 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummar
 						  if exception != nil && exception.Name != nil {
                 key += fmt.Sprintf(" -> %s", *exception.Name)
               } else {
-                key += fmt.Sprintf(" -> unknown")
+                key += " -> unknown"
               }
 						}
 					}

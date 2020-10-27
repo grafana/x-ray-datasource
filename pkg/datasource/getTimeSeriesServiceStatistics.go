@@ -19,20 +19,16 @@ type GetTimeSeriesServiceStatisticsQueryData struct {
 	Query      string   `json:"query"`
 	Columns    []string `json:"columns"`
 	Resolution int64    `json:"resolution"`
+  Region     string   `json:"region"`
 }
 
 func (ds *Datasource) getTimeSeriesServiceStatistics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
 	response := &backend.QueryDataResponse{
 		Responses: make(map[string]backend.DataResponse),
 	}
 
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getTimeSeriesServiceStatisticsForSingleQuery(ctx, xrayClient, query)
+		response.Responses[query.RefID] = ds.getTimeSeriesServiceStatisticsForSingleQuery(ctx, query, &req.PluginContext)
 	}
 
 	return response, nil
@@ -79,7 +75,7 @@ var valueDefs = []ValueDef{
 	},
 }
 
-func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	queryData := &GetTimeSeriesServiceStatisticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
@@ -88,6 +84,14 @@ func getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, xrayClien
 			Error: err,
 		}
 	}
+
+  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+  if err != nil {
+    return backend.DataResponse{
+      Error: err,
+    }
+  }
+
 
 	log.DefaultLogger.Debug("getTimeSeriesServiceStatisticsForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
 

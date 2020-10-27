@@ -12,29 +12,25 @@ import (
 )
 
 type GetTraceQueryData struct {
-	Query string `json:"query"`
+	Query  string `json:"query"`
+  Region string `json:"region"`
 }
 
 func (ds *Datasource) getTrace(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	xrayClient, err := ds.xrayClientFactory(&req.PluginContext)
-	if err != nil {
-		return nil, err
-	}
-
 	response := &backend.QueryDataResponse{
 		Responses: make(map[string]backend.DataResponse),
 	}
 
 	// TODO not used in the app but this could actually be done in one call for multiple traceIDs
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = getSingleTrace(xrayClient, query)
+		response.Responses[query.RefID] = ds.getSingleTrace(query, &req.PluginContext)
 	}
 
 	return response, nil
 }
 
 // getSingleTrace returns single trace from BatchGetTraces API and unmarshals it.
-func getSingleTrace(xrayClient XrayClient, query backend.DataQuery) backend.DataResponse {
+func (ds *Datasource) getSingleTrace(query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	queryData := &GetTraceQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
@@ -43,6 +39,14 @@ func getSingleTrace(xrayClient XrayClient, query backend.DataQuery) backend.Data
 			Error: err,
 		}
 	}
+
+  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+  if err != nil {
+    return backend.DataResponse{
+      Error: err,
+    }
+  }
+
 
 	log.DefaultLogger.Debug("getSingleTrace", "RefID", query.RefID, "query", queryData.Query)
 

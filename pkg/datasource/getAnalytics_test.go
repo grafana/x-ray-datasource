@@ -5,6 +5,7 @@ import (
   "encoding/json"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/request"
+  "github.com/aws/aws-sdk-go/service/ec2"
   "github.com/grafana/grafana-plugin-sdk-go/backend"
   xray "github.com/grafana/x-ray-datasource/pkg/xray"
   "github.com/stretchr/testify/require"
@@ -114,27 +115,40 @@ func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func
   return nil
 }
 
+func getXrayClientFactory(client XrayClient) XrayClientFactory{
+  return func (pluginContext *backend.PluginContext, region string) (XrayClient, error) {
+    return client, nil
+  }
+}
+
+func ec2clientFactory(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
+  return nil, nil
+}
 
 func TestGetAnalytics(t *testing.T) {
-  t.Run("getInsightSummaries", func(t *testing.T) {
-    // This should go happy path use 0.5 sampling and return half of the traces
-    traces, err := getTraceSummariesData(context.Background(), NewXrayClientMock(
+  t.Run("use precise sampling", func(t *testing.T) {
+
+    xrayMock := NewXrayClientMock(
       makeTrace("2020-09-16T00:00:01Z", "0", 100),
       makeTrace("2020-09-16T00:00:02Z", "0", 100),
       makeTrace("2020-09-16T00:00:03Z", "0", 100),
       makeTrace("2020-09-16T00:00:04Z", "0", 100),
-    ), *makeQuery("", "2020-09-16T00:00:00Z", "2020-09-16T00:00:10Z"), 200)
+    )
+    ds := NewDatasource(getXrayClientFactory(xrayMock), ec2clientFactory)
+    // This should go happy path use 0.5 sampling and return half of the traces
+    traces, err := ds.getTraceSummariesData(
+      context.Background(),
+      *makeQuery("", "2020-09-16T00:00:00Z", "2020-09-16T00:00:10Z"),
+      200,
+      &backend.PluginContext{},
+    )
     require.NoError(t, err)
     require.Equal(t, 200, len(traces))
   })
 
-  t.Run("getInsightSummaries", func(t *testing.T) {
-    // first loop should return 600 traces which is more than 400
-    // sample those 600 to 300 (actual 299 due to probability)
-    // second loop returns 150 traces (using 0.5 sampling in the request)
-    // now we have 449 traces again and we have to sample again so we have 226 traces
-    seed = 42
-    traces, err := getTraceSummariesData(context.Background(), NewXrayClientMock(
+  t.Run("use approximate sampling", func(t *testing.T) {
+
+    xrayMock := NewXrayClientMock(
       makeTrace("2020-09-16T00:00:01Z", "0", 200),
       makeTrace("2020-09-16T00:00:02Z", "1", 100),
 
@@ -143,7 +157,19 @@ func TestGetAnalytics(t *testing.T) {
 
       makeTrace("2020-09-16T00:00:06Z", "0", 200),
       makeTrace("2020-09-16T00:00:06Z", "1", 100),
-    ), *makeQuery("some expression", "2020-09-16T00:00:00Z", "2020-09-16T00:00:10Z"), 400)
+    )
+    ds := NewDatasource(getXrayClientFactory(xrayMock), ec2clientFactory)
+    // first loop should return 600 traces which is more than 400
+    // sample those 600 to 300 (actual 299 due to probability)
+    // second loop returns 150 traces (using 0.5 sampling in the request)
+    // now we have 449 traces again and we have to sample again so we have 226 traces
+    seed = 42
+    traces, err := ds.getTraceSummariesData(
+      context.Background(),
+      *makeQuery("some expression", "2020-09-16T00:00:00Z", "2020-09-16T00:00:10Z"),
+      400,
+      &backend.PluginContext{},
+      )
     require.NoError(t, err)
     require.Equal(t, 226, len(traces))
   })
