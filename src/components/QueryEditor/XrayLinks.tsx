@@ -23,7 +23,7 @@ export function XrayLinks({ datasource, query, range }: XrayLinksProps) {
   return (
     <div className={styles.container}>
       {[
-        ['To X-Ray service map', datasource.getServiceMapUrl()],
+        ['To X-Ray service map', datasource.getServiceMapUrl(query.region)],
         ['Open in X-Ray console', datasource.getXrayUrlForQuery(query, range)],
       ].map(([text, href]) => {
         return (

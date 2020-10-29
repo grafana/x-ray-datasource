@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { QueryEditor } from './QueryEditor';
-import { Group, Region, XrayQuery, XrayQueryType } from '../../types';
+import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
+import { XrayDataSource } from '../../DataSource';
+import { DataSourceInstanceSettings } from '@grafana/data';
 
 const defaultProps = {
   onRunQuery: undefined as any,
@@ -155,4 +157,54 @@ describe('QueryEditor', () => {
       await waitFor(() => expect(screen.getByText('Query')).toBeDefined());
     });
   });
+
+  it('sets the correct links based on region default', async () => {
+    renderEditorWithRegion('region1', 'default');
+    await checkLinks({
+      console: 'https://region1.console.aws.amazon.com/xray/home?region=region1#/analytics',
+      serviceMap: 'https://region1.console.aws.amazon.com/xray/home?region=region1#/service-map/',
+    });
+  });
+
+  it('sets the correct links based on region in query', async () => {
+    renderEditorWithRegion('region1', 'region2');
+    await checkLinks({
+      console: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/analytics',
+      serviceMap: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/service-map/',
+    });
+  });
 });
+
+function makeDataSource(settings: DataSourceInstanceSettings<XrayJsonData>) {
+  const ds = new XrayDataSource(settings);
+  ds.getGroups = async (): Promise<Group[]> => [{ GroupName: 'Default', GroupARN: 'DefaultARN' }];
+  ds.getRegions = async (): Promise<Region[]> => [{ label: 'region1', text: 'region1', value: 'region1' }];
+  return ds;
+}
+
+function renderEditorWithRegion(region: string, queryRegion: string) {
+  render(
+    <QueryEditor
+      {...{
+        ...defaultProps,
+        datasource: makeDataSource({ jsonData: { defaultRegion: 'region1' } } as any),
+        query: {
+          refId: 'A',
+          query: '',
+          region: queryRegion,
+        },
+      }}
+      onChange={() => {}}
+    />
+  );
+}
+
+async function checkLinks(links: { console: string; serviceMap: string }) {
+  const serviceMapLink = (await screen.findByText(/service map/i)).closest('a');
+  expect(serviceMapLink).toBeDefined();
+  expect(serviceMapLink!.href).toBe(links.serviceMap);
+
+  const consoleLink = (await screen.findByText(/console/i)).closest('a');
+  expect(consoleLink).toBeDefined();
+  expect(consoleLink!.href).toBe(links.console);
+}
