@@ -46,9 +46,9 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       map(dataQueryResponse => {
         return {
           ...dataQueryResponse,
-          data: dataQueryResponse.data.map(frame => {
-            this.parseResponse(frame, request.targets.find(t => t.key === dataQueryResponse.key)?.region);
-          }),
+          data: dataQueryResponse.data.map(frame =>
+            this.parseResponse(frame, request.targets.find(t => t.key === dataQueryResponse.key)?.region)
+          ),
         };
       })
     );
