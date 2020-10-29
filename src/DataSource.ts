@@ -46,7 +46,9 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       map(dataQueryResponse => {
         return {
           ...dataQueryResponse,
-          data: dataQueryResponse.data.map(frame => this.parseResponse(frame)),
+          data: dataQueryResponse.data.map(frame =>
+            this.parseResponse(frame, request.targets.find(t => t.key === dataQueryResponse.key)?.region)
+          ),
         };
       })
     );
@@ -75,8 +77,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     ];
   }
 
-  getServiceMapUrl(): string {
-    return `${this.getXrayUrl()}#/service-map/`;
+  getServiceMapUrl(region?: string): string {
+    return `${this.getXrayUrl(region)}#/service-map/`;
   }
 
   getXrayUrlForQuery(query: XrayQuery, timeRange?: TimeRange): string {
@@ -121,15 +123,15 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
           .replace(/%3A/g, ':')
           .replace(/%7E/g, '~')
       : '';
-    return `${this.getXrayUrl()}#/${section}${queryParams}`;
+    return `${this.getXrayUrl(query.region)}#/${section}${queryParams}`;
   }
 
-  private getXrayUrl(): string {
-    const region = this.instanceSettings.jsonData.defaultRegion!;
+  private getXrayUrl(region?: string): string {
+    region = !region || region === 'default' ? this.instanceSettings.jsonData.defaultRegion! : region;
     return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
   }
 
-  private parseResponse(response: DataFrame): DataFrame {
+  private parseResponse(response: DataFrame, region?: string): DataFrame {
     // TODO this would better be based on type but backend Go def does not have dataFrame.type
     switch (response.name) {
       case 'Traces':
@@ -137,14 +139,14 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       case 'TraceSummaries':
         return parseTracesListResponse(response, this.instanceSettings.uid);
       case 'InsightSummaries':
-        return this.parseInsightsResponse(response);
+        return this.parseInsightsResponse(response, region);
       default:
         return response;
     }
   }
 
-  private parseInsightsResponse(response: DataFrame): DataFrame {
-    const urlToAwsConsole = `${this.getXrayUrl()}#/insights/`;
+  private parseInsightsResponse(response: DataFrame, region?: string): DataFrame {
+    const urlToAwsConsole = `${this.getXrayUrl(region)}#/insights/`;
     const idField = response.fields.find(f => f.name === 'InsightId');
     if (idField) {
       idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
