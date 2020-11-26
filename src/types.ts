@@ -31,6 +31,7 @@ export interface XrayQuery extends DataQuery {
   region?: string;
 }
 
+// Needs to match datasource Query* constants in backend code
 export enum XrayQueryType {
   getTrace = 'getTrace',
   getTraceSummaries = 'getTraceSummaries',
@@ -47,6 +48,7 @@ export enum XrayQueryType {
   getAnalyticsUrl = 'getAnalyticsUrl',
   getAnalyticsStatusCode = 'getAnalyticsStatusCode',
   getInsights = 'getInsights',
+  getServiceMap = 'getServiceMap',
 }
 
 export interface XrayJsonData extends DataSourceJsonData {

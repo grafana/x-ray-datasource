@@ -140,6 +140,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         return parseTracesListResponse(response, this.instanceSettings.uid);
       case 'InsightSummaries':
         return this.parseInsightsResponse(response, region);
+      case 'ServiceMap':
+        return parseServiceMapResponse(response);
       default:
         return response;
     }
@@ -237,6 +239,30 @@ function parseTracesListResponse(response: DataFrame, datasourceUid: string): Da
     },
   ];
   return response;
+}
+
+function parseServiceMapResponse(response: DataFrame): DataFrame {
+  // Again assuming this will ge single field with single value which will be the trace data blob
+
+  const traceData = response.fields[0].values.toArray().map(serviceJson => {
+    return JSON.parse(serviceJson);
+  });
+
+  return new MutableDataFrame({
+    name: 'ServiceMap',
+    fields: [
+      {
+        name: 'Services',
+        type: FieldType.other,
+        values: new ArrayVector(traceData),
+      },
+    ],
+    meta: {
+      // TODO: needs new grafana/data
+      // @ts-ignore
+      preferredVisualisationType: 'serviceMap',
+    },
+  });
 }
 
 function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv) {

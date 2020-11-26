@@ -62,6 +62,7 @@ type Datasource struct {
   ec2ClientFactory  Ec2ClientFactory
 }
 
+// Needs to match XrayQueryType in frontend code
 const (
 	QueryGetTrace                                 = "getTrace"
 	QueryGetTraceSummaries                        = "getTraceSummaries"
@@ -78,6 +79,7 @@ const (
 	QueryGetAnalyticsUser                         = "getAnalyticsUser"
 	QueryGetAnalyticsStatusCode                   = "getAnalyticsStatusCode"
 	QueryGetInsights                              = "getInsights"
+  QueryGetServiceMap                            = "getServiceMap"
 )
 
 func NewDatasource(
@@ -105,6 +107,7 @@ func NewDatasource(
 	mux.HandleFunc(QueryGetAnalyticsUrl, ds.getAnalytics)
 	mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
 	mux.HandleFunc(QueryGetInsights, ds.getInsights)
+  mux.HandleFunc(QueryGetServiceMap, ds.getServiceMap)
 
 	ds.QueryMux = mux
 
@@ -152,4 +155,5 @@ type XrayClient interface {
 	) error
 	GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error)
 	GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool ) error
+	GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error
 }

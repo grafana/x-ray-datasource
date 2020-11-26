@@ -8,6 +8,7 @@ export type QueryTypeOption = CascaderOption & {
 
 export const traceListOption = { label: 'Trace List', value: 'traceList' };
 export const insightsOption = { label: 'Insights', value: 'insights', queryType: XrayQueryType.getInsights };
+export const serviceMapOption = { label: 'Service Map', value: 'serviceMap', queryType: XrayQueryType.getServiceMap };
 export const traceStatisticsOption = {
   label: 'Trace Statistics',
   value: 'traceStatistics',
@@ -103,6 +104,7 @@ export const queryTypeOptions: QueryTypeOption[] = [
       },
     ],
   },
+  serviceMapOption,
 ];
 
 export const columnNames: { [key: string]: string } = {
