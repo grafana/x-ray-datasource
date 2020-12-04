@@ -18,9 +18,11 @@ import { map } from 'rxjs/operators';
 import {
   Group,
   Region,
+  XrayEdge,
   XrayJsonData,
   XrayQuery,
   XrayQueryType,
+  XrayService,
   XrayTraceData,
   XrayTraceDataRaw,
   XrayTraceDataSegment,
@@ -46,9 +48,10 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       map(dataQueryResponse => {
         return {
           ...dataQueryResponse,
-          data: dataQueryResponse.data.map(frame =>
-            this.parseResponse(frame, request.targets.find(t => t.key === dataQueryResponse.key)?.region)
-          ),
+          data: dataQueryResponse.data.flatMap(frame => {
+            const target = request.targets.find(t => t.key === dataQueryResponse.key);
+            return this.parseResponse(frame, target);
+          }),
         };
       })
     );
@@ -131,23 +134,23 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
   }
 
-  private parseResponse(response: DataFrame, region?: string): DataFrame {
+  private parseResponse(response: DataFrame, query?: XrayQuery): DataFrame[] {
     // TODO this would better be based on type but backend Go def does not have dataFrame.type
     switch (response.name) {
       case 'Traces':
         return parseTraceResponse(response);
       case 'TraceSummaries':
-        return parseTracesListResponse(response, this.instanceSettings.uid);
+        return parseTracesListResponse(response, this.instanceSettings);
       case 'InsightSummaries':
-        return this.parseInsightsResponse(response, region);
+        return this.parseInsightsResponse(response, query?.region);
       case 'ServiceMap':
-        return parseServiceMapResponse(response);
+        return parseServiceMapResponse(response, this.instanceSettings, query);
       default:
-        return response;
+        return [response];
     }
   }
 
-  private parseInsightsResponse(response: DataFrame, region?: string): DataFrame {
+  private parseInsightsResponse(response: DataFrame, region?: string): DataFrame[] {
     const urlToAwsConsole = `${this.getXrayUrl(region)}#/insights/`;
     const idField = response.fields.find(f => f.name === 'InsightId');
     if (idField) {
@@ -165,7 +168,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         };
       };
     }
-    return response;
+    return [response];
   }
 }
 
@@ -190,7 +193,7 @@ function getDurationText(duration: DateTimeDuration) {
  The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
  json, so some parts are escaped and we have to double parse that.
  */
-function parseTraceResponse(response: DataFrame): DataFrame {
+function parseTraceResponse(response: DataFrame): DataFrame[] {
   // Again assuming this will ge single field with single value which will be the trace data blob
   const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
@@ -206,19 +209,21 @@ function parseTraceResponse(response: DataFrame): DataFrame {
     Segments: parsedSegments,
   };
 
-  return new MutableDataFrame({
-    name: 'Trace',
-    fields: [
-      {
-        name: 'trace',
-        type: FieldType.trace,
-        values: new ArrayVector([transformResponse(traceParsedForReal)]),
+  return [
+    new MutableDataFrame({
+      name: 'Trace',
+      fields: [
+        {
+          name: 'trace',
+          type: FieldType.trace,
+          values: new ArrayVector([transformResponse(traceParsedForReal)]),
+        },
+      ],
+      meta: {
+        preferredVisualisationType: 'trace',
       },
-    ],
-    meta: {
-      preferredVisualisationType: 'trace',
-    },
-  });
+    }),
+  ];
 }
 
 /**
@@ -226,43 +231,192 @@ function parseTraceResponse(response: DataFrame): DataFrame {
  * link that works both in explore and in dashboards.
  * TODO This mutates the dataframe, probably just copy it but seems like new MutableDataframe(response) errors out
  */
-function parseTracesListResponse(response: DataFrame, datasourceUid: string): DataFrame {
+function parseTracesListResponse(response: DataFrame, instanceSettings: DataSourceInstanceSettings): DataFrame[] {
   const idField = response.fields.find(f => f.name === 'Id');
   idField!.config.links = [
     {
       title: 'Trace: ${__value.raw}',
       url: '',
       internal: {
-        datasourceUid,
+        datasourceUid: instanceSettings.uid,
+        // @ts-ignore
+        datasourceName: instanceSettings.name,
         query: { query: '${__value.raw}', queryType: 'getTrace' },
       },
     },
   ];
-  return response;
+  return [response];
 }
 
-function parseServiceMapResponse(response: DataFrame): DataFrame {
+function parseServiceMapResponse(
+  response: DataFrame,
+  instanceSettings: DataSourceInstanceSettings,
+  query?: XrayQuery
+): DataFrame[] {
   // Again assuming this will ge single field with single value which will be the trace data blob
 
-  const traceData = response.fields[0].values.toArray().map(serviceJson => {
+  const services: XrayService[] = response.fields[0].values.toArray().map(serviceJson => {
     return JSON.parse(serviceJson);
   });
 
-  return new MutableDataFrame({
-    name: 'ServiceMap',
-    fields: [
-      {
-        name: 'Services',
-        type: FieldType.other,
-        values: new ArrayVector(traceData),
-      },
-    ],
-    meta: {
-      // TODO: needs new grafana/data
-      // @ts-ignore
-      preferredVisualisationType: 'serviceMap',
+  const { nodes, links } = services.reduce(
+    (acc: any, service: any) => {
+      const links = service.Edges.map((e: XrayEdge) => {
+        return {
+          source: service.ReferenceId,
+          target: e.ReferenceId,
+          data: e,
+        };
+      });
+
+      acc.links.push(...links);
+
+      const node = {
+        name: service.Name,
+        id: service.ReferenceId,
+        data: service,
+      };
+      acc.nodes = {
+        ...acc.nodes,
+        [node.id]: node,
+      };
+
+      return acc;
     },
-  });
+    { nodes: {}, links: [] }
+  );
+  const nodesArray = Object.values(nodes);
+
+  return [
+    new MutableDataFrame({
+      name: 'ServiceMap_services',
+      fields: [
+        {
+          name: 'id',
+          type: FieldType.string,
+          values: new ArrayVector(nodesArray.map((n: any) => n.id)),
+        },
+        {
+          name: 'name',
+          type: FieldType.string,
+          values: new ArrayVector(nodesArray.map((n: any) => n.name)),
+        },
+        {
+          name: 'data',
+          type: FieldType.other,
+          values: new ArrayVector(nodesArray.map((n: any) => n.data)),
+        },
+        {
+          name: 'query',
+          type: FieldType.string,
+          values: new ArrayVector(
+            nodesArray.map((n: any) => `service(id(name: \\"${n.name}\\", type: \\"${n.data.Type}\\"))`)
+          ),
+          config: {
+            links: [
+              {
+                title: 'All Traces',
+                url: '',
+                internal: {
+                  query: {
+                    ...(query || {}),
+                    queryType: XrayQueryType.getTraceSummaries,
+                    query: '${__value.raw}',
+                  },
+                  datasourceUid: instanceSettings.uid,
+                  // @ts-ignore
+                  datasourceName: instanceSettings.name,
+                },
+              },
+              {
+                title: 'OK Traces',
+                url: '',
+                internal: {
+                  query: {
+                    ...(query || {}),
+                    queryType: XrayQueryType.getTraceSummaries,
+                    query: '${__value.raw} { ok = true }',
+                  },
+                  datasourceUid: instanceSettings.uid,
+                  // @ts-ignore
+                  datasourceName: instanceSettings.name,
+                },
+              },
+            ],
+          },
+        },
+      ],
+      meta: {
+        // TODO: needs new grafana/data
+        // @ts-ignore
+        preferredVisualisationType: 'serviceMap',
+      },
+    }),
+    new MutableDataFrame({
+      name: 'ServiceMap_edges',
+      fields: [
+        {
+          name: 'source',
+          type: FieldType.string,
+          values: new ArrayVector(links.map((l: any) => l.source)),
+        },
+        {
+          name: 'target',
+          type: FieldType.string,
+          values: new ArrayVector(links.map((l: any) => l.target)),
+        },
+        {
+          name: 'data',
+          type: FieldType.other,
+          values: new ArrayVector(links.map((l: any) => l.data)),
+        },
+        {
+          name: 'query',
+          type: FieldType.string,
+          values: new ArrayVector(
+            links.map((l: any) => `edge(\\"${nodes[l.source].name}\\", \\"${nodes[l.target].name}\\")`)
+          ),
+          config: {
+            links: [
+              {
+                title: 'Traces',
+                url: '',
+                internal: {
+                  query: {
+                    ...(query || {}),
+                    queryType: XrayQueryType.getTraceSummaries,
+                    query: '${__value.raw}',
+                  },
+                  datasourceUid: instanceSettings.uid,
+                  // @ts-ignore
+                  datasourceName: instanceSettings.name,
+                },
+              },
+              {
+                title: 'OK Traces',
+                url: '',
+                internal: {
+                  query: {
+                    ...(query || {}),
+                    queryType: XrayQueryType.getTraceSummaries,
+                    query: '${__value.raw} { ok = true }',
+                  },
+                  datasourceUid: instanceSettings.uid,
+                  // @ts-ignore
+                  datasourceName: instanceSettings.name,
+                },
+              },
+            ],
+          },
+        },
+      ],
+      meta: {
+        // TODO: needs new grafana/data
+        // @ts-ignore
+        preferredVisualisationType: 'serviceMap',
+      },
+    }),
+  ];
 }
 
 function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv) {
