@@ -1,6 +1,6 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AWS X-Ray data source",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
@@ -13,7 +13,7 @@
   "devDependencies": {
     "@grafana/data": "7.2.0",
     "@grafana/runtime": "7.2.0",
-    "@grafana/toolkit": "7.2.0",
+    "@grafana/toolkit": "7.3.0",
     "@grafana/ui": "7.2.0",
     "@testing-library/react": "^10.4.4",
     "@types/lodash": "latest",
