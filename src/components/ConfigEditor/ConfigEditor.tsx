@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import ConnectionConfig from './common/ConnectionConfig';
-import { AwsDataSourceJsonData, AwsDataSourceSecureJsonData } from 'common';
+import ConnectionConfig from './ConnectionConfig';
+import { AwsDataSourceJsonData, AwsDataSourceSecureJsonData } from './types';
 
 export type Props = DataSourcePluginOptionsEditorProps<AwsDataSourceJsonData, AwsDataSourceSecureJsonData>;
 

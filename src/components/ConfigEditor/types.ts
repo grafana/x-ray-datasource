@@ -1,9 +1,11 @@
 import { DataSourceJsonData, SelectableValue } from '@grafana/data';
 
+// Needs to match with grafana-aws-sdk mapping
 export enum AwsAuthType {
   Keys = 'keys',
-  Credentials = 'credentials',
-  Default = 'default', // was 'arn',
+  CredentialsOld = 'credentials',
+  Credentials = 'sharedCreds',
+  Default = 'default',
 }
 
 export interface AwsDataSourceJsonData extends DataSourceJsonData {

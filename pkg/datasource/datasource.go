@@ -1,21 +1,20 @@
 package datasource
 
 import (
-	"net/http"
+  "net/http"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
+  "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/request"
 
-	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
-	"github.com/grafana/x-ray-datasource/pkg/client"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
+  "github.com/grafana/x-ray-datasource/pkg/client"
+  xray "github.com/grafana/x-ray-datasource/pkg/xray"
 
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+  "github.com/grafana/grafana-plugin-sdk-go/backend"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
 // GetServeOpts returns datasource.ServeOpts.
@@ -118,8 +117,7 @@ func NewDatasource(
 }
 
 func getXrayClient(pluginContext *backend.PluginContext, region string) (XrayClient, error) {
-	dsInfo := &awsds.AWSDatasourceSettings{}
-	err := dsInfo.Load(*pluginContext.DataSourceInstanceSettings)
+	dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -132,8 +130,7 @@ func getXrayClient(pluginContext *backend.PluginContext, region string) (XrayCli
 }
 
 func getEc2Client(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
-	dsInfo := &awsds.AWSDatasourceSettings{}
-	err := dsInfo.Load(*pluginContext.DataSourceInstanceSettings)
+  dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,5 @@
 import { DataQuery } from '@grafana/data';
-import { AwsDataSourceJsonData } from 'common';
+import { AwsDataSourceJsonData } from 'components/ConfigEditor/types';
 
 export type Group = {
   FilterExpression?: string;

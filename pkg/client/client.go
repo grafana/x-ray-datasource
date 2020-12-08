@@ -19,8 +19,8 @@ var sessions = awsds.NewSessionCache()
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
 func CreateXrayClient(region string, datasourceInfo *awsds.AWSDatasourceSettings) (*xray.XRay, error) {
-	sess, err := sessions.GetSession(region, *datasourceInfo)
-	if err != nil {
+  sess, err := sessions.GetSession(region, *datasourceInfo)
+  if err != nil {
 		return nil, err
 	}
 

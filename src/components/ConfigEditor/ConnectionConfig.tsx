@@ -1,17 +1,18 @@
 import React, { PureComponent } from 'react';
-import { InlineFormLabel, LegacyForms, Button } from '@grafana/ui';
-const { Select, Input } = LegacyForms;
+import { Button, InlineFormLabel, LegacyForms } from '@grafana/ui';
 import {
   DataSourcePluginOptionsEditorProps,
+  onUpdateDatasourceJsonDataOption,
   onUpdateDatasourceJsonDataOptionSelect,
   onUpdateDatasourceResetOption,
-  onUpdateDatasourceJsonDataOption,
   onUpdateDatasourceSecureJsonDataOption,
   SelectableValue,
 } from '@grafana/data';
 
-import { AwsDataSourceJsonData, AwsDataSourceSecureJsonData, awsAuthProviderOptions } from './types';
+import { awsAuthProviderOptions, AwsAuthType, AwsDataSourceJsonData, AwsDataSourceSecureJsonData } from './types';
 import { standardRegions } from './regions';
+
+const { Select, Input } = LegacyForms;
 
 export interface Props extends DataSourcePluginOptionsEditorProps<AwsDataSourceJsonData, AwsDataSourceSecureJsonData> {
   loadRegions?: () => Promise<string[]>;
@@ -24,26 +25,19 @@ export interface State {
 
 export default class ConnectionConfig extends PureComponent<Props, State> {
   state: State = {
+    // TODO: this should be loaded from the aws API and there is a method on the datasource for that. The problem is
+    // when creating a DS you cannot easily yet get the DS instance and you also need to wait for proper credentials.
+    // So we would need to wait until user supplies the credentials or auth method create a fake DS instance with
+    // some fake stuff if needed and call the method from there.
     regions: standardRegions,
   };
-
-  // componentDidMount() {
-  //   TODO, validate the settings and load regions:
-  //   See:
-  //   https://github.com/grafana/grafana/blob/master/public/app/plugins/datasource/cloudwatch/components/ConfigEditor.tsx#L43
-  // }
-
-  // componentWillUnmount() {
-  //   if (this.loadRegionsPromise) {
-  //     this.loadRegionsPromise.cancel();
-  //   }
-  // }
 
   render() {
     const { regions } = this.state;
     const { options } = this.props;
     const secureJsonData = (options.secureJsonData || {}) as AwsDataSourceSecureJsonData;
     let profile = options.jsonData.profile;
+    // For backward compatibility as we reused the `database` field before.
     if (profile === undefined) {
       profile = options.database;
     }
@@ -73,7 +67,8 @@ export default class ConnectionConfig extends PureComponent<Props, State> {
               />
             </div>
           </div>
-          {options.jsonData.authType === 'credentials' && (
+          {(options.jsonData.authType === AwsAuthType.Credentials ||
+            options.jsonData.authType === AwsAuthType.CredentialsOld) && (
             <div className="gf-form-inline">
               <div className="gf-form">
                 <InlineFormLabel
@@ -93,7 +88,7 @@ export default class ConnectionConfig extends PureComponent<Props, State> {
               </div>
             </div>
           )}
-          {options.jsonData.authType === 'keys' && (
+          {options.jsonData.authType === AwsAuthType.Keys && (
             <div>
               {options.secureJsonFields?.accessKey ? (
                 <div className="gf-form-inline">

@@ -1,20 +1,14 @@
 package datasource
 
 import (
-	"context"
-
-	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/x-ray-datasource/pkg/client"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
+  "context"
+  "github.com/grafana/grafana-plugin-sdk-go/backend"
+  "github.com/grafana/x-ray-datasource/pkg/client"
+  xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 func (ds *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	var status = backend.HealthStatusOk
-	var message = "Data source is working"
-
-	dsInfo := &awsds.AWSDatasourceSettings{}
-	err := dsInfo.Load(*req.PluginContext.DataSourceInstanceSettings)
+  dsInfo, err := getDsSettings(req.PluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		// TODO: not sure if this is correct or CheckHealthResult should also be sent back
 		return nil, err
@@ -37,7 +31,7 @@ func (ds *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthR
 	}
 
 	return &backend.CheckHealthResult{
-		Status:  status,
-		Message: message,
+		Status:  backend.HealthStatusOk,
+		Message: "Data source is working",
 	}, nil
 }
