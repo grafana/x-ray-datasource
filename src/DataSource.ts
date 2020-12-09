@@ -145,6 +145,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         return this.parseInsightsResponse(response, query?.region);
       case 'ServiceMap':
         return parseServiceMapResponse(response, this.instanceSettings, query);
+      case 'TraceGraph':
+        return parseGraphResponse(response);
       default:
         return [response];
     }
@@ -248,11 +250,7 @@ function parseTracesListResponse(response: DataFrame, instanceSettings: DataSour
   return [response];
 }
 
-function parseServiceMapResponse(
-  response: DataFrame,
-  instanceSettings: DataSourceInstanceSettings,
-  query?: XrayQuery
-): DataFrame[] {
+function parseGraphResponse(response: DataFrame) {
   // Again assuming this will ge single field with single value which will be the trace data blob
 
   const services: XrayService[] = response.fields[0].values.toArray().map(serviceJson => {
@@ -302,48 +300,14 @@ function parseServiceMapResponse(
           values: new ArrayVector(nodesArray.map((n: any) => n.name)),
         },
         {
+          name: 'type',
+          type: FieldType.string,
+          values: new ArrayVector(nodesArray.map((n: any) => n.data.Type)),
+        },
+        {
           name: 'data',
           type: FieldType.other,
           values: new ArrayVector(nodesArray.map((n: any) => n.data)),
-        },
-        {
-          name: 'query',
-          type: FieldType.string,
-          values: new ArrayVector(
-            nodesArray.map((n: any) => `service(id(name: \\"${n.name}\\", type: \\"${n.data.Type}\\"))`)
-          ),
-          config: {
-            links: [
-              {
-                title: 'All Traces',
-                url: '',
-                internal: {
-                  query: {
-                    ...(query || {}),
-                    queryType: XrayQueryType.getTraceSummaries,
-                    query: '${__value.raw}',
-                  },
-                  datasourceUid: instanceSettings.uid,
-                  // @ts-ignore
-                  datasourceName: instanceSettings.name,
-                },
-              },
-              {
-                title: 'OK Traces',
-                url: '',
-                internal: {
-                  query: {
-                    ...(query || {}),
-                    queryType: XrayQueryType.getTraceSummaries,
-                    query: '${__value.raw} { ok = true }',
-                  },
-                  datasourceUid: instanceSettings.uid,
-                  // @ts-ignore
-                  datasourceName: instanceSettings.name,
-                },
-              },
-            ],
-          },
         },
       ],
       meta: {
@@ -361,53 +325,24 @@ function parseServiceMapResponse(
           values: new ArrayVector(links.map((l: any) => l.source)),
         },
         {
+          name: 'sourceName',
+          type: FieldType.string,
+          values: new ArrayVector(links.map((l: any) => nodes[l.source].name)),
+        },
+        {
           name: 'target',
           type: FieldType.string,
           values: new ArrayVector(links.map((l: any) => l.target)),
         },
         {
+          name: 'targetName',
+          type: FieldType.string,
+          values: new ArrayVector(links.map((l: any) => nodes[l.target].name)),
+        },
+        {
           name: 'data',
           type: FieldType.other,
           values: new ArrayVector(links.map((l: any) => l.data)),
-        },
-        {
-          name: 'query',
-          type: FieldType.string,
-          values: new ArrayVector(
-            links.map((l: any) => `edge(\\"${nodes[l.source].name}\\", \\"${nodes[l.target].name}\\")`)
-          ),
-          config: {
-            links: [
-              {
-                title: 'Traces',
-                url: '',
-                internal: {
-                  query: {
-                    ...(query || {}),
-                    queryType: XrayQueryType.getTraceSummaries,
-                    query: '${__value.raw}',
-                  },
-                  datasourceUid: instanceSettings.uid,
-                  // @ts-ignore
-                  datasourceName: instanceSettings.name,
-                },
-              },
-              {
-                title: 'OK Traces',
-                url: '',
-                internal: {
-                  query: {
-                    ...(query || {}),
-                    queryType: XrayQueryType.getTraceSummaries,
-                    query: '${__value.raw} { ok = true }',
-                  },
-                  datasourceUid: instanceSettings.uid,
-                  // @ts-ignore
-                  datasourceName: instanceSettings.name,
-                },
-              },
-            ],
-          },
         },
       ],
       meta: {
@@ -417,6 +352,82 @@ function parseServiceMapResponse(
       },
     }),
   ];
+}
+
+function parseServiceMapResponse(
+  response: DataFrame,
+  instanceSettings: DataSourceInstanceSettings,
+  query?: XrayQuery
+): DataFrame[] {
+  const [servicesFrame, edgesFrame] = parseGraphResponse(response);
+  const serviceQuery = 'service(id(name: "${__data.fields.name}", type: "${__data.fields.type}"))';
+  servicesFrame.fields[0].config = {
+    links: [
+      {
+        title: 'All Traces',
+        url: '',
+        internal: {
+          query: {
+            ...(query || {}),
+            queryType: XrayQueryType.getTraceSummaries,
+            query: serviceQuery,
+          },
+          datasourceUid: instanceSettings.uid,
+          // @ts-ignore
+          datasourceName: instanceSettings.name,
+        },
+      },
+      {
+        title: 'OK Traces',
+        url: '',
+        internal: {
+          query: {
+            ...(query || {}),
+            queryType: XrayQueryType.getTraceSummaries,
+            query: `${serviceQuery} { ok = true }`,
+          },
+          datasourceUid: instanceSettings.uid,
+          // @ts-ignore
+          datasourceName: instanceSettings.name,
+        },
+      },
+    ],
+  };
+
+  const edgeQuery = 'edge("${__data.fields.sourceName}", "${__data.fields.targetName}")';
+  edgesFrame.fields[0].config = {
+    links: [
+      {
+        title: 'Traces',
+        url: '',
+        internal: {
+          query: {
+            ...(query || {}),
+            queryType: XrayQueryType.getTraceSummaries,
+            query: edgeQuery,
+          },
+          datasourceUid: instanceSettings.uid,
+          // @ts-ignore
+          datasourceName: instanceSettings.name,
+        },
+      },
+      {
+        title: 'OK Traces',
+        url: '',
+        internal: {
+          query: {
+            ...(query || {}),
+            queryType: XrayQueryType.getTraceSummaries,
+            query: `${edgeQuery} { ok = true }`,
+          },
+          datasourceUid: instanceSettings.uid,
+          // @ts-ignore
+          datasourceName: instanceSettings.name,
+        },
+      },
+    ],
+  };
+  return [servicesFrame, edgesFrame];
 }
 
 function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv) {
