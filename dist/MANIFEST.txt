@@ -1,0 +1,36 @@
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+{
+  "manifestVersion": "2.0.0",
+  "signatureType": "grafana",
+  "signedByOrg": "grafana",
+  "signedByOrgName": "Grafana Labs",
+  "plugin": "grafana-x-ray-datasource",
+  "version": "1.2.0",
+  "time": 1607608537981,
+  "keyId": "7e4d0c6a708866e7",
+  "files": {
+    "gpx_x-ray-datasource_linux_arm64": "8cf43a513cdbeff9403dcd4ab0eda3f7f875708e252c8206409eaccb1437eca6",
+    "README.md": "8bb114b6f7260ab97494cc2b45f25203c20baa3b7ea998c1ad6443626edec188",
+    "img/AWS-X-Ray.svg": "0b85809d84ba09b410d2f06d6e1805d280340e00b24df7923452ad0bc6fa7701",
+    "module.js.LICENSE.txt": "0d8f66cd4afb566cb5b7e1540c68f43b939d3eba12ace290f18abc4f4cb53ed0",
+    "gpx_x-ray-datasource_linux_arm": "886dce74a0117f0b7f1bac49d11af2b8d30ae410e2dd5b90c546a05c40a674ac",
+    "plugin.json": "7a5e332ba9178ded5b447f8973c6c7f402d1caf770d9e0c224fd8290695e04c0",
+    "module.js": "4add0939f0867d91dbf3fa6e7a57af1ad989e09337211e5648354616766ffdef",
+    "gpx_x-ray-datasource_darwin_amd64": "90eb762ec1b44667257149fb42aca0902c4cb1d302899b8500e4577ce0deffb4",
+    "LICENSE": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+    "module.js.map": "012d3b5cb9db304e2352859c78b104e0c604440c6792bad18bdd85d9774960f9"
+  }
+}
+-----BEGIN PGP SIGNATURE-----
+Version: OpenPGP.js v4.10.1
+Comment: https://openpgpjs.org
+
+wqIEARMKAAYFAl/SKNoACgkQfk0ManCIZudvjQIJAUb008fyC29LGRf5zu8C
+ajA1tVfLpadO3pr1kdmyKtmYvxYNvZi96UoNA605nGYTa5gLFeDYxOhVimaT
+JWV8nluxAgkBDD19f95Eagl3d5vKU8+cURair6Cb0DsIoTJ+wLQSxzlN1DxZ
+YU1WT3Laoc/VZfo1dPVpQdeTizzfC9xyTHl/Pls=
+=c+Dd
+-----END PGP SIGNATURE-----
