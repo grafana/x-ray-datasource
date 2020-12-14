@@ -5,7 +5,7 @@ import {
   dummyAllGroup,
   insightsOption,
   QueryTypeOption,
-  queryTypeOptions,
+  queryTypeOptions, serviceMapOption,
   traceListOption,
   traceStatisticsOption,
 } from './constants';
@@ -103,7 +103,7 @@ export function QueryEditorForm({
   const styles = getStyles();
   return (
     <div>
-      {selectedOptions[0] !== insightsOption && (
+      {![insightsOption, serviceMapOption].includes(selectedOptions[0]) && (
         <div className="gf-form">
           <QuerySection
             query={query}

@@ -6,10 +6,18 @@ export type QueryTypeOption = CascaderOption & {
   children?: QueryTypeOption[];
 };
 
-export const traceListOption = { label: 'Trace List', value: 'traceList' };
-export const insightsOption = { label: 'Insights', value: 'insights', queryType: XrayQueryType.getInsights };
-export const serviceMapOption = { label: 'Service Map', value: 'serviceMap', queryType: XrayQueryType.getServiceMap };
-export const traceStatisticsOption = {
+export const traceListOption: QueryTypeOption = { label: 'Trace List', value: 'traceList' };
+export const insightsOption: QueryTypeOption = {
+  label: 'Insights',
+  value: 'insights',
+  queryType: XrayQueryType.getInsights,
+};
+export const serviceMapOption: QueryTypeOption = {
+  label: 'Service Map',
+  value: 'serviceMap',
+  queryType: XrayQueryType.getServiceMap,
+};
+export const traceStatisticsOption: QueryTypeOption = {
   label: 'Trace Statistics',
   value: 'traceStatistics',
   queryType: XrayQueryType.getTimeSeriesServiceStatistics,
