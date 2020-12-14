@@ -375,70 +375,70 @@ function parseServiceMapResponse(
 ): DataFrame[] {
   const [servicesFrame, edgesFrame] = parseGraphResponse(response);
   const serviceQuery = 'service(id(name: "${__data.fields.name}", type: "${__data.fields.type}"))';
+  function makeLink(title: string, queryType: XrayQueryType, queryFilter: string) {
+    return {
+      title,
+      url: '',
+      internal: {
+        query: {
+          ...(query || {}),
+          queryType,
+          query: queryFilter,
+        },
+        datasourceUid: instanceSettings.uid,
+        // @ts-ignore
+        datasourceName: instanceSettings.name,
+      },
+    };
+  }
   servicesFrame.fields[0].config = {
     links: [
-      {
-        title: 'All Traces',
-        url: '',
-        internal: {
-          query: {
-            ...(query || {}),
-            queryType: XrayQueryType.getTraceSummaries,
-            query: serviceQuery,
-          },
-          datasourceUid: instanceSettings.uid,
-          // @ts-ignore
-          datasourceName: instanceSettings.name,
-        },
-      },
-      {
-        title: 'OK Traces',
-        url: '',
-        internal: {
-          query: {
-            ...(query || {}),
-            queryType: XrayQueryType.getTraceSummaries,
-            query: `${serviceQuery} { ok = true }`,
-          },
-          datasourceUid: instanceSettings.uid,
-          // @ts-ignore
-          datasourceName: instanceSettings.name,
-        },
-      },
+      makeLink('All Traces', XrayQueryType.getTraceSummaries, serviceQuery),
+      makeLink('OK Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { ok = true }'),
+      makeLink(
+        'OK Traces response time root cause',
+        XrayQueryType.getAnalyticsRootCauseResponseTimeService,
+        serviceQuery + ' { ok = true }'
+      ),
+      makeLink('Error Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { error = true }'),
+      makeLink(
+        'Error Traces root cause',
+        XrayQueryType.getAnalyticsRootCauseErrorService,
+        serviceQuery + ' { error = true }'
+      ),
+      makeLink('Fault Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { fault = true }'),
+      makeLink(
+        'Fault Traces root cause',
+        XrayQueryType.getAnalyticsRootCauseFaultService,
+        serviceQuery + ' { fault = true }'
+      ),
+      makeLink('Throttle Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { throttle = true }'),
     ],
   };
 
   const edgeQuery = 'edge("${__data.fields.sourceName}", "${__data.fields.targetName}")';
   edgesFrame.fields[0].config = {
     links: [
-      {
-        title: 'Traces',
-        url: '',
-        internal: {
-          query: {
-            ...(query || {}),
-            queryType: XrayQueryType.getTraceSummaries,
-            query: edgeQuery,
-          },
-          datasourceUid: instanceSettings.uid,
-          // @ts-ignore
-          datasourceName: instanceSettings.name,
-        },
-      },
-      {
-        title: 'OK Traces',
-        url: '',
-        internal: {
-          query: {
-            ...(query || {}),
-            queryType: XrayQueryType.getTraceSummaries,
-            query: `${edgeQuery} { ok = true }`,
-          },
-          datasourceUid: instanceSettings.uid,
-          // @ts-ignore
-          datasourceName: instanceSettings.name,
-        },
-      },
+      makeLink('All Traces', XrayQueryType.getTraceSummaries, edgeQuery),
+      makeLink('OK Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { ok = true }'),
+      makeLink(
+        'OK Traces response time root cause',
+        XrayQueryType.getAnalyticsRootCauseResponseTimeService,
+        edgeQuery + ' { ok = true }'
+      ),
+      makeLink('Error Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { error = true }'),
+      makeLink(
+        'Error Traces root cause',
+        XrayQueryType.getAnalyticsRootCauseErrorService,
+        edgeQuery + ' { error = true }'
+      ),
+      makeLink('Fault Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { fault = true }'),
+      makeLink(
+        'Fault Traces root cause',
+        XrayQueryType.getAnalyticsRootCauseFaultService,
+        edgeQuery + ' { fault = true }'
+      ),
+      makeLink('Throttle Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { throttle = true }'),
     ],
   };
   return [servicesFrame, edgesFrame];
