@@ -17,6 +17,19 @@ import (
 
 type XrayClientMock struct{}
 
+func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
+  panic("implement me")
+}
+
+func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
+  output := &xray.GetTraceGraphOutput{
+    NextToken: nil,
+    Services: []*xray.Service{} ,
+  }
+  fn(output, false)
+  return nil
+}
+
 func makeSummary() *xray.TraceSummary {
 	http := &xray.Http{
 		ClientIp:   aws.String("127.0.0.1"),

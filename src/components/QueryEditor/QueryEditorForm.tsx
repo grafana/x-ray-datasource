@@ -5,7 +5,8 @@ import {
   dummyAllGroup,
   insightsOption,
   QueryTypeOption,
-  queryTypeOptions, serviceMapOption,
+  queryTypeOptions,
+  serviceMapOption,
   traceListOption,
   traceStatisticsOption,
 } from './constants';
