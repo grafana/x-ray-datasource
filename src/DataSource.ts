@@ -63,7 +63,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         return {
           ...dataQueryResponse,
           data: dataQueryResponse.data.flatMap(frame => {
-            const target = request.targets.find(t => t.key === dataQueryResponse.key);
+            const target = request.targets.find(t => t.refId === frame.refId);
             return this.parseResponse(frame, target);
           }),
         };
@@ -152,15 +152,15 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     // TODO this would better be based on type but backend Go def does not have dataFrame.type
     switch (response.name) {
       case 'Traces':
-        return parseTraceResponse(response);
+        return parseTraceResponse(response, query);
       case 'TraceSummaries':
-        return parseTracesListResponse(response, this.instanceSettings);
+        return parseTracesListResponse(response, this.instanceSettings, query);
       case 'InsightSummaries':
         return this.parseInsightsResponse(response, query?.region);
       case 'ServiceMap':
         return parseServiceMapResponse(response, this.instanceSettings, query);
       case 'TraceGraph':
-        return parseGraphResponse(response);
+        return parseGraphResponse(response, query);
       default:
         return [response];
     }
@@ -209,7 +209,7 @@ function getDurationText(duration: DateTimeDuration) {
  The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
  json, so some parts are escaped and we have to double parse that.
  */
-function parseTraceResponse(response: DataFrame): DataFrame[] {
+function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[] {
   // Again assuming this will ge single field with single value which will be the trace data blob
   const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
@@ -228,6 +228,7 @@ function parseTraceResponse(response: DataFrame): DataFrame[] {
   return [
     new MutableDataFrame({
       name: 'Trace',
+      refId: query?.refId,
       fields: [
         {
           name: 'trace',
@@ -247,7 +248,11 @@ function parseTraceResponse(response: DataFrame): DataFrame[] {
  * link that works both in explore and in dashboards.
  * TODO This mutates the dataframe, probably just copy it but seems like new MutableDataframe(response) errors out
  */
-function parseTracesListResponse(response: DataFrame, instanceSettings: DataSourceInstanceSettings): DataFrame[] {
+function parseTracesListResponse(
+  response: DataFrame,
+  instanceSettings: DataSourceInstanceSettings,
+  query?: XrayQuery
+): DataFrame[] {
   const idField = response.fields.find(f => f.name === 'Id');
   idField!.config.links = [
     {
@@ -257,14 +262,18 @@ function parseTracesListResponse(response: DataFrame, instanceSettings: DataSour
         datasourceUid: instanceSettings.uid,
         // @ts-ignore
         datasourceName: instanceSettings.name,
-        query: { query: '${__value.raw}', queryType: 'getTrace' },
+        query: {
+          ...(query || {}),
+          query: '${__value.raw}',
+          queryType: 'getTrace',
+        },
       },
     },
   ];
   return [response];
 }
 
-function parseGraphResponse(response: DataFrame) {
+function parseGraphResponse(response: DataFrame, query?: XrayQuery) {
   // Again assuming this will ge single field with single value which will be the trace data blob
 
   const services: XrayService[] = response.fields[0].values.toArray().map(serviceJson => {
@@ -302,6 +311,7 @@ function parseGraphResponse(response: DataFrame) {
   return [
     new MutableDataFrame({
       name: 'ServiceMap_services',
+      refId: query?.refId,
       fields: [
         {
           name: 'id',
@@ -332,6 +342,7 @@ function parseGraphResponse(response: DataFrame) {
     }),
     new MutableDataFrame({
       name: 'ServiceMap_edges',
+      refId: query?.refId,
       fields: [
         {
           name: 'source',
@@ -373,7 +384,7 @@ function parseServiceMapResponse(
   instanceSettings: DataSourceInstanceSettings,
   query?: XrayQuery
 ): DataFrame[] {
-  const [servicesFrame, edgesFrame] = parseGraphResponse(response);
+  const [servicesFrame, edgesFrame] = parseGraphResponse(response, query);
   const serviceQuery = 'service(id(name: "${__data.fields.name}", type: "${__data.fields.type}"))';
   function makeLink(title: string, queryType: XrayQueryType, queryFilter: string) {
     return {
