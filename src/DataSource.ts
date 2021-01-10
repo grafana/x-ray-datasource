@@ -18,18 +18,17 @@ import { map } from 'rxjs/operators';
 import {
   Group,
   Region,
-  XrayEdge,
   XrayJsonData,
   XrayQuery,
   XrayQueryType,
-  XrayService,
   XrayTraceData,
   XrayTraceDataRaw,
   XrayTraceDataSegment,
 } from './types';
-import { transformResponse } from 'utils/transform';
+import { parseGraphResponse, transformTraceResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
 import { response as testResponse } from './x-ray-response';
+import { makeLinks } from './utils/links';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -160,7 +159,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       case 'ServiceMap':
         return parseServiceMapResponse(response, this.instanceSettings, query);
       case 'TraceGraph':
-        return parseGraphResponse(response, query);
+        return parseGraphResponse(response, query, { showRequestCounts: true });
       default:
         return [response];
     }
@@ -233,7 +232,7 @@ function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[]
         {
           name: 'trace',
           type: FieldType.trace,
-          values: new ArrayVector([transformResponse(traceParsedForReal)]),
+          values: new ArrayVector([transformTraceResponse(traceParsedForReal)]),
         },
       ],
       meta: {
@@ -273,112 +272,6 @@ function parseTracesListResponse(
   return [response];
 }
 
-function parseGraphResponse(response: DataFrame, query?: XrayQuery) {
-  // Again assuming this will ge single field with single value which will be the trace data blob
-
-  const services: XrayService[] = response.fields[0].values.toArray().map(serviceJson => {
-    return JSON.parse(serviceJson);
-  });
-
-  const { nodes, links } = services.reduce(
-    (acc: any, service: any) => {
-      const links = service.Edges.map((e: XrayEdge) => {
-        return {
-          source: service.ReferenceId,
-          target: e.ReferenceId,
-          data: e,
-        };
-      });
-
-      acc.links.push(...links);
-
-      const node = {
-        name: service.Name,
-        id: service.ReferenceId,
-        data: service,
-      };
-      acc.nodes = {
-        ...acc.nodes,
-        [node.id]: node,
-      };
-
-      return acc;
-    },
-    { nodes: {}, links: [] }
-  );
-  const nodesArray = Object.values(nodes);
-
-  return [
-    new MutableDataFrame({
-      name: 'ServiceMap_services',
-      refId: query?.refId,
-      fields: [
-        {
-          name: 'id',
-          type: FieldType.string,
-          values: new ArrayVector(nodesArray.map((n: any) => n.id)),
-        },
-        {
-          name: 'name',
-          type: FieldType.string,
-          values: new ArrayVector(nodesArray.map((n: any) => n.name)),
-        },
-        {
-          name: 'type',
-          type: FieldType.string,
-          values: new ArrayVector(nodesArray.map((n: any) => n.data.Type)),
-        },
-        {
-          name: 'data',
-          type: FieldType.other,
-          values: new ArrayVector(nodesArray.map((n: any) => n.data)),
-        },
-      ],
-      meta: {
-        // TODO: needs new grafana/data
-        // @ts-ignore
-        preferredVisualisationType: 'serviceMap',
-      },
-    }),
-    new MutableDataFrame({
-      name: 'ServiceMap_edges',
-      refId: query?.refId,
-      fields: [
-        {
-          name: 'source',
-          type: FieldType.string,
-          values: new ArrayVector(links.map((l: any) => l.source)),
-        },
-        {
-          name: 'sourceName',
-          type: FieldType.string,
-          values: new ArrayVector(links.map((l: any) => nodes[l.source].name)),
-        },
-        {
-          name: 'target',
-          type: FieldType.string,
-          values: new ArrayVector(links.map((l: any) => l.target)),
-        },
-        {
-          name: 'targetName',
-          type: FieldType.string,
-          values: new ArrayVector(links.map((l: any) => nodes[l.target].name)),
-        },
-        {
-          name: 'data',
-          type: FieldType.other,
-          values: new ArrayVector(links.map((l: any) => l.data)),
-        },
-      ],
-      meta: {
-        // TODO: needs new grafana/data
-        // @ts-ignore
-        preferredVisualisationType: 'serviceMap',
-      },
-    }),
-  ];
-}
-
 function parseServiceMapResponse(
   response: DataFrame,
   instanceSettings: DataSourceInstanceSettings,
@@ -386,71 +279,13 @@ function parseServiceMapResponse(
 ): DataFrame[] {
   const [servicesFrame, edgesFrame] = parseGraphResponse(response, query);
   const serviceQuery = 'service(id(name: "${__data.fields.name}", type: "${__data.fields.type}"))';
-  function makeLink(title: string, queryType: XrayQueryType, queryFilter: string) {
-    return {
-      title,
-      url: '',
-      internal: {
-        query: {
-          ...(query || {}),
-          queryType,
-          query: queryFilter,
-        },
-        datasourceUid: instanceSettings.uid,
-        // @ts-ignore
-        datasourceName: instanceSettings.name,
-      },
-    };
-  }
   servicesFrame.fields[0].config = {
-    links: [
-      makeLink('All Traces', XrayQueryType.getTraceSummaries, serviceQuery),
-      makeLink('OK Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { ok = true }'),
-      makeLink(
-        'OK Traces response time root cause',
-        XrayQueryType.getAnalyticsRootCauseResponseTimeService,
-        serviceQuery + ' { ok = true }'
-      ),
-      makeLink('Error Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { error = true }'),
-      makeLink(
-        'Error Traces root cause',
-        XrayQueryType.getAnalyticsRootCauseErrorService,
-        serviceQuery + ' { error = true }'
-      ),
-      makeLink('Fault Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { fault = true }'),
-      makeLink(
-        'Fault Traces root cause',
-        XrayQueryType.getAnalyticsRootCauseFaultService,
-        serviceQuery + ' { fault = true }'
-      ),
-      makeLink('Throttle Traces', XrayQueryType.getTraceSummaries, serviceQuery + ' { throttle = true }'),
-    ],
+    links: makeLinks(serviceQuery, instanceSettings, query),
   };
 
   const edgeQuery = 'edge("${__data.fields.sourceName}", "${__data.fields.targetName}")';
   edgesFrame.fields[0].config = {
-    links: [
-      makeLink('All Traces', XrayQueryType.getTraceSummaries, edgeQuery),
-      makeLink('OK Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { ok = true }'),
-      makeLink(
-        'OK Traces response time root cause',
-        XrayQueryType.getAnalyticsRootCauseResponseTimeService,
-        edgeQuery + ' { ok = true }'
-      ),
-      makeLink('Error Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { error = true }'),
-      makeLink(
-        'Error Traces root cause',
-        XrayQueryType.getAnalyticsRootCauseErrorService,
-        edgeQuery + ' { error = true }'
-      ),
-      makeLink('Fault Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { fault = true }'),
-      makeLink(
-        'Fault Traces root cause',
-        XrayQueryType.getAnalyticsRootCauseFaultService,
-        edgeQuery + ' { fault = true }'
-      ),
-      makeLink('Throttle Traces', XrayQueryType.getTraceSummaries, edgeQuery + ' { throttle = true }'),
-    ],
+    links: makeLinks(edgeQuery, instanceSettings, query),
   };
   return [servicesFrame, edgesFrame];
 }

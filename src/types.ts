@@ -202,7 +202,7 @@ interface HistogramValue {
   Value: number;
 }
 
-interface SummaryStatistics {
+export interface SummaryStatistics {
   ErrorStatistics: { OtherCount: number; ThrottleCount: number; TotalCount: number };
   FaultStatistics: { OtherCount: number; TotalCount: number };
   OkCount: number;

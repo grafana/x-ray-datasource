@@ -1,5 +1,23 @@
-import { TraceProcess, TraceSpanData, TraceData, TraceSpanReference, TraceKeyValuePair } from '@grafana/data';
-import { XrayTraceData, XrayTraceDataSegment, XrayTraceDataSegmentDocument, AWS } from 'types';
+import {
+  TraceProcess,
+  TraceSpanData,
+  TraceData,
+  TraceSpanReference,
+  TraceKeyValuePair,
+  DataFrame,
+  FieldType,
+  ArrayVector,
+  MutableDataFrame,
+} from '@grafana/data';
+import {
+  XrayTraceData,
+  XrayTraceDataSegment,
+  XrayTraceDataSegmentDocument,
+  AWS,
+  SummaryStatistics,
+  XrayService,
+  XrayQuery,
+} from 'types';
 import { keyBy, isPlainObject } from 'lodash';
 import { flatten } from './flatten';
 
@@ -8,7 +26,7 @@ const MS_MULTIPLIER = 1000000;
 /**
  * Transforms response to format similar to Jaegers as we use Jaeger ui on the frontend.
  */
-export function transformResponse(data: XrayTraceData): TraceData & { spans: TraceSpanData[] } {
+export function transformTraceResponse(data: XrayTraceData): TraceData & { spans: TraceSpanData[] } {
   const processes = gatherProcesses(data.Segments);
 
   const subSegmentSpans: TraceSpanData[] = [];
@@ -196,4 +214,248 @@ function valueToTag(key: string, value: string | number | undefined, type: strin
     type,
     value,
   };
+}
+
+/**
+ * Get data frame to be shown in NodeGraph in Grafana with all the required stats. As we process both service map
+ * requests and trace graph requests here you have to set whether to show traces per minute stat or request count as
+ * trace graph cannot compute traces pre minute.
+ */
+export function parseGraphResponse(response: DataFrame, query?: XrayQuery, options?: { showRequestCounts: boolean }) {
+  // Again assuming this will be single field with single value which will be the trace data blob
+  const services: XrayService[] = response.fields[0].values.toArray().map(serviceJson => {
+    return JSON.parse(serviceJson);
+  });
+
+  const showRequestCounts = options?.showRequestCounts ?? false;
+
+  const idField = {
+    name: 'id',
+    type: FieldType.string,
+    values: new ArrayVector(),
+  };
+  const titleField = {
+    name: 'title',
+    type: FieldType.string,
+    values: new ArrayVector(),
+    // TODO: use constants from grafana data or something like that
+    labels: { NodeGraphValueType: 'title' },
+  };
+
+  const typeField = {
+    name: 'type',
+    type: FieldType.string,
+    values: new ArrayVector(),
+    labels: { NodeGraphValueType: 'subTitle' },
+  };
+
+  const mainStatField = {
+    name: 'average_response_time',
+    type: FieldType.number,
+    values: new ArrayVector(),
+    config: { unit: 'ms/t' },
+    labels: { NodeGraphValueType: 'mainStat' },
+  };
+
+  const secondaryStatField = showRequestCounts
+    ? {
+        name: 'requests_count',
+        type: FieldType.string,
+        values: new ArrayVector(),
+        labels: { NodeGraphValueType: 'secondaryStat' },
+      }
+    : {
+        name: 'transactions_per_minute',
+        type: FieldType.number,
+        values: new ArrayVector(),
+        config: { unit: 't/min' },
+        labels: { NodeGraphValueType: 'secondaryStat' },
+      };
+
+  const successField = {
+    name: 'success',
+    type: FieldType.number,
+    values: new ArrayVector(),
+    labels: { NodeGraphValueType: 'arc' },
+    config: { color: { fixedColor: 'rgb(80, 171, 113)' } },
+  };
+
+  const errorsField = {
+    name: 'errors',
+    type: FieldType.number,
+    values: new ArrayVector(),
+    labels: { NodeGraphValueType: 'arc' },
+    config: { color: { fixedColor: 'rgb(255, 196, 110)' } },
+  };
+
+  const faultsField = {
+    name: 'faults',
+    type: FieldType.number,
+    values: new ArrayVector(),
+    labels: { NodeGraphValueType: 'arc' },
+    config: { color: { fixedColor: 'rgb(233, 84, 84)' } },
+  };
+
+  const throttledField = {
+    name: 'throttled',
+    type: FieldType.number,
+    values: new ArrayVector(),
+    labels: { NodeGraphValueType: 'arc' },
+    // TODO: check the color
+    config: { color: { fixedColor: 'purple' } },
+  };
+
+  const edgeSourceField = {
+    name: 'source',
+    type: FieldType.string,
+    values: new ArrayVector(),
+  };
+  const edgeTargetField = {
+    name: 'target',
+    type: FieldType.string,
+    values: new ArrayVector(),
+  };
+
+  // This has to be different a bit because we put different percentages here and want specific prefix based on which
+  // value we put in. So it can be success for one row but errors for second. We can only do that if we send it as a
+  // string.
+  const edgeMainStatField = {
+    name: 'response_percentage',
+    type: FieldType.string,
+    values: new ArrayVector(),
+    labels: { NodeGraphValueType: 'mainStat' },
+  };
+
+  const edgeSecondaryStatField = showRequestCounts
+    ? {
+        name: 'requests_count',
+        type: FieldType.string,
+        values: new ArrayVector(),
+        labels: { NodeGraphValueType: 'secondaryStat' },
+      }
+    : {
+        name: 'transactions_per_minute',
+        type: FieldType.number,
+        values: new ArrayVector(),
+        config: { unit: 't/min' },
+        labels: { NodeGraphValueType: 'secondaryStat' },
+      };
+
+  for (const service of services) {
+    const statsSource = service.SummaryStatistics ? service : service.Edges[0];
+    const stats = statsSource.SummaryStatistics;
+
+    idField.values.add(service.ReferenceId);
+    titleField.values.add(service.Name);
+    typeField.values.add(service.Type);
+    mainStatField.values.add(avgResponseTime(stats));
+
+    if (showRequestCounts) {
+      const count = statsSource.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
+      secondaryStatField.values.add(count + ' Request' + (count > 1 ? 's' : ''));
+    } else {
+      secondaryStatField.values.add(
+        service.SummaryStatistics
+          ? tracesPerMinute(stats, service.StartTime, service.EndTime)
+          : // For root nodes we compute stats from it's edge
+            tracesPerMinute(stats, service.Edges[0].StartTime, service.Edges[0].EndTime)
+      );
+    }
+    successField.values.add(successPercentage(stats));
+    errorsField.values.add(errorsPercentage(stats));
+    faultsField.values.add(faultsPercentage(stats));
+    throttledField.values.add(throttledPercentage(stats));
+
+    for (const edge of service.Edges) {
+      edgeSourceField.values.add(service.ReferenceId);
+      edgeTargetField.values.add(edge.ReferenceId);
+      const success = successPercentage(edge.SummaryStatistics);
+      if (success === 1) {
+        edgeMainStatField.values.add(`Success ${(success * 100).toFixed(2)}%`);
+      } else {
+        const firstNonZero = ([
+          [faultsPercentage(stats), 'Faults'],
+          [errorsPercentage(stats), 'Errors'],
+          [throttledPercentage(stats), 'Throttled'],
+        ] as Array<[number, string]>).find(v => v[0] !== 0);
+        if (!firstNonZero) {
+          edgeMainStatField.values.add(`N/A`);
+        } else {
+          edgeMainStatField.values.add(`${firstNonZero[1]} ${(firstNonZero[0] * 100).toFixed(2)}%`);
+        }
+      }
+
+      if (showRequestCounts) {
+        const count = statsSource.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
+        edgeSecondaryStatField.values.add(count + ' Request' + (count > 1 ? 's' : ''));
+      } else {
+        edgeSecondaryStatField.values.add(tracesPerMinute(edge.SummaryStatistics, edge.StartTime, edge.EndTime));
+      }
+    }
+  }
+
+  return [
+    new MutableDataFrame({
+      name: 'nodes',
+      refId: query?.refId,
+      fields: [
+        idField,
+        titleField,
+        typeField,
+        mainStatField,
+        secondaryStatField,
+        successField,
+        faultsField,
+        errorsField,
+        throttledField,
+      ],
+      meta: {
+        // TODO: needs new grafana/data
+        // @ts-ignore
+        preferredVisualisationType: 'serviceMap',
+      },
+    }),
+    new MutableDataFrame({
+      name: 'edges',
+      refId: query?.refId,
+      fields: [edgeSourceField, edgeTargetField, edgeMainStatField, edgeSecondaryStatField],
+      meta: {
+        // TODO: needs new grafana/data
+        // @ts-ignore
+        preferredVisualisationType: 'serviceMap',
+      },
+    }),
+  ];
+}
+
+export function avgResponseTime(statistics: SummaryStatistics) {
+  return (statistics.TotalResponseTime / statistics.TotalCount) * 1000;
+}
+
+export function tracesPerMinute(statistics: SummaryStatistics, startTime: number | string, endTime: number | string) {
+  return endTime && startTime ? statistics.TotalCount / ((toMs(endTime) - toMs(startTime)) / (60 * 1000)) : undefined;
+}
+
+export function successPercentage(statistics: SummaryStatistics) {
+  return statistics.OkCount / statistics.TotalCount;
+}
+
+export function throttledPercentage(statistics: SummaryStatistics) {
+  return statistics.ErrorStatistics.ThrottleCount / statistics.TotalCount;
+}
+
+export function errorsPercentage(statistics: SummaryStatistics) {
+  return (statistics.ErrorStatistics.TotalCount - statistics.ErrorStatistics.ThrottleCount) / statistics.TotalCount;
+}
+
+export function faultsPercentage(statistics: SummaryStatistics) {
+  return statistics.FaultStatistics.TotalCount / statistics.TotalCount;
+}
+
+function toMs(time: number | string): number {
+  if (typeof time === 'number') {
+    return time * 1000;
+  } else {
+    return new Date(time).valueOf();
+  }
 }
