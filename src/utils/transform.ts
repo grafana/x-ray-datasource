@@ -305,6 +305,11 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     config: { color: { fixedColor: 'purple' } },
   };
 
+  const edgeIdField = {
+    name: 'id',
+    type: FieldType.string,
+    values: new ArrayVector(),
+  };
   const edgeSourceField = {
     name: 'source',
     type: FieldType.string,
@@ -367,6 +372,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     throttledField.values.add(throttledPercentage(stats));
 
     for (const edge of service.Edges) {
+      edgeIdField.values.add(service.ReferenceId + '__' + edge.ReferenceId);
       edgeSourceField.values.add(service.ReferenceId);
       edgeTargetField.values.add(edge.ReferenceId);
       const success = successPercentage(edge.SummaryStatistics);
@@ -418,7 +424,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     new MutableDataFrame({
       name: 'edges',
       refId: query?.refId,
-      fields: [edgeSourceField, edgeTargetField, edgeMainStatField, edgeSecondaryStatField],
+      fields: [edgeIdField, edgeSourceField, edgeTargetField, edgeMainStatField, edgeSecondaryStatField],
       meta: {
         // TODO: needs new grafana/data
         // @ts-ignore
