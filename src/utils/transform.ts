@@ -17,6 +17,7 @@ import {
   SummaryStatistics,
   XrayService,
   XrayQuery,
+  XrayEdge,
 } from 'types';
 import { keyBy, isPlainObject } from 'lodash';
 import { flatten } from './flatten';
@@ -235,7 +236,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     values: new ArrayVector(),
   };
   const titleField = {
-    name: 'title',
+    name: 'name',
     type: FieldType.string,
     values: new ArrayVector(),
     // TODO: use constants from grafana data or something like that
@@ -321,6 +322,18 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     values: new ArrayVector(),
   };
 
+  // These are needed for links to work
+  const edgeSourceNameField = {
+    name: 'sourceName',
+    type: FieldType.string,
+    values: new ArrayVector(),
+  };
+  const edgeTargetNameField = {
+    name: 'targetName',
+    type: FieldType.string,
+    values: new ArrayVector(),
+  };
+
   // This has to be different a bit because we put different percentages here and want specific prefix based on which
   // value we put in. So it can be success for one row but errors for second. We can only do that if we send it as a
   // string.
@@ -345,6 +358,12 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
         config: { unit: 't/min' },
         labels: { NodeGraphValueType: 'secondaryStat' },
       };
+
+  const servicesMap: { [refId: number]: XrayService } = {};
+  const edges: Array<{
+    edge: XrayEdge;
+    source: XrayService;
+  }> = [];
 
   for (const service of services) {
     const statsSource = service.SummaryStatistics ? service : service.Edges[0];
@@ -371,34 +390,46 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     faultsField.values.add(faultsPercentage(stats));
     throttledField.values.add(throttledPercentage(stats));
 
-    for (const edge of service.Edges) {
-      edgeIdField.values.add(service.ReferenceId + '__' + edge.ReferenceId);
-      edgeSourceField.values.add(service.ReferenceId);
-      edgeTargetField.values.add(edge.ReferenceId);
-      const success = successPercentage(edge.SummaryStatistics);
-      if (success === 1) {
-        edgeMainStatField.values.add(`Success ${(success * 100).toFixed(2)}%`);
-      } else {
-        const firstNonZero = ([
-          [faultsPercentage(stats), 'Faults'],
-          [errorsPercentage(stats), 'Errors'],
-          [throttledPercentage(stats), 'Throttled'],
-        ] as Array<[number, string]>).find(v => v[0] !== 0);
-        if (!firstNonZero) {
-          edgeMainStatField.values.add(`N/A`);
-        } else {
-          edgeMainStatField.values.add(`${firstNonZero[1]} ${(firstNonZero[0] * 100).toFixed(2)}%`);
-        }
-      }
+    servicesMap[service.ReferenceId] = service;
+    edges.push(...service.Edges.map(e => ({ edge: e, source: service })));
+  }
 
-      if (showRequestCounts) {
-        const count = statsSource.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
-        edgeSecondaryStatField.values.add(count + ' Request' + (count > 1 ? 's' : ''));
+  for (const edgeData of edges) {
+    const { edge, source } = edgeData;
+    const target = servicesMap[edge.ReferenceId];
+    edgeIdField.values.add(source.ReferenceId + '__' + target.ReferenceId);
+    edgeSourceField.values.add(source.ReferenceId);
+    edgeTargetField.values.add(edge.ReferenceId);
+    edgeSourceNameField.values.add(source.Name);
+    edgeTargetNameField.values.add(target.Name);
+
+    const stats = edge.SummaryStatistics;
+
+    const success = successPercentage(edge.SummaryStatistics);
+    if (success === 1) {
+      edgeMainStatField.values.add(`Success ${(success * 100).toFixed(2)}%`);
+    } else {
+      const firstNonZero = ([
+        [faultsPercentage(stats), 'Faults'],
+        [errorsPercentage(stats), 'Errors'],
+        [throttledPercentage(stats), 'Throttled'],
+      ] as Array<[number, string]>).find(v => v[0] !== 0);
+      if (!firstNonZero) {
+        edgeMainStatField.values.add(`N/A`);
       } else {
-        edgeSecondaryStatField.values.add(tracesPerMinute(edge.SummaryStatistics, edge.StartTime, edge.EndTime));
+        edgeMainStatField.values.add(`${firstNonZero[1]} ${(firstNonZero[0] * 100).toFixed(2)}%`);
       }
     }
+
+    if (showRequestCounts) {
+      const count = edge.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
+      edgeSecondaryStatField.values.add(count + ' Request' + (count > 1 ? 's' : ''));
+    } else {
+      edgeSecondaryStatField.values.add(tracesPerMinute(edge.SummaryStatistics, edge.StartTime, edge.EndTime));
+    }
   }
+
+  for (let i = 0; i < edgeTargetField.values.length; i++) {}
 
   return [
     new MutableDataFrame({
@@ -424,7 +455,15 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     new MutableDataFrame({
       name: 'edges',
       refId: query?.refId,
-      fields: [edgeIdField, edgeSourceField, edgeTargetField, edgeMainStatField, edgeSecondaryStatField],
+      fields: [
+        edgeIdField,
+        edgeSourceField,
+        edgeSourceNameField,
+        edgeTargetField,
+        edgeTargetNameField,
+        edgeMainStatField,
+        edgeSecondaryStatField,
+      ],
       meta: {
         // TODO: needs new grafana/data
         // @ts-ignore
