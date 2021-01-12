@@ -4,18 +4,14 @@ import { DataSourceInstanceSettings } from '@grafana/data';
 export function makeLinks(itemQuery: string, instanceSettings: DataSourceInstanceSettings, dataQuery?: XrayQuery) {
   const makeLink = linkFactory(itemQuery, instanceSettings, dataQuery);
   return [
-    makeLink('All Traces', XrayQueryType.getTraceSummaries),
-    makeLink('OK Traces', XrayQueryType.getTraceSummaries, '{ ok = true }'),
-    makeLink(
-      'OK Traces response time root cause',
-      XrayQueryType.getAnalyticsRootCauseResponseTimeService,
-      '{ ok = true }'
-    ),
-    makeLink('Error Traces', XrayQueryType.getTraceSummaries, '{ error = true }'),
-    makeLink('Error Traces root cause', XrayQueryType.getAnalyticsRootCauseErrorService, '{ error = true }'),
-    makeLink('Fault Traces', XrayQueryType.getTraceSummaries, '{ fault = true }'),
-    makeLink('Fault Traces root cause', XrayQueryType.getAnalyticsRootCauseFaultService, '{ fault = true }'),
-    makeLink('Throttle Traces', XrayQueryType.getTraceSummaries, '{ throttle = true }'),
+    makeLink('Traces/All', XrayQueryType.getTraceSummaries),
+    makeLink('Traces/OK', XrayQueryType.getTraceSummaries, '{ ok = true }'),
+    makeLink('Traces/Errors', XrayQueryType.getTraceSummaries, '{ error = true }'),
+    makeLink('Traces/Faults', XrayQueryType.getTraceSummaries, '{ fault = true }'),
+
+    makeLink('Root cause/Error', XrayQueryType.getAnalyticsRootCauseErrorService),
+    makeLink('Root cause/Fault', XrayQueryType.getAnalyticsRootCauseFaultService),
+    makeLink('Root cause/Response Time', XrayQueryType.getAnalyticsRootCauseResponseTimeService),
   ];
 }
 

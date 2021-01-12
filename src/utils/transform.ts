@@ -241,6 +241,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     values: new ArrayVector(),
     // TODO: use constants from grafana data or something like that
     labels: { NodeGraphValueType: 'title' },
+    config: { displayName: 'Name' },
   };
 
   const typeField = {
@@ -248,6 +249,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     type: FieldType.string,
     values: new ArrayVector(),
     labels: { NodeGraphValueType: 'subTitle' },
+    config: { displayName: 'Type' },
   };
 
   const mainStatField = {
