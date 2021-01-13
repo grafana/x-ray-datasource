@@ -239,7 +239,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     name: 'name',
     type: FieldType.string,
     values: new ArrayVector(),
-    // TODO: use constants from grafana data or something like that
+    // TODO: use constants from grafana/ui
     labels: { NodeGraphValueType: 'title' },
     config: { displayName: 'Name' },
   };
@@ -451,7 +451,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
       meta: {
         // TODO: needs new grafana/data
         // @ts-ignore
-        preferredVisualisationType: 'serviceMap',
+        preferredVisualisationType: 'nodeGraph',
       },
     }),
     new MutableDataFrame({
@@ -469,7 +469,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
       meta: {
         // TODO: needs new grafana/data
         // @ts-ignore
-        preferredVisualisationType: 'serviceMap',
+        preferredVisualisationType: 'nodeGraph',
       },
     }),
   ];
