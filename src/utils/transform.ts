@@ -230,81 +230,72 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
 
   const showRequestCounts = options?.showRequestCounts ?? false;
 
+  // TODO: use constants from grafana/ui for the names as they are significant
   const idField = {
     name: 'id',
     type: FieldType.string,
     values: new ArrayVector(),
   };
   const titleField = {
-    name: 'name',
+    name: 'title',
     type: FieldType.string,
     values: new ArrayVector(),
-    // TODO: use constants from grafana/ui
-    labels: { NodeGraphValueType: 'title' },
     config: { displayName: 'Name' },
   };
 
   const typeField = {
-    name: 'type',
+    name: 'subTitle',
     type: FieldType.string,
     values: new ArrayVector(),
-    labels: { NodeGraphValueType: 'subTitle' },
     config: { displayName: 'Type' },
   };
 
   const mainStatField = {
-    name: 'average_response_time',
+    name: 'mainStat',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { unit: 'ms/t' },
-    labels: { NodeGraphValueType: 'mainStat' },
+    config: { unit: 'ms/t', displayName: 'Average response time' },
   };
 
   const secondaryStatField = showRequestCounts
     ? {
-        name: 'requests_count',
+        name: 'secondaryStat',
         type: FieldType.string,
         values: new ArrayVector(),
-        labels: { NodeGraphValueType: 'secondaryStat' },
+        config: { displayName: 'Requests count' },
       }
     : {
-        name: 'transactions_per_minute',
+        name: 'secondaryStat',
         type: FieldType.number,
         values: new ArrayVector(),
-        config: { unit: 't/min' },
-        labels: { NodeGraphValueType: 'secondaryStat' },
+        config: { unit: 't/min', displayName: 'Transactions per minute' },
       };
 
   const successField = {
-    name: 'success',
+    name: 'arc__success',
     type: FieldType.number,
     values: new ArrayVector(),
-    labels: { NodeGraphValueType: 'arc' },
     config: { color: { fixedColor: 'rgb(80, 171, 113)' } },
   };
 
   const errorsField = {
-    name: 'errors',
+    name: 'arc__errors',
     type: FieldType.number,
     values: new ArrayVector(),
-    labels: { NodeGraphValueType: 'arc' },
     config: { color: { fixedColor: 'rgb(255, 196, 110)' } },
   };
 
   const faultsField = {
-    name: 'faults',
+    name: 'arc__faults',
     type: FieldType.number,
     values: new ArrayVector(),
-    labels: { NodeGraphValueType: 'arc' },
     config: { color: { fixedColor: 'rgb(233, 84, 84)' } },
   };
 
   const throttledField = {
-    name: 'throttled',
+    name: 'arc__throttled',
     type: FieldType.number,
     values: new ArrayVector(),
-    labels: { NodeGraphValueType: 'arc' },
-    // TODO: check the color
     config: { color: { fixedColor: 'purple' } },
   };
 
@@ -340,25 +331,24 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
   // value we put in. So it can be success for one row but errors for second. We can only do that if we send it as a
   // string.
   const edgeMainStatField = {
-    name: 'response_percentage',
+    name: 'mainStat',
     type: FieldType.string,
     values: new ArrayVector(),
-    labels: { NodeGraphValueType: 'mainStat' },
+    config: { displayName: 'Response percentage' },
   };
 
   const edgeSecondaryStatField = showRequestCounts
     ? {
-        name: 'requests_count',
+        name: 'secondaryStat',
         type: FieldType.string,
         values: new ArrayVector(),
-        labels: { NodeGraphValueType: 'secondaryStat' },
+        config: { displayName: 'Requests count' },
       }
     : {
-        name: 'transactions_per_minute',
+        name: 'secondaryStat',
         type: FieldType.number,
         values: new ArrayVector(),
-        config: { unit: 't/min' },
-        labels: { NodeGraphValueType: 'secondaryStat' },
+        config: { unit: 't/min', displayName: 'Transactions per minute' },
       };
 
   const servicesMap: { [refId: number]: XrayService } = {};
