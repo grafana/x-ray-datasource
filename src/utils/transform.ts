@@ -275,21 +275,21 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     name: 'arc__success',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'rgb(80, 171, 113)' } },
+    config: { color: { fixedColor: 'green' } },
   };
 
   const errorsField = {
     name: 'arc__errors',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'rgb(255, 196, 110)' } },
+    config: { color: { fixedColor: 'semi-dark-yellow' } },
   };
 
   const faultsField = {
     name: 'arc__faults',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'rgb(233, 84, 84)' } },
+    config: { color: { fixedColor: 'red' } },
   };
 
   const throttledField = {
