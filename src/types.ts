@@ -1,4 +1,5 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataQuery } from '@grafana/data';
+import { AwsDataSourceJsonData } from 'components/ConfigEditor/types';
 
 export type Group = {
   FilterExpression?: string;
@@ -52,17 +53,8 @@ export enum XrayQueryType {
   getServiceMapTest = 'getServiceMapTest',
 }
 
-export interface XrayJsonData extends DataSourceJsonData {
-  timeField?: string;
-  assumeRoleArn?: string;
-  database?: string;
-  customMetricsNamespaces?: string;
-  profile?: string;
-}
-
-export interface XraySecureJsonData {
-  accessKey: string;
-  secretKey: string;
+export interface XrayJsonData extends AwsDataSourceJsonData {
+  // Can add X-Ray specific values here
 }
 
 export interface TSDBResponse<T = any> {

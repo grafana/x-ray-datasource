@@ -1,19 +1,19 @@
 package datasource
 
 import (
-  "github.com/aws/aws-sdk-go/service/ec2"
   "net/http"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
+  "github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/grafana/x-ray-datasource/pkg/client"
-	"github.com/grafana/x-ray-datasource/pkg/configuration"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
+  "github.com/aws/aws-sdk-go/aws"
+  "github.com/aws/aws-sdk-go/aws/request"
 
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+  "github.com/grafana/x-ray-datasource/pkg/client"
+  xray "github.com/grafana/x-ray-datasource/pkg/xray"
+
+  "github.com/grafana/grafana-plugin-sdk-go/backend"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+  "github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
   "github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
@@ -26,9 +26,9 @@ func GetServeOpts() datasource.ServeOpts {
 	ds.im = datasource.NewInstanceManager(newDataSourceInstanceSettings)
 
 	return datasource.ServeOpts{
-		QueryDataHandler:   ds.QueryMux,
+		QueryDataHandler:    ds.QueryMux,
 		CallResourceHandler: ds.ResourceMux,
-		CheckHealthHandler: ds,
+		CheckHealthHandler:  ds,
 	}
 }
 
@@ -48,6 +48,7 @@ func (s *instanceSettings) Dispose() {
 }
 
 type XrayClientFactory = func(pluginContext *backend.PluginContext, region string) (XrayClient, error)
+
 // Should probably return an interface similar to XrayClientFactory
 type Ec2ClientFactory = func(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error)
 
@@ -57,9 +58,9 @@ type Datasource struct {
 	// but a best practice that we recommend that you follow.
 	im                instancemgmt.InstanceManager
 	QueryMux          *datasource.QueryTypeMux
-  ResourceMux       backend.CallResourceHandler
+	ResourceMux       backend.CallResourceHandler
 	xrayClientFactory XrayClientFactory
-  ec2ClientFactory  Ec2ClientFactory
+	ec2ClientFactory  Ec2ClientFactory
 }
 
 // Needs to match XrayQueryType in frontend code
@@ -83,12 +84,12 @@ const (
 )
 
 func NewDatasource(
-  xrayClientFactory XrayClientFactory,
-  ec2ClientFactory  Ec2ClientFactory,
+	xrayClientFactory XrayClientFactory,
+	ec2ClientFactory Ec2ClientFactory,
 ) *Datasource {
 	ds := &Datasource{
 		xrayClientFactory: xrayClientFactory,
-    ec2ClientFactory: ec2ClientFactory,
+		ec2ClientFactory:  ec2ClientFactory,
 	}
 
 	mux := datasource.NewQueryTypeMux()
@@ -111,20 +112,20 @@ func NewDatasource(
 
 	ds.QueryMux = mux
 
-  resMux := http.NewServeMux()
-  resMux.HandleFunc("/groups", ds.getGroups)
-  resMux.HandleFunc("/regions", ds.getRegions)
-  ds.ResourceMux = httpadapter.New(resMux)
+	resMux := http.NewServeMux()
+	resMux.HandleFunc("/groups", ds.getGroups)
+	resMux.HandleFunc("/regions", ds.getRegions)
+	ds.ResourceMux = httpadapter.New(resMux)
 	return ds
 }
 
 func getXrayClient(pluginContext *backend.PluginContext, region string) (XrayClient, error) {
-  // TODO: probably would make sense to cache this per region
-	dsInfo, err := configuration.GetDatasourceInfo(pluginContext.DataSourceInstanceSettings, region)
+	dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
-	xrayClient, err := client.CreateXrayClient(dsInfo)
+
+	xrayClient, err := client.CreateXrayClient(region, dsInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -132,20 +133,21 @@ func getXrayClient(pluginContext *backend.PluginContext, region string) (XrayCli
 }
 
 func getEc2Client(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
-  dsInfo, err := configuration.GetDatasourceInfo(pluginContext.DataSourceInstanceSettings, region)
-  if err != nil {
-    return nil, err
-  }
-  ec2Client, err := client.CreateEc2Client(dsInfo)
-  if err != nil {
-    return nil, err
-  }
-  return ec2Client, nil
+  dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
+	if err != nil {
+		return nil, err
+	}
+
+	ec2Client, err := client.CreateEc2Client(region, dsInfo)
+	if err != nil {
+		return nil, err
+	}
+	return ec2Client, nil
 }
 
 type XrayClient interface {
 	BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
-  GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error)
+	GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error)
 	GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error
 	GetTimeSeriesServiceStatisticsPagesWithContext(
 		aws.Context,
@@ -154,7 +156,7 @@ type XrayClient interface {
 		...request.Option,
 	) error
 	GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error)
-	GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool ) error
+	GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error
 	GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error
   GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error
 }
