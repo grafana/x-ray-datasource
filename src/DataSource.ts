@@ -44,11 +44,11 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     const processedRequest = processRequest(request, getTemplateSrv());
     let response = super.query(processedRequest);
     return response.pipe(
-      map(dataQueryResponse => {
+      map((dataQueryResponse) => {
         return {
           ...dataQueryResponse,
-          data: dataQueryResponse.data.flatMap(frame => {
-            const target = request.targets.find(t => t.refId === frame.refId);
+          data: dataQueryResponse.data.flatMap((frame) => {
+            const target = request.targets.find((t) => t.refId === frame.refId);
             return this.parseResponse(frame, target);
           }),
         };
@@ -118,12 +118,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     // Check if we either dropped the params because they are not needed for some query types or they are empty.
     let queryParams = urlQuery?.toString()
       ? // For some reason the analytics view of X-ray does not handle some url escapes
-        '?' +
-        urlQuery
-          ?.toString()
-          .replace(/\+/g, '%20')
-          .replace(/%3A/g, ':')
-          .replace(/%7E/g, '~')
+        '?' + urlQuery?.toString().replace(/\+/g, '%20').replace(/%3A/g, ':').replace(/%7E/g, '~')
       : '';
     return `${this.getXrayUrl(query.region)}#/${section}${queryParams}`;
   }
@@ -153,15 +148,15 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
   private parseInsightsResponse(response: DataFrame, region?: string): DataFrame[] {
     const urlToAwsConsole = `${this.getXrayUrl(region)}#/insights/`;
-    const idField = response.fields.find(f => f.name === 'InsightId');
+    const idField = response.fields.find((f) => f.name === 'InsightId');
     if (idField) {
       idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
     }
-    const duration = response.fields.find(f => f.name === 'Duration');
+    const duration = response.fields.find((f) => f.name === 'Duration');
 
     if (duration) {
       duration.type = FieldType.string;
-      duration.display = val => {
+      duration.display = (val) => {
         const momentDuration = toDuration(val);
         return {
           numeric: val,
@@ -199,7 +194,7 @@ function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[]
   const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
 
-  const parsedSegments = traceParsed.Segments.map(segment => {
+  const parsedSegments = traceParsed.Segments.map((segment) => {
     return {
       ...segment,
       Document: JSON.parse(segment.Document),
@@ -238,7 +233,7 @@ function parseTracesListResponse(
   instanceSettings: DataSourceInstanceSettings,
   query?: XrayQuery
 ): DataFrame[] {
-  const idField = response.fields.find(f => f.name === 'Id');
+  const idField = response.fields.find((f) => f.name === 'Id');
   idField!.config.links = [
     {
       title: 'Trace: ${__value.raw}',
@@ -279,7 +274,7 @@ function parseServiceMapResponse(
 function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv): DataQueryRequest<XrayQuery> {
   return {
     ...request,
-    targets: request.targets.map(target => {
+    targets: request.targets.map((target) => {
       let newTarget = {
         ...target,
       };

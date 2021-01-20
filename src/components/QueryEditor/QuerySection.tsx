@@ -48,6 +48,7 @@ export function QuerySection(props: Props) {
               <a
                 href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html?icmpid=docs_xray_console"
                 target="_blank"
+                rel="noreferrer"
                 className={styles.tooltipLink}
               >
                 X-Ray documentation
@@ -65,11 +66,11 @@ export function QuerySection(props: Props) {
         history={[]}
         datasource={datasource}
         onRunQuery={onRunQueryLocal}
-        onChange={e => {
+        onChange={(e) => {
           onChange({
             ...query,
             queryType: queryTypeOptionToQueryType(
-              selectedOptions.map(option => option.value),
+              selectedOptions.map((option) => option.value),
               e.query
             ),
             query: e.query,

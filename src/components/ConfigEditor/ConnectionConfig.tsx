@@ -57,11 +57,11 @@ export default class ConnectionConfig extends PureComponent<Props, State> {
               <Select
                 className="width-30"
                 value={
-                  awsAuthProviderOptions.find(p => p.value === options.jsonData.authType) || awsAuthProviderOptions[0]
+                  awsAuthProviderOptions.find((p) => p.value === options.jsonData.authType) || awsAuthProviderOptions[0]
                 }
                 options={awsAuthProviderOptions}
                 defaultValue={options.jsonData.authType}
-                onChange={option => {
+                onChange={(option) => {
                   onUpdateDatasourceJsonDataOptionSelect(this.props, 'authType')(option);
                 }}
               />
@@ -204,7 +204,7 @@ export default class ConnectionConfig extends PureComponent<Props, State> {
               </InlineFormLabel>
               <Select
                 className="width-30"
-                value={regions.find(region => region.value === options.jsonData.defaultRegion)}
+                value={regions.find((region) => region.value === options.jsonData.defaultRegion)}
                 options={regions}
                 defaultValue={options.jsonData.defaultRegion}
                 onChange={onUpdateDatasourceJsonDataOptionSelect(this.props, 'defaultRegion')}

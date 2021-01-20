@@ -44,7 +44,7 @@ export const defaultRegions = [
   'us-isob-east-1',
   'us-west-1',
   'us-west-2',
-].map(r => ({
+].map((r) => ({
   label: r,
   value: r,
   text: r,

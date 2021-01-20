@@ -26,8 +26,8 @@ const defaultProps = {
 jest.mock('./XRayQueryField', () => {
   return {
     __esModule: true,
-    XRayQueryField: jest.fn(props => (
-      <input data-testid={'query-field-mock'} onChange={e => props.onChange({ query: e.target.value })} />
+    XRayQueryField: jest.fn((props) => (
+      <input data-testid={'query-field-mock'} onChange={(e) => props.onChange({ query: e.target.value })} />
     )),
   };
 });

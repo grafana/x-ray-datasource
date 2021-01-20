@@ -35,14 +35,14 @@ export function transformTraceResponse(data: XrayTraceData): TraceData & { spans
   const subSegmentSpans: TraceSpanData[] = [];
   // parentSpans is used to group services that has the same name
   const parentSpans: TraceSpanData[] = [];
-  const segmentSpans = data.Segments.map(segment => {
+  const segmentSpans = data.Segments.map((segment) => {
     let subSegmentProcessId = segment.Document.name;
     getSubSegments(segment.Document, (subSegment, segmentParent) => {
       subSegmentProcessId = processes[subSegment.name]?.serviceName ?? subSegmentProcessId;
       subSegmentSpans.push(transformSegment(subSegment, subSegmentProcessId, segmentParent.id));
     });
 
-    let parentSpan = parentSpans.find(ps => ps.spanID === segment.Document.name + segment.Document.origin);
+    let parentSpan = parentSpans.find((ps) => ps.spanID === segment.Document.name + segment.Document.origin);
 
     if (!parentSpan) {
       parentSpan = {
@@ -74,7 +74,7 @@ function getSubSegments(
   callBack: (segment: XrayTraceDataSegmentDocument, segmentParent: XrayTraceDataSegmentDocument) => void
 ) {
   if (segment.subsegments?.length) {
-    segment.subsegments.forEach(subSegment => {
+    segment.subsegments.forEach((subSegment) => {
       callBack(subSegment, segment);
       getSubSegments(subSegment, callBack);
     });
@@ -122,9 +122,9 @@ function getStackTrace(segment: XrayTraceDataSegmentDocument): string[] | undefi
     return undefined;
   }
   const stackTraces: string[] = [];
-  segment.cause.exceptions.forEach(exception => {
+  segment.cause.exceptions.forEach((exception) => {
     let stackTrace = `${exception.type}: ${exception.message}`;
-    exception.stack?.forEach(stack => {
+    exception.stack?.forEach((stack) => {
       stackTrace = stackTrace.concat(`\nat ${stack.label} (${stack.path}:${stack.line})`);
     });
     stackTraces.push(stackTrace);
@@ -161,7 +161,7 @@ function segmentToTag(segment: any | undefined) {
   }
 
   const flattenedObject = flatten(segment);
-  Object.keys(flattenedObject).map(key => {
+  Object.keys(flattenedObject).map((key) => {
     const tag = valueToTag(key, flattenedObject[key], typeof flattenedObject[key]);
     if (tag) {
       result.push(tag);
@@ -180,7 +180,7 @@ function getTagsFromAws(aws: AWS | undefined) {
    * for possible values on aws property
    */
   const awsKeys = ['ec2', 'ecs', 'elastic_beanstalk', 'region'];
-  awsKeys.forEach(key => {
+  awsKeys.forEach((key) => {
     if (aws[key]) {
       if (isPlainObject(aws[key])) {
         tags.push(...segmentToTag(aws[key]));
@@ -193,7 +193,7 @@ function getTagsFromAws(aws: AWS | undefined) {
 }
 
 function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, TraceProcess> {
-  const processes = segments.map(segment => {
+  const processes = segments.map((segment) => {
     const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
     tags.push(...getTagsFromAws(segment.Document.aws));
     if (segment.Document.http?.request?.url) {
@@ -226,7 +226,7 @@ function valueToTag(key: string, value: string | number | undefined, type: strin
  */
 export function parseGraphResponse(response: DataFrame, query?: XrayQuery, options?: { showRequestCounts: boolean }) {
   // Again assuming this will be single field with single value which will be the trace data blob
-  const services: XrayService[] = response.fields[0].values.toArray().map(serviceJson => {
+  const services: XrayService[] = response.fields[0].values.toArray().map((serviceJson) => {
     return JSON.parse(serviceJson);
   });
 
@@ -384,7 +384,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     throttledField.values.add(throttledPercentage(stats));
 
     servicesMap[service.ReferenceId] = service;
-    edges.push(...service.Edges.map(e => ({ edge: e, source: service })));
+    edges.push(...service.Edges.map((e) => ({ edge: e, source: service })));
   }
 
   for (const edgeData of edges) {
@@ -406,7 +406,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
         [faultsPercentage(stats), 'Faults'],
         [errorsPercentage(stats), 'Errors'],
         [throttledPercentage(stats), 'Throttled'],
-      ] as Array<[number, string]>).find(v => v[0] !== 0);
+      ] as Array<[number, string]>).find((v) => v[0] !== 0);
       if (!firstNonZero) {
         edgeMainStatField.values.add(`N/A`);
       } else {

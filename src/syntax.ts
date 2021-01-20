@@ -77,7 +77,7 @@ export const COMPLEX_KEYWORDS: CompletionItem[] = [
 export const All_KEYWORDS = [...BOOLEAN_KEYWORDS, ...NUMBER_KEYWORDS, ...STRING_KEYWORDS, ...COMPLEX_KEYWORDS];
 export const tokenizer: Grammar = {
   function: {
-    pattern: new RegExp(`\\b(?:${All_KEYWORDS.map(f => f.label).join('|')})\\b`, 'i'),
+    pattern: new RegExp(`\\b(?:${All_KEYWORDS.map((f) => f.label).join('|')})\\b`, 'i'),
   },
   punctuation: /[{}()`,]/,
   whitespace: /\s+/,

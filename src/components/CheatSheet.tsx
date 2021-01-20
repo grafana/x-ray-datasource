@@ -1,9 +1,9 @@
-import { ExploreStartPageProps } from '@grafana/data';
+import { QueryEditorHelpProps } from '@grafana/data';
 import { css } from 'emotion';
 import React from 'react';
 import { XrayQuery, XrayQueryType } from 'types';
 
-function renderExpression(expr: string, onClickExample: ExploreStartPageProps['onClickExample']) {
+function renderExpression(expr: string, onClickExample: QueryEditorHelpProps['onClickExample']) {
   return (
     <div
       className="cheat-sheet-item__example"
@@ -17,14 +17,14 @@ function renderExpression(expr: string, onClickExample: ExploreStartPageProps['o
   );
 }
 
-export default function CheatSheet({ onClickExample }: ExploreStartPageProps) {
+export default function CheatSheet({ onClickExample }: QueryEditorHelpProps) {
   return (
     <div>
       <h2>X-Ray Cheat Sheet</h2>
       <div className="cheat-sheet-item">
         <p>
           <span>Use the search bar to display traces for a service, trace ID, or filter expression.</span>
-          <a target="_blank" href="https://docs.aws.amazon.com/console/xray/xray-filter-expressions">
+          <a target="_blank" rel="noreferrer" href="https://docs.aws.amazon.com/console/xray/xray-filter-expressions">
             Learn more
           </a>
         </p>
@@ -35,17 +35,19 @@ export default function CheatSheet({ onClickExample }: ExploreStartPageProps) {
         <div>Traces where the total duration was 5 to 8 seconds:</div>
         <div>{renderExpression('duration > 5 AND duration < 8', onClickExample)}</div>
         <div>
-          Traces that included a call to 'api.example.com' with a fault (500 series error) or response time above 2.5
-          seconds, and with one or more segments having an annotation named 'account' with value '12345':
+          Traces that included a call to &apos;api.example.com&apos; with a fault (500 series error) or response time
+          above 2.5 seconds, and with one or more segments having an annotation named &apos;account&apos; with value
+          &apos;12345&apos;:
         </div>
         <div>{renderExpression('service("api.example.com") AND annotation.account = "12345"', onClickExample)}</div>
         <div>
-          Traces where the service 'api.example.com' made a call to 'backend.example.com' that failed with a fault:
+          Traces where the service &apos;api.example.com&apos; made a call to &apos;backend.example.com&apos; that
+          failed with a fault:
         </div>
         <div>{renderExpression('edge("api.example.com", "backend.example.com")', onClickExample)}</div>
         <div>
-          Traces where the URL begins with 'http://api.example.com/' and contains '/v2/' but does not reach a service
-          named 'api.example.com':
+          Traces where the URL begins with &apos;http://api.example.com/&apos; and contains &apos;/v2/&apos; but does
+          not reach a service named &apos;api.example.com&apos;:
         </div>
         <div>
           {renderExpression(
@@ -132,7 +134,7 @@ export default function CheatSheet({ onClickExample }: ExploreStartPageProps) {
               <tr>
                 <td>http.clientip</td>
                 <td>String</td>
-                <td>Requestor's IP address.</td>
+                <td>Requestor&apos;s IP address.</td>
               </tr>
               <tr>
                 <td>user</td>
