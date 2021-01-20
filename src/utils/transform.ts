@@ -8,6 +8,7 @@ import {
   FieldType,
   ArrayVector,
   MutableDataFrame,
+  FieldColorModeId,
 } from '@grafana/data';
 import {
   XrayTraceData,
@@ -20,6 +21,7 @@ import {
   XrayEdge,
 } from 'types';
 import { keyBy, isPlainObject } from 'lodash';
+import { NodeGraphDataFrameFieldNames } from '@grafana/ui';
 import { flatten } from './flatten';
 
 const MS_MULTIPLIER = 1000000;
@@ -230,28 +232,27 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
 
   const showRequestCounts = options?.showRequestCounts ?? false;
 
-  // TODO: use constants from grafana/ui for the names as they are significant
   const idField = {
-    name: 'id',
+    name: NodeGraphDataFrameFieldNames.id,
     type: FieldType.string,
     values: new ArrayVector(),
   };
   const titleField = {
-    name: 'title',
+    name: NodeGraphDataFrameFieldNames.title,
     type: FieldType.string,
     values: new ArrayVector(),
     config: { displayName: 'Name' },
   };
 
   const typeField = {
-    name: 'subTitle',
+    name: NodeGraphDataFrameFieldNames.subTitle,
     type: FieldType.string,
     values: new ArrayVector(),
     config: { displayName: 'Type' },
   };
 
   const mainStatField = {
-    name: 'mainStat',
+    name: NodeGraphDataFrameFieldNames.mainStat,
     type: FieldType.number,
     values: new ArrayVector(),
     config: { unit: 'ms/t', displayName: 'Average response time' },
@@ -259,58 +260,58 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
 
   const secondaryStatField = showRequestCounts
     ? {
-        name: 'secondaryStat',
+        name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.string,
         values: new ArrayVector(),
         config: { displayName: 'Requests count' },
       }
     : {
-        name: 'secondaryStat',
+        name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.number,
         values: new ArrayVector(),
         config: { unit: 't/min', displayName: 'Transactions per minute' },
       };
 
   const successField = {
-    name: 'arc__success',
+    name: NodeGraphDataFrameFieldNames.arc + 'success',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'green' } },
+    config: { color: { fixedColor: 'green', mode: FieldColorModeId.Fixed } },
   };
 
   const errorsField = {
-    name: 'arc__errors',
+    name: NodeGraphDataFrameFieldNames.arc + 'errors',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'semi-dark-yellow' } },
+    config: { color: { fixedColor: 'semi-dark-yellow', mode: FieldColorModeId.Fixed } },
   };
 
   const faultsField = {
-    name: 'arc__faults',
+    name: NodeGraphDataFrameFieldNames.arc + 'faults',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'red' } },
+    config: { color: { fixedColor: 'red', mode: FieldColorModeId.Fixed } },
   };
 
   const throttledField = {
-    name: 'arc__throttled',
+    name: NodeGraphDataFrameFieldNames.arc + 'throttled',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'purple' } },
+    config: { color: { fixedColor: 'purple', mode: FieldColorModeId.Fixed } },
   };
 
   const edgeIdField = {
-    name: 'id',
+    name: NodeGraphDataFrameFieldNames.id,
     type: FieldType.string,
     values: new ArrayVector(),
   };
   const edgeSourceField = {
-    name: 'source',
+    name: NodeGraphDataFrameFieldNames.source,
     type: FieldType.string,
     values: new ArrayVector(),
   };
   const edgeTargetField = {
-    name: 'target',
+    name: NodeGraphDataFrameFieldNames.target,
     type: FieldType.string,
     values: new ArrayVector(),
   };
@@ -331,7 +332,7 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
   // value we put in. So it can be success for one row but errors for second. We can only do that if we send it as a
   // string.
   const edgeMainStatField = {
-    name: 'mainStat',
+    name: NodeGraphDataFrameFieldNames.mainStat,
     type: FieldType.string,
     values: new ArrayVector(),
     config: { displayName: 'Response percentage' },
@@ -339,13 +340,13 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
 
   const edgeSecondaryStatField = showRequestCounts
     ? {
-        name: 'secondaryStat',
+        name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.string,
         values: new ArrayVector(),
         config: { displayName: 'Requests count' },
       }
     : {
-        name: 'secondaryStat',
+        name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.number,
         values: new ArrayVector(),
         config: { unit: 't/min', displayName: 'Transactions per minute' },
@@ -421,8 +422,6 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     }
   }
 
-  for (let i = 0; i < edgeTargetField.values.length; i++) {}
-
   return [
     new MutableDataFrame({
       name: 'nodes',
@@ -439,8 +438,6 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
         throttledField,
       ],
       meta: {
-        // TODO: needs new grafana/data
-        // @ts-ignore
         preferredVisualisationType: 'nodeGraph',
       },
     }),
@@ -457,8 +454,6 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
         edgeSecondaryStatField,
       ],
       meta: {
-        // TODO: needs new grafana/data
-        // @ts-ignore
         preferredVisualisationType: 'nodeGraph',
       },
     }),
