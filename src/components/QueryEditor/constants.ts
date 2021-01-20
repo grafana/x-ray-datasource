@@ -18,12 +18,6 @@ export const serviceMapOption: QueryTypeOption = {
   queryType: XrayQueryType.getServiceMap,
 };
 
-export const serviceMapTestOption: QueryTypeOption = {
-  label: 'Service Map Test',
-  value: 'serviceMapTest',
-  queryType: XrayQueryType.getServiceMapTest,
-};
-
 export const traceStatisticsOption: QueryTypeOption = {
   label: 'Trace Statistics',
   value: 'traceStatistics',
@@ -120,7 +114,6 @@ export const queryTypeOptions: QueryTypeOption[] = [
     ],
   },
   serviceMapOption,
-  serviceMapTestOption,
 ];
 
 export const columnNames: { [key: string]: string } = {

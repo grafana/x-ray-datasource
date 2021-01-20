@@ -18,13 +18,22 @@ import (
 type XrayClientMock struct{}
 
 func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
-  panic("implement me")
+  output := &xray.GetServiceGraphOutput{
+    NextToken: nil,
+    Services: []*xray.Service{
+      {},
+    } ,
+  }
+  fn(output, false)
+  return nil
 }
 
 func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
   output := &xray.GetTraceGraphOutput{
     NextToken: nil,
-    Services: []*xray.Service{} ,
+    Services: []*xray.Service{
+      {},
+    } ,
   }
   fn(output, false)
   return nil
@@ -357,6 +366,9 @@ func TestDatasource(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
+    require.Equal(t, 2, len(response.Responses["A"].Frames))
+    require.Equal(t, "TraceGraph", response.Responses["A"].Frames[1].Name)
+    require.Equal(t, 1, response.Responses["A"].Frames[1].Fields[0].Len())
 		require.Equal(t, 1, response.Responses["A"].Frames[0].Fields[0].Len())
 		require.JSONEq(
 			t,
@@ -465,6 +477,16 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, 10.5, *frame.Fields[3].At(0).(*float64))
 		require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
 	})
+
+  t.Run("getServiceMap query", func(t *testing.T) {
+    response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}})
+    require.NoError(t, err)
+    require.NoError(t, response.Responses["A"].Error)
+
+    // Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
+    frame := response.Responses["A"].Frames[0]
+    require.Equal(t, 1, frame.Fields[0].Len())
+  })
 
 	//
 	// RootCauseError

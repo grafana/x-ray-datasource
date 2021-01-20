@@ -12,7 +12,7 @@ import {
   toDuration,
 } from '@grafana/data';
 import { DataSourceWithBackend, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
@@ -27,7 +27,6 @@ import {
 } from './types';
 import { parseGraphResponse, transformTraceResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
-import { response as testResponse } from './x-ray-response';
 import { makeLinks } from './utils/links';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
@@ -43,20 +42,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
     const processedRequest = processRequest(request, getTemplateSrv());
-    let response;
-    if (processedRequest.targets[0].queryType === XrayQueryType.getServiceMapTest) {
-      response = of({
-        data: [
-          new MutableDataFrame({
-            name: 'ServiceMap',
-            fields: [{ name: 'Service', values: testResponse.Services.map(s => JSON.stringify(s)) }],
-          }),
-        ],
-        key: processedRequest.targets[0].key,
-      } as DataQueryResponse);
-    } else {
-      response = super.query(processedRequest);
-    }
+    let response = super.query(processedRequest);
     return response.pipe(
       map(dataQueryResponse => {
         return {

@@ -50,7 +50,6 @@ export enum XrayQueryType {
   getAnalyticsStatusCode = 'getAnalyticsStatusCode',
   getInsights = 'getInsights',
   getServiceMap = 'getServiceMap',
-  getServiceMapTest = 'getServiceMapTest',
 }
 
 export interface XrayJsonData extends AwsDataSourceJsonData {

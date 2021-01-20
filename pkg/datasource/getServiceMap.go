@@ -10,7 +10,6 @@ import (
 )
 
 type GetServiceMapQueryData struct {
-  Query  string `json:"query"`
   Region string `json:"region"`
   Group  *xray.Group `json:"group"`
 }
@@ -52,7 +51,7 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
   )
 
 
-  log.DefaultLogger.Debug("getSingleServiceMap", "RefID", query.RefID, "query", queryData.Query)
+  log.DefaultLogger.Debug("getSingleServiceMap", "RefID", query.RefID)
   input := &xray.GetServiceGraphInput{
     StartTime:        &query.TimeRange.From,
     EndTime:          &query.TimeRange.To,
