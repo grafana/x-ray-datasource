@@ -99,6 +99,7 @@ The most important field in the editor is the query type. There are four query t
 - Trace Statistics
 - Trace Analytics (Analytics in AWS)
 - Insights
+- Service map
 
 ![x-ray-query-editor](https://user-images.githubusercontent.com/13729989/93520935-8f3adc80-f92f-11ea-9399-e88f67f6aa07.png)
 
@@ -139,6 +140,22 @@ In Trace Analytics you can visualize the following tables.
 ### Insights
 
 In Insights you can see the summary table for Insights. Clicking the InsightId will take you to AWS console.
+
+### Service map
+
+[TODO: image of the map in grafana]
+
+Service map shows the same data as a service map inside X-ray console. It needs Grafana v7.4+ to use it's Node graph visualization otherwise it will show the data in a simple table.
+
+You can pan and zoom the view with buttons or you mouse. For details about the visualization see the Grafana docs [TODO: link].
+
+[TODO: image of a service with open context menu]
+
+Similar to X-ray root nodes, usually representing the client application are on the left. Each service in the map is represented as a circle and inside shows average time per transaction and transactions per minute. Color circle around the service also match colors and meaning from X-ray console representing percentage of requests, green being success, red for faults, yellow for errors and purple for throttled responses.
+
+Clicking on the service or the edge will show a context menu with links additional links for quick navigation to other relevant information from X-ray. You can for example quickly navigate to list of all error traces for a particular service and then continue to specific trace.
+
+For more details about the Service map see the X-ray documentation [TODO: link].
 
 ### Alerting
 
