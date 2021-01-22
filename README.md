@@ -151,7 +151,16 @@ You can pan and zoom the view with buttons or you mouse. For details about the v
 
 [TODO: image of a service with open context menu]
 
-Similar to X-ray root nodes, usually representing the client application are on the left. Each service in the map is represented as a circle and inside shows average time per transaction and transactions per minute. Color circle around the service also match colors and meaning from X-ray console representing percentage of requests, green being success, red for faults, yellow for errors and purple for throttled responses.
+Similar to X-ray root nodes, nodes in the service map representing the client application are on the left side of the map.
+
+Each service in the map is represented as a circle. Numbers on the inside shows average time per transaction and transactions per minute.
+
+A colored circle around the service also matches colors and meaning from X-ray console representing percentage of requests.
+
+- green = success
+- red = fault
+- yellow = errors
+- purple = throttled responses
 
 Click on the service or the edge to see a context menu with links additional links for quick navigation to other relevant information from X-ray. You can use the links to quickly navigate to a list of all error traces for a particular service and then continue to specific trace.
 
