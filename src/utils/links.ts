@@ -27,7 +27,6 @@ function linkFactory(itemQuery: string, instanceSettings: DataSourceInstanceSett
           query: itemQuery + (queryFilter ? ' ' + queryFilter : ''),
         },
         datasourceUid: instanceSettings.uid,
-        // @ts-ignore
         datasourceName: instanceSettings.name,
       },
     };
