@@ -143,9 +143,9 @@ In Insights you can see the summary table for Insights. Clicking the InsightId w
 
 ### Service map
 
-[TODO: image of the map in grafana]
-
 Service map in Grafana enables customers to view the map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or API running on API Gateway or a DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
+
+[TODO: image of the map in grafana]
 
 This functionality needs Grafana v7.4+ to use it's Node graph visualization otherwise it will show the data in a simple table.
 
