@@ -26,8 +26,8 @@ const defaultProps = {
 jest.mock('./XRayQueryField', () => {
   return {
     __esModule: true,
-    XRayQueryField: jest.fn(props => (
-      <input data-testid={'query-field-mock'} onChange={e => props.onChange({ query: e.target.value })} />
+    XRayQueryField: jest.fn((props) => (
+      <input data-testid={'query-field-mock'} onChange={(e) => props.onChange({ query: e.target.value })} />
     )),
   };
 });
@@ -74,6 +74,19 @@ describe('QueryEditor', () => {
     [XrayQueryType.getTrace, 'Trace List'],
     [XrayQueryType.getTraceSummaries, 'Trace List'],
     [XrayQueryType.getTimeSeriesServiceStatistics, 'Trace Statistics'],
+    [XrayQueryType.getAnalyticsRootCauseResponseTimeService, 'Root Cause'],
+    [XrayQueryType.getAnalyticsRootCauseResponseTimePath, 'Path'],
+    [XrayQueryType.getAnalyticsRootCauseErrorService, 'Root Cause'],
+    [XrayQueryType.getAnalyticsRootCauseErrorPath, 'Path'],
+    [XrayQueryType.getAnalyticsRootCauseErrorMessage, 'Error Message'],
+    [XrayQueryType.getAnalyticsRootCauseFaultService, 'Root Cause'],
+    [XrayQueryType.getAnalyticsRootCauseFaultPath, 'Path'],
+    [XrayQueryType.getAnalyticsRootCauseFaultMessage, 'Error Message'],
+    [XrayQueryType.getAnalyticsUser, 'End user impact'],
+    [XrayQueryType.getAnalyticsUrl, 'URL'],
+    [XrayQueryType.getAnalyticsStatusCode, 'HTTP status code'],
+    [XrayQueryType.getInsights, 'Insights'],
+    [XrayQueryType.getServiceMap, 'Service Map'],
   ])('renders proper query type option when query type is %s', async (type, expected) => {
     await renderWithQuery({
       query: 'test query',
@@ -101,6 +114,11 @@ describe('QueryEditor', () => {
     await renderWithQuery({ query: '', queryType: XrayQueryType.getTimeSeriesServiceStatistics }, rerender);
     expect(screen.queryByTestId('column-filter')).not.toBeNull();
     expect(screen.queryByTestId('resolution')).not.toBeNull();
+  });
+
+  it('hides query input if query is service map', async () => {
+    await renderWithQuery({ query: '', queryType: XrayQueryType.getServiceMap });
+    expect(screen.queryByText(/^Query$/)).toBeNull();
   });
 
   it('correctly changes the query type if user fills in trace id', async () => {

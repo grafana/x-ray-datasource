@@ -10,5 +10,5 @@ export const plugin = new DataSourcePlugin<XrayDataSource, XrayQuery, XrayJsonDa
   XrayDataSource
 )
   .setConfigEditor(ConfigEditor)
-  .setExploreStartPage(CheatSheet)
+  .setQueryEditorHelp(CheatSheet)
   .setQueryEditor(QueryEditor);

@@ -8,8 +8,8 @@ import {
   DateTimeDuration,
   FieldType,
   MutableDataFrame,
-  toDuration,
   TimeRange,
+  toDuration,
 } from '@grafana/data';
 import { DataSourceWithBackend, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
@@ -25,8 +25,9 @@ import {
   XrayTraceDataRaw,
   XrayTraceDataSegment,
 } from './types';
-import { transformResponse } from 'utils/transform';
+import { parseGraphResponse, transformTraceResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
+import { makeLinks } from './utils/links';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -41,14 +42,15 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
     const processedRequest = processRequest(request, getTemplateSrv());
-    const response = super.query(processedRequest);
+    let response = super.query(processedRequest);
     return response.pipe(
-      map(dataQueryResponse => {
+      map((dataQueryResponse) => {
         return {
           ...dataQueryResponse,
-          data: dataQueryResponse.data.map(frame =>
-            this.parseResponse(frame, request.targets.find(t => t.key === dataQueryResponse.key)?.region)
-          ),
+          data: dataQueryResponse.data.flatMap((frame) => {
+            const target = request.targets.find((t) => t.refId === frame.refId);
+            return this.parseResponse(frame, target);
+          }),
         };
       })
     );
@@ -116,12 +118,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     // Check if we either dropped the params because they are not needed for some query types or they are empty.
     let queryParams = urlQuery?.toString()
       ? // For some reason the analytics view of X-ray does not handle some url escapes
-        '?' +
-        urlQuery
-          ?.toString()
-          .replace(/\+/g, '%20')
-          .replace(/%3A/g, ':')
-          .replace(/%7E/g, '~')
+        '?' + urlQuery?.toString().replace(/\+/g, '%20').replace(/%3A/g, ':').replace(/%7E/g, '~')
       : '';
     return `${this.getXrayUrl(query.region)}#/${section}${queryParams}`;
   }
@@ -131,31 +128,35 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
   }
 
-  private parseResponse(response: DataFrame, region?: string): DataFrame {
+  private parseResponse(response: DataFrame, query?: XrayQuery): DataFrame[] {
     // TODO this would better be based on type but backend Go def does not have dataFrame.type
     switch (response.name) {
       case 'Traces':
-        return parseTraceResponse(response);
+        return parseTraceResponse(response, query);
       case 'TraceSummaries':
-        return parseTracesListResponse(response, this.instanceSettings.uid);
+        return parseTracesListResponse(response, this.instanceSettings, query);
       case 'InsightSummaries':
-        return this.parseInsightsResponse(response, region);
+        return this.parseInsightsResponse(response, query?.region);
+      case 'ServiceMap':
+        return parseServiceMapResponse(response, this.instanceSettings, query);
+      case 'TraceGraph':
+        return parseGraphResponse(response, query, { showRequestCounts: true });
       default:
-        return response;
+        return [response];
     }
   }
 
-  private parseInsightsResponse(response: DataFrame, region?: string): DataFrame {
+  private parseInsightsResponse(response: DataFrame, region?: string): DataFrame[] {
     const urlToAwsConsole = `${this.getXrayUrl(region)}#/insights/`;
-    const idField = response.fields.find(f => f.name === 'InsightId');
+    const idField = response.fields.find((f) => f.name === 'InsightId');
     if (idField) {
       idField.config.links = [{ title: '', url: urlToAwsConsole + '${__value.raw}', targetBlank: true }];
     }
-    const duration = response.fields.find(f => f.name === 'Duration');
+    const duration = response.fields.find((f) => f.name === 'Duration');
 
     if (duration) {
       duration.type = FieldType.string;
-      duration.display = val => {
+      duration.display = (val) => {
         const momentDuration = toDuration(val);
         return {
           numeric: val,
@@ -163,7 +164,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         };
       };
     }
-    return response;
+    return [response];
   }
 }
 
@@ -188,12 +189,12 @@ function getDurationText(duration: DateTimeDuration) {
  The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
  json, so some parts are escaped and we have to double parse that.
  */
-function parseTraceResponse(response: DataFrame): DataFrame {
+function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[] {
   // Again assuming this will ge single field with single value which will be the trace data blob
   const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
 
-  const parsedSegments = traceParsed.Segments.map(segment => {
+  const parsedSegments = traceParsed.Segments.map((segment) => {
     return {
       ...segment,
       Document: JSON.parse(segment.Document),
@@ -204,19 +205,22 @@ function parseTraceResponse(response: DataFrame): DataFrame {
     Segments: parsedSegments,
   };
 
-  return new MutableDataFrame({
-    name: 'Trace',
-    fields: [
-      {
-        name: 'trace',
-        type: FieldType.trace,
-        values: new ArrayVector([transformResponse(traceParsedForReal)]),
+  return [
+    new MutableDataFrame({
+      name: 'Trace',
+      refId: query?.refId,
+      fields: [
+        {
+          name: 'trace',
+          type: FieldType.trace,
+          values: new ArrayVector([transformTraceResponse(traceParsedForReal)]),
+        },
+      ],
+      meta: {
+        preferredVisualisationType: 'trace',
       },
-    ],
-    meta: {
-      preferredVisualisationType: 'trace',
-    },
-  });
+    }),
+  ];
 }
 
 /**
@@ -224,25 +228,52 @@ function parseTraceResponse(response: DataFrame): DataFrame {
  * link that works both in explore and in dashboards.
  * TODO This mutates the dataframe, probably just copy it but seems like new MutableDataframe(response) errors out
  */
-function parseTracesListResponse(response: DataFrame, datasourceUid: string): DataFrame {
-  const idField = response.fields.find(f => f.name === 'Id');
+function parseTracesListResponse(
+  response: DataFrame,
+  instanceSettings: DataSourceInstanceSettings,
+  query?: XrayQuery
+): DataFrame[] {
+  const idField = response.fields.find((f) => f.name === 'Id');
   idField!.config.links = [
     {
       title: 'Trace: ${__value.raw}',
       url: '',
       internal: {
-        datasourceUid,
-        query: { query: '${__value.raw}', queryType: 'getTrace' },
+        datasourceUid: instanceSettings.uid,
+        datasourceName: instanceSettings.name,
+        query: {
+          ...(query || {}),
+          query: '${__value.raw}',
+          queryType: 'getTrace',
+        },
       },
     },
   ];
-  return response;
+  return [response];
 }
 
-function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv) {
+function parseServiceMapResponse(
+  response: DataFrame,
+  instanceSettings: DataSourceInstanceSettings,
+  query?: XrayQuery
+): DataFrame[] {
+  const [servicesFrame, edgesFrame] = parseGraphResponse(response, query);
+  const serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subTitle}"))';
+  servicesFrame.fields[0].config = {
+    links: makeLinks(serviceQuery, instanceSettings, query),
+  };
+
+  const edgeQuery = 'edge("${__data.fields.sourceName}", "${__data.fields.targetName}")';
+  edgesFrame.fields[0].config = {
+    links: makeLinks(edgeQuery, instanceSettings, query),
+  };
+  return [servicesFrame, edgesFrame];
+}
+
+function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv): DataQueryRequest<XrayQuery> {
   return {
     ...request,
-    targets: request.targets.map(target => {
+    targets: request.targets.map((target) => {
       let newTarget = {
         ...target,
       };

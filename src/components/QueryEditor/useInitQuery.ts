@@ -70,7 +70,7 @@ function getNewGroup(query: XrayQuery, groups: Group[], defaultGroup: Group): Gr
 
 function getNewRegion(query: XrayQuery, regions: Region[]): string {
   if (query.region) {
-    const newRegion = regions.find(r => r.value === query.region);
+    const newRegion = regions.find((r) => r.value === query.region);
     if (newRegion) {
       return newRegion.value;
     }
