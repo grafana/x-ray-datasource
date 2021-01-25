@@ -240,7 +240,6 @@ function parseTracesListResponse(
       url: '',
       internal: {
         datasourceUid: instanceSettings.uid,
-        // @ts-ignore
         datasourceName: instanceSettings.name,
         query: {
           ...(query || {}),
