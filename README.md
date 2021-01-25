@@ -164,7 +164,7 @@ A colored circle around the service also matches colors and meaning from X-ray c
 
 Click on the service or the edge to see a context menu with links additional links for quick navigation to other relevant information from X-ray. You can use the links to quickly navigate to a list of all error traces for a particular service and then continue to specific trace.
 
-For more details about the Service map see the X-ray documentation [TODO: link].
+For more information about the Service map, refer to the official [AWS X-ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-insights.html).
 
 ### Alerting
 
