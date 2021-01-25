@@ -26,6 +26,6 @@ export const standardRegions: Array<SelectableValue<string>> = [
   'us-isob-east-1',
   'us-west-1',
   'us-west-2',
-].map(r => {
+].map((r) => {
   return { value: r, label: r };
 });

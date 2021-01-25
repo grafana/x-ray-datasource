@@ -4,7 +4,7 @@ export function flatten(target: object): any {
   const output: any = {};
 
   function step(object: any, prev: string | null) {
-    Object.keys(object).forEach(key => {
+    Object.keys(object).forEach((key) => {
       const value = object[key];
       const newKey = prev ? prev + '.' + key : key;
 

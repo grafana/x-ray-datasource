@@ -1,4 +1,4 @@
-import { transformResponse } from './transform';
+import { transformTraceResponse } from './transform';
 
 const awsResponse = {
   Duration: 0.048,
@@ -283,7 +283,7 @@ at features.constructor.addAllRequestListeners (/var/app/current/node_modules/aw
 
 describe('transformResponse function', () => {
   it('should transform aws x-ray response to jaeger span', () => {
-    expect(transformResponse(awsResponse as any)).toEqual(result);
+    expect(transformTraceResponse(awsResponse as any)).toEqual(result);
   });
 
   it("should response that is in progress (doesn't have an end time)", () => {
@@ -308,6 +308,6 @@ describe('transformResponse function', () => {
       ],
     };
 
-    expect(transformResponse(aws as any).spans[1].duration).toBe(0);
+    expect(transformTraceResponse(aws as any).spans[1].duration).toBe(0);
   });
 });

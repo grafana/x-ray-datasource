@@ -6,6 +6,7 @@ import {
   insightsOption,
   QueryTypeOption,
   queryTypeOptions,
+  serviceMapOption,
   traceListOption,
   traceStatisticsOption,
 } from './constants';
@@ -103,7 +104,7 @@ export function QueryEditorForm({
   const styles = getStyles();
   return (
     <div>
-      {selectedOptions[0] !== insightsOption && (
+      {![insightsOption, serviceMapOption].includes(selectedOptions[0]) && (
         <div className="gf-form">
           <QuerySection
             query={query}
@@ -123,7 +124,7 @@ export function QueryEditorForm({
             className={styles.regionSelect}
             options={allRegions}
             value={query.region}
-            onChange={v =>
+            onChange={(v) =>
               onChange({
                 ...query,
                 region: v.value,
@@ -140,9 +141,9 @@ export function QueryEditorForm({
             Query Type
           </InlineFormLabel>
           <ButtonCascader
-            value={selectedOptions.map(option => option.value)}
+            value={selectedOptions.map((option) => option.value)}
             options={queryTypeOptions}
-            onChange={value => {
+            onChange={(value) => {
               const newQueryType = queryTypeOptionToQueryType(value, query.query || '');
               onChange({
                 ...query,
@@ -165,7 +166,7 @@ export function QueryEditorForm({
               value: group.GroupARN,
               label: group.GroupName,
             }))}
-            onChange={value => {
+            onChange={(value) => {
               onChange({
                 ...query,
                 group: allGroups.find((g: Group) => g.GroupARN === value.value),
@@ -182,8 +183,8 @@ export function QueryEditorForm({
               </InlineFormLabel>
               <Segment
                 value={query.state ?? 'All'}
-                options={['All', 'Active', 'Closed'].map(val => ({ value: val, label: val }))}
-                onChange={value => {
+                options={['All', 'Active', 'Closed'].map((val) => ({ value: val, label: val }))}
+                onChange={(value) => {
                   onChange({
                     ...query,
                     state: value.value,
@@ -202,7 +203,7 @@ export function QueryEditorForm({
               </InlineFormLabel>
               <Segment
                 value={query.resolution ? query.resolution.toString() + 's' : 'auto'}
-                options={['auto', '60s', '300s'].map(val => ({ value: val, label: val }))}
+                options={['auto', '60s', '300s'].map((val) => ({ value: val, label: val }))}
                 onChange={({ value }) => {
                   onChange({
                     ...query,
@@ -226,15 +227,15 @@ export function QueryEditorForm({
           <div style={{ flex: 1 }}>
             <MultiSelect
               allowCustomValue={false}
-              options={Object.keys(columnNames).map(c => ({
+              options={Object.keys(columnNames).map((c) => ({
                 label: columnNames[c],
                 value: c,
               }))}
-              value={(query.columns || []).map(c => ({
+              value={(query.columns || []).map((c) => ({
                 label: columnNames[c],
                 value: c,
               }))}
-              onChange={values => onChange({ ...query, columns: values.map(v => v.value!) })}
+              onChange={(values) => onChange({ ...query, columns: values.map((v) => v.value!) })}
               closeMenuOnSelect={false}
               isClearable={true}
               placeholder="All columns"

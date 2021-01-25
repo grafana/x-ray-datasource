@@ -20,6 +20,14 @@ type XrayClientMock struct {
 	traces []*xray.TraceSummary
 }
 
+func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
+  panic("implement me")
+}
+
+func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
+  panic("implement me")
+}
+
 func NewXrayClientMock(traces ...[]*xray.TraceSummary) *XrayClientMock {
 	var allTraces []*xray.TraceSummary
 	for _, l := range traces {

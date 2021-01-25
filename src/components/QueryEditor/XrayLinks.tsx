@@ -27,7 +27,7 @@ export function XrayLinks({ datasource, query, range }: XrayLinksProps) {
         ['Open in X-Ray console', datasource.getXrayUrlForQuery(query, range)],
       ].map(([text, href]) => {
         return (
-          <a href={href} target="_blank" rel="noopener" key={href}>
+          <a href={href} target="_blank" rel="noopener noreferrer" key={href}>
             <span className={`gf-form-label gf-form-label--btn ${styles.link}`}>
               <i className="fa fa-share-square-o" />
               &nbsp;{text}
