@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 type GetTraceQueryData struct {
 	Query  string `json:"query"`
-  Region string `json:"region"`
+	Region string `json:"region"`
 }
 
 func (ds *Datasource) getTrace(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -40,13 +40,12 @@ func (ds *Datasource) getSingleTrace(query backend.DataQuery, pluginContext *bac
 		}
 	}
 
-  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
-  if err != nil {
-    return backend.DataResponse{
-      Error: err,
-    }
-  }
-
+	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	if err != nil {
+		return backend.DataResponse{
+			Error: err,
+		}
+	}
 
 	log.DefaultLogger.Debug("getSingleTrace", "RefID", query.RefID, "query", queryData.Query)
 

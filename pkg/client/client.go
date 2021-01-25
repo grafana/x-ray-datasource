@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
+	"github.com/aws/aws-sdk-go/service/xray"
 )
 
 // Global session cache
@@ -19,8 +19,8 @@ var sessions = awsds.NewSessionCache()
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
 func CreateXrayClient(region string, datasourceInfo *awsds.AWSDatasourceSettings) (*xray.XRay, error) {
-  sess, err := sessions.GetSession(region, *datasourceInfo)
-  if err != nil {
+	sess, err := sessions.GetSession(region, *datasourceInfo)
+	if err != nil {
 		return nil, err
 	}
 

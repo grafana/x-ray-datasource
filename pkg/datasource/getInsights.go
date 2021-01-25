@@ -8,16 +8,16 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 type GetInsightsQueryData struct {
 	State  string      `json:"state"`
 	Group  *xray.Group `json:"group"`
-  Region string      `json:"region"`
+	Region string      `json:"region"`
 }
 
 func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -41,13 +41,12 @@ func (ds *Datasource) getSingleInsight(query backend.DataQuery, pluginContext *b
 		}
 	}
 
-  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
-  if err != nil {
-    return backend.DataResponse{
-      Error: err,
-    }
-  }
-
+	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	if err != nil {
+		return backend.DataResponse{
+			Error: err,
+		}
+	}
 
 	var states = []string{strings.ToUpper(queryData.State)}
 
