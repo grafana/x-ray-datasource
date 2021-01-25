@@ -149,7 +149,7 @@ Service map in Grafana enables customers to view the map of their applications b
 
 This functionality needs Grafana v7.4+ to use it's Node graph visualization otherwise it will show the data in a simple table.
 
-You can pan and zoom the view with buttons or you mouse. For details about the visualization see the Grafana docs [TODO: link].
+You can pan and zoom the view with buttons or you mouse. For details about the visualization, refer to [Node graph panel](LINK).
 
 [TODO: image of a service with open context menu]
 
