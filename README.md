@@ -145,7 +145,7 @@ In Insights you can see the summary table for Insights. Clicking the InsightId w
 
 Service map in Grafana enables customers to view the map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or API running on API Gateway or a DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
 
-[TODO: image of the map in grafana]
+![Service map](https://grafana.com/static/img/docs/node-graph/node-graph-7-4.png "Service map")
 
 Service Map query type shows the same data as a service map inside X-ray console.
 
@@ -157,7 +157,8 @@ To display the service map:
 
 You can pan and zoom the view with buttons or you mouse. For details about the visualization, refer to [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/).
 
-[TODO: image of a service with open context menu]
+![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif "Service map navigation")
+
 
 Similar to X-ray root nodes, nodes in the service map representing the client application are on the left side of the map.
 
