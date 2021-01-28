@@ -21,9 +21,6 @@
     "@types/slate": "0.47.1",
     "jest-environment-jsdom-sixteen": "^1.0.3"
   },
-  "engines": {
-    "node": ">=12 <13"
-  },
   "dependencies": {
     "emotion": "10.0.27",
     "prismjs": "1.21.0",
