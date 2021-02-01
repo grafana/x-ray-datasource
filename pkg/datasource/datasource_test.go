@@ -3,40 +3,40 @@ package datasource_test
 import (
 	"context"
 	"encoding/json"
-  "github.com/aws/aws-sdk-go/service/ec2"
-  "testing"
+	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/x-ray-datasource/pkg/datasource"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 	"github.com/stretchr/testify/require"
 )
 
 type XrayClientMock struct{}
 
 func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
-  output := &xray.GetServiceGraphOutput{
-    NextToken: nil,
-    Services: []*xray.Service{
-      {},
-    } ,
-  }
-  fn(output, false)
-  return nil
+	output := &xray.GetServiceGraphOutput{
+		NextToken: nil,
+		Services: []*xray.Service{
+			{},
+		},
+	}
+	fn(output, false)
+	return nil
 }
 
 func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
-  output := &xray.GetTraceGraphOutput{
-    NextToken: nil,
-    Services: []*xray.Service{
-      {},
-    } ,
-  }
-  fn(output, false)
-  return nil
+	output := &xray.GetTraceGraphOutput{
+		NextToken: nil,
+		Services: []*xray.Service{
+			{},
+		},
+	}
+	fn(output, false)
+	return nil
 }
 
 func makeSummary() *xray.TraceSummary {
@@ -135,26 +135,25 @@ func makeSummary() *xray.TraceSummary {
 }
 
 func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
-  resp, err := client.GetTraceSummariesWithContext(context.Background(), input)
+	resp, err := client.GetTraceSummariesWithContext(context.Background(), input)
 	fn(resp, true)
 	return err
 }
 
-
 func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error) {
-  // To make sure we don't panic in this case.
-  nilHttpSummary := makeSummary()
-  nilHttpSummary.Http.ClientIp = nil
-  nilHttpSummary.Http.HttpURL = nil
-  nilHttpSummary.Http.HttpMethod = nil
-  nilHttpSummary.Http.HttpStatus = nil
+	// To make sure we don't panic in this case.
+	nilHttpSummary := makeSummary()
+	nilHttpSummary.Http.ClientIp = nil
+	nilHttpSummary.Http.HttpURL = nil
+	nilHttpSummary.Http.HttpMethod = nil
+	nilHttpSummary.Http.HttpStatus = nil
 
-  output := &xray.GetTraceSummariesOutput{
-    ApproximateTime: aws.Time(time.Now()),
-    TraceSummaries:  []*xray.TraceSummary{makeSummary(), nilHttpSummary},
-  }
+	output := &xray.GetTraceSummariesOutput{
+		ApproximateTime: aws.Time(time.Now()),
+		TraceSummaries:  []*xray.TraceSummary{makeSummary(), nilHttpSummary},
+	}
 
-  return output, nil
+	return output, nil
 }
 
 func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error) {
@@ -202,7 +201,7 @@ func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummarie
 				Categories:           aws.StringSlice([]string{"FAULT", "ERROR"}),
 				GroupName:            aws.String("Grafana"),
 				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
-				TopAnomalousServices: []*xray.ImpactedService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
+				TopAnomalousServices: []*xray.AnomalousService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
 				InsightId:            aws.String("ID"),
 			},
 			{
@@ -213,7 +212,7 @@ func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummarie
 				State:                aws.String("ACTIVE"),
 				GroupName:            aws.String("Grafana"),
 				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
-				TopAnomalousServices: []*xray.ImpactedService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
+				TopAnomalousServices: []*xray.AnomalousService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
 				InsightId:            aws.String("ID2"),
 			},
 		},
@@ -297,7 +296,7 @@ func xrayClientFactory(pluginContext *backend.PluginContext, region string) (dat
 }
 
 func ec2clientFactory(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
-  return nil, nil
+	return nil, nil
 }
 
 func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
@@ -366,13 +365,13 @@ func TestDatasource(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
-    require.Equal(t, 2, len(response.Responses["A"].Frames))
-    require.Equal(t, "TraceGraph", response.Responses["A"].Frames[1].Name)
-    require.Equal(t, 1, response.Responses["A"].Frames[1].Fields[0].Len())
+		require.Equal(t, 2, len(response.Responses["A"].Frames))
+		require.Equal(t, "TraceGraph", response.Responses["A"].Frames[1].Name)
+		require.Equal(t, 1, response.Responses["A"].Frames[1].Fields[0].Len())
 		require.Equal(t, 1, response.Responses["A"].Frames[0].Fields[0].Len())
 		require.JSONEq(
 			t,
-			"{\"Duration\":1,\"Id\":\"trace1\",\"Segments\":[{\"Document\":\"{}\",\"Id\":\"segment1\"}]}",
+			"{\"Duration\":1,\"Id\":\"trace1\",\"LimitExceeded\":null,\"Segments\":[{\"Document\":\"{}\",\"Id\":\"segment1\"}]}",
 			response.Responses["A"].Frames[0].Fields[0].At(0).(string),
 		)
 	})
@@ -478,15 +477,15 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
 	})
 
-  t.Run("getServiceMap query", func(t *testing.T) {
-    response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}})
-    require.NoError(t, err)
-    require.NoError(t, response.Responses["A"].Error)
+	t.Run("getServiceMap query", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
 
-    // Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
-    frame := response.Responses["A"].Frames[0]
-    require.Equal(t, 1, frame.Fields[0].Len())
-  })
+		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
+		frame := response.Responses["A"].Frames[0]
+		require.Equal(t, 1, frame.Fields[0].Len())
+	})
 
 	//
 	// RootCauseError
