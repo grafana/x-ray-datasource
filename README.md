@@ -99,6 +99,7 @@ The most important field in the editor is the query type. There are four query t
 - Trace Statistics
 - Trace Analytics (Analytics in AWS)
 - Insights
+- Service map
 
 ![x-ray-query-editor](https://user-images.githubusercontent.com/13729989/93520935-8f3adc80-f92f-11ea-9399-e88f67f6aa07.png)
 
@@ -139,6 +140,40 @@ In Trace Analytics you can visualize the following tables.
 ### Insights
 
 In Insights you can see the summary table for Insights. Clicking the InsightId will take you to AWS console.
+
+### Service map
+
+Service map in Grafana enables customers to view the map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or API running on API Gateway or a DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
+
+![Service map](https://grafana.com/static/img/docs/node-graph/node-graph-7-4.png "Service map")
+
+Service Map query type shows the same data as a service map inside X-ray console.
+
+To display the service map:
+
+- Use the [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/) visualization in Grafana 7.4 plus.
+- Use [Explore](https://grafana.com/docs/grafana/latest/explore/) in Grafana 7.4 plus.
+- Show the data in a simple table. This is the only option if the Node graph panel is unavailable.
+
+You can pan and zoom the view with buttons or you mouse. For details about the visualization, refer to [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/).
+
+![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif "Service map navigation")
+
+
+Similar to X-ray root nodes, nodes in the service map representing the client application are on the left side of the map.
+
+Each service in the map is represented as a circle. Numbers on the inside shows average time per transaction and transactions per minute.
+
+A colored circle around the service also matches colors and meaning from X-ray console representing percentage of requests.
+
+- green = success
+- red = fault
+- yellow = errors
+- purple = throttled responses
+
+Click on the service or the edge to see a context menu with links additional links for quick navigation to other relevant information from X-ray. You can use the links to quickly navigate to a list of all error traces for a particular service and then continue to specific trace.
+
+For more information about the Service map, refer to the official [AWS X-ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-insights.html).
 
 ### Alerting
 
