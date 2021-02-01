@@ -4,17 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-  "sync"
+	"sync"
 
-  "github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	xray "github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 type GetTraceQueryData struct {
 	Query  string `json:"query"`
-  Region string `json:"region"`
+	Region string `json:"region"`
 }
 
 func (ds *Datasource) getTrace(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -41,59 +41,57 @@ func (ds *Datasource) getSingleTrace(query backend.DataQuery, pluginContext *bac
 		}
 	}
 
-  xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
-  if err != nil {
-    return backend.DataResponse{
-      Error: err,
-    }
-  }
-
+	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	if err != nil {
+		return backend.DataResponse{
+			Error: err,
+		}
+	}
 
 	log.DefaultLogger.Debug("getSingleTrace", "RefID", query.RefID, "query", queryData.Query)
 
-  var wg sync.WaitGroup
-  var tracesResponse *xray.BatchGetTracesOutput
-  var tracesError error
+	var wg sync.WaitGroup
+	var tracesResponse *xray.BatchGetTracesOutput
+	var tracesError error
 
-  var traceGraphFrame = data.NewFrame(
-    "TraceGraph",
-    data.NewField("Service", nil, []string{}),
-  )
-  var traceGraphError error
+	var traceGraphFrame = data.NewFrame(
+		"TraceGraph",
+		data.NewField("Service", nil, []string{}),
+	)
+	var traceGraphError error
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tracesResponse, tracesError = xrayClient.BatchGetTraces(&xray.BatchGetTracesInput{TraceIds: []*string{&queryData.Query}})
+	}()
 
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    tracesResponse, tracesError = xrayClient.BatchGetTraces(&xray.BatchGetTracesInput{TraceIds: []*string{&queryData.Query}})
-  }()
+	// We get the trace graph in parallel but if this fails we still return the trace
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		traceGraphError = xrayClient.GetTraceGraphPages(
+			&xray.GetTraceGraphInput{TraceIds: []*string{&queryData.Query}},
+			func(page *xray.GetTraceGraphOutput, hasMore bool) bool {
+				for _, service := range page.Services {
+					bytes, err := json.Marshal(service)
+					if err != nil {
+						// TODO: probably does not make sense to fail just because of one service but I assume the layout will fail
+						//  because of some edge not connected to anything.
+						log.DefaultLogger.Error(
+							"getSingleTrace failed to marshal service from trace graph",
+							"Name", service.Name,
+							"ReferenceId", service.ReferenceId,
+						)
+					}
+					traceGraphFrame.AppendRow(string(bytes))
+				}
+				return true
+			},
+		)
+	}()
 
-  // We get the trace graph in parallel but if this fails we still return the trace
-  wg.Add(1)
-  go func() {
-    defer wg.Done()
-    traceGraphError = xrayClient.GetTraceGraphPages(
-      &xray.GetTraceGraphInput{TraceIds: []*string{&queryData.Query}},
-      func(page *xray.GetTraceGraphOutput, hasMore bool) bool {
-        for _, service := range page.Services {
-          bytes, err := json.Marshal(service)
-          if err != nil {
-            // TODO: probably does not make sense to fail just because of one service but I assume the layout will fail
-            //  because of some edge not connected to anything.
-            log.DefaultLogger.Error(
-              "getSingleTrace failed to marshal service from trace graph",
-              "Name", service.Name,
-              "ReferenceId", service.ReferenceId,
-            )
-          }
-          traceGraphFrame.AppendRow(string(bytes))
-        }
-        return true
-      },
-    )
-  }()
-
-  wg.Wait()
+	wg.Wait()
 
 	if tracesError != nil {
 		return backend.DataResponse{
@@ -118,13 +116,13 @@ func (ds *Datasource) getSingleTrace(query backend.DataQuery, pluginContext *bac
 
 	frames := []*data.Frame{
 		data.NewFrame(
-		  "Traces", data.NewField("Trace", nil, []string{string(traceBytes)}),
+			"Traces", data.NewField("Trace", nil, []string{string(traceBytes)}),
 		),
 	}
 
 	if traceGraphError == nil {
-	  frames = append(frames, traceGraphFrame)
-  }
+		frames = append(frames, traceGraphFrame)
+	}
 
 	return backend.DataResponse{
 		Frames: frames,

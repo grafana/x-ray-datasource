@@ -3,11 +3,11 @@ package datasource
 import (
 	"encoding/json"
 	"net/http"
-  "net/url"
+	"net/url"
 
-  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
-	"github.com/grafana/x-ray-datasource/pkg/xray"
 )
 
 func (ds *Datasource) getGroups(rw http.ResponseWriter, req *http.Request) {
@@ -17,14 +17,14 @@ func (ds *Datasource) getGroups(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	urlQuery, err := url.ParseQuery(req.URL.RawQuery)
-  if err != nil {
-    sendError(rw, err)
-    return
-  }
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
 
-  region := urlQuery.Get("region")
+	region := urlQuery.Get("region")
 
-  log.DefaultLogger.Debug("getGroups", "region", region)
+	log.DefaultLogger.Debug("getGroups", "region", region)
 
 	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
 	xrayClient, err := ds.xrayClientFactory(&pluginConfig, region)
