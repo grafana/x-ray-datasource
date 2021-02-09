@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.1
+#### Bug fixes
+  * Remove usage of non backward compatible API preventing using the 1.3.0 version in Grafana before 7.4.0. [#67](https://github.com/grafana/x-ray-datasource/pull/67)
+#### Other
+  * Locks Grafana dependencies on latest stable release preventing compilation fails in CI. [#68](https://github.com/grafana/x-ray-datasource/pull/68)
+
 ## v1.3.0
 #### Features / Enhancements
   * Add Service Map query type that allows visualizing service map data in similar way to X-Ray console. [#60](https://github.com/grafana/x-ray-datasource/pull/60)
