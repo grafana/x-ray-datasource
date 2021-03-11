@@ -1,12 +1,12 @@
+import { AwsAuthDataSourceSecureJsonData } from '@grafana/aws-sdk';
 import { DataSourcePlugin } from '@grafana/data';
-import { XrayDataSource } from './DataSource';
-import { ConfigEditor } from './components/ConfigEditor/ConfigEditor';
-import { AwsDataSourceSecureJsonData } from './components/ConfigEditor/types';
-import { QueryEditor } from './components/QueryEditor/QueryEditor';
-import { XrayQuery, XrayJsonData } from './types';
 import CheatSheet from './components/CheatSheet';
+import { ConfigEditor } from './components/ConfigEditor/ConfigEditor';
+import { QueryEditor } from './components/QueryEditor/QueryEditor';
+import { XrayDataSource } from './DataSource';
+import { XrayJsonData, XrayQuery } from './types';
 
-export const plugin = new DataSourcePlugin<XrayDataSource, XrayQuery, XrayJsonData, AwsDataSourceSecureJsonData>(
+export const plugin = new DataSourcePlugin<XrayDataSource, XrayQuery, XrayJsonData, AwsAuthDataSourceSecureJsonData>(
   XrayDataSource
 )
   .setConfigEditor(ConfigEditor)

@@ -1,5 +1,5 @@
+import { AwsAuthDataSourceJsonData } from '@grafana/aws-sdk';
 import { DataQuery } from '@grafana/data';
-import { AwsDataSourceJsonData } from 'components/ConfigEditor/types';
 
 export type Group = {
   FilterExpression?: string;
@@ -52,7 +52,7 @@ export enum XrayQueryType {
   getServiceMap = 'getServiceMap',
 }
 
-export interface XrayJsonData extends AwsDataSourceJsonData {
+export interface XrayJsonData extends AwsAuthDataSourceJsonData {
   // Can add X-Ray specific values here
 }
 
