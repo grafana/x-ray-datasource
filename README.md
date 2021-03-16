@@ -199,7 +199,7 @@ apiVersion: 1
 
 datasources:
   - name: X-Ray
-    type: datasource
+    type: grafana-x-ray-datasource
     jsonData:
       authType: credentials
       defaultRegion: eu-west-2
@@ -212,7 +212,7 @@ apiVersion: 1
 
 datasources:
   - name: X-Ray
-    type: datasource
+    type: grafana-x-ray-datasource
     jsonData:
       authType: keys
       defaultRegion: eu-west-2
