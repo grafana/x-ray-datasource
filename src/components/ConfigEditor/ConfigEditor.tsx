@@ -1,9 +1,8 @@
-import React, { PureComponent } from 'react';
+import { AwsAuthDataSourceJsonData, AwsAuthDataSourceSecureJsonData, ConnectionConfig } from '@grafana/aws-sdk';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import ConnectionConfig from './ConnectionConfig';
-import { AwsDataSourceJsonData, AwsDataSourceSecureJsonData } from './types';
+import React, { PureComponent } from 'react';
 
-export type Props = DataSourcePluginOptionsEditorProps<AwsDataSourceJsonData, AwsDataSourceSecureJsonData>;
+export type Props = DataSourcePluginOptionsEditorProps<AwsAuthDataSourceJsonData, AwsAuthDataSourceSecureJsonData>;
 
 export class ConfigEditor extends PureComponent<Props> {
   render() {

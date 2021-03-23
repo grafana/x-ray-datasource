@@ -1136,6 +1136,15 @@
   resolved "https://registry.yarnpkg.com/@emotion/weak-memoize/-/weak-memoize-0.2.5.tgz#8eed982e2ee6f7f4e44c253e12962980791efd46"
   integrity sha512-6U71C2Wp7r5XtFtQzYrW5iKFT67OixrSxjI4MptCHzdSVlgabczzqLe0ZSgnub/5Kp4hSbpDB1tMytZY9pwxxA==
 
+"@grafana/aws-sdk@0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@grafana/aws-sdk/-/aws-sdk-0.0.24.tgz#30511706d5efaf52e81cadd8f933d1c21e8d1c6b"
+  integrity sha512-tKYZ5KgJn0/S+/z7KFUtcgihYC1vCpUPvDMONp8j1j02JWwUE3ivu9LDiPeWBLcicy0psUypC0mL3QG/e8prIw==
+  dependencies:
+    "@grafana/data" "7.4.0"
+    "@grafana/runtime" "7.4.0"
+    "@grafana/ui" "7.4.0"
+
 "@grafana/data@7.2.0", "@grafana/data@next":
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/@grafana/data/-/data-7.2.0.tgz#29ae47a1c8a331d12fa269ef900922ade829c0aa"
