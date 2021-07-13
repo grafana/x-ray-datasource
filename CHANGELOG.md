@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.4
+
+#### Bug fixes
+
+- Add readable names for stats in service map legend [#82](https://github.com/grafana/x-ray-datasource/pull/82)
+- Upgrade grafana-aws-sdk version fixing issue with assuming role [#81](https://github.com/grafana/x-ray-datasource/pull/81)
+
+#### Other
+
+- Bump prismjs from 1.23.0 to 1.24.0 [#80](https://github.com/grafana/x-ray-datasource/pull/80)
+
 ## v1.3.3
 
 #### Other

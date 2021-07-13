@@ -276,28 +276,28 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     name: NodeGraphDataFrameFieldNames.arc + 'success',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'green', mode: FieldColorModeId.Fixed } },
+    config: { color: { fixedColor: 'green', mode: FieldColorModeId.Fixed }, displayName: 'Success' },
   };
 
   const errorsField = {
     name: NodeGraphDataFrameFieldNames.arc + 'errors',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'semi-dark-yellow', mode: FieldColorModeId.Fixed } },
+    config: { color: { fixedColor: 'semi-dark-yellow', mode: FieldColorModeId.Fixed }, displayName: 'Error' },
   };
 
   const faultsField = {
     name: NodeGraphDataFrameFieldNames.arc + 'faults',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'red', mode: FieldColorModeId.Fixed } },
+    config: { color: { fixedColor: 'red', mode: FieldColorModeId.Fixed }, displayName: 'Fault' },
   };
 
   const throttledField = {
     name: NodeGraphDataFrameFieldNames.arc + 'throttled',
     type: FieldType.number,
     values: new ArrayVector(),
-    config: { color: { fixedColor: 'purple', mode: FieldColorModeId.Fixed } },
+    config: { color: { fixedColor: 'purple', mode: FieldColorModeId.Fixed }, displayName: 'Throttled' },
   };
 
   const edgeIdField = {

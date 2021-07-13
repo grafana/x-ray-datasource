@@ -1,6 +1,6 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "AWS X-Ray data source",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "emotion": "10.0.27",
-    "prismjs": "1.23.0",
+    "prismjs": "1.24.0",
     "react-use": "^15.3.4",
     "rxjs": "6.6.3"
   }
