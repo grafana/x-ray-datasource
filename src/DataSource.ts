@@ -8,6 +8,7 @@ import {
   DateTimeDuration,
   FieldType,
   MutableDataFrame,
+  ScopedVars,
   TimeRange,
   toDuration,
 } from '@grafana/data';
@@ -121,6 +122,21 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         '?' + urlQuery?.toString().replace(/\+/g, '%20').replace(/%3A/g, ':').replace(/%7E/g, '~')
       : '';
     return `${this.getXrayUrl(query.region)}#/${section}${queryParams}`;
+  }
+
+  interpolateVariablesInQueries(queries: XrayQuery[], scopedVars: ScopedVars): XrayQuery[] {
+    let expandedQueries = queries;
+    if (queries && queries.length) {
+      expandedQueries = queries.map((query) => {
+        const expandedQuery = {
+          ...query,
+          datasource: this.name,
+          query: getTemplateSrv().replace(query.query, scopedVars),
+        };
+        return expandedQuery;
+      });
+    }
+    return expandedQueries;
   }
 
   private getXrayUrl(region?: string): string {
