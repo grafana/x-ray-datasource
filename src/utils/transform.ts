@@ -197,8 +197,12 @@ function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, Trace
     const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
     tags.push(...getTagsFromAws(segment.Document.aws));
     if (segment.Document.http?.request?.url) {
-      const url = new URL(segment.Document.http.request.url);
-      tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
+      try {
+        const url = new URL(segment.Document.http.request.url);
+        tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
+      } catch (e) {
+        // just skip, sometimes the url may not be a full url just a path and so there is no hostname to extract.
+      }
     }
     return {
       serviceName: segment.Document.name,

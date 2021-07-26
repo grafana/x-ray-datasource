@@ -286,7 +286,7 @@ describe('transformResponse function', () => {
     expect(transformTraceResponse(awsResponse as any)).toEqual(result);
   });
 
-  it("should response that is in progress (doesn't have an end time)", () => {
+  it("should handle response that is in progress (doesn't have an end time)", () => {
     const aws = {
       Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
       Segments: [
@@ -295,6 +295,36 @@ describe('transformResponse function', () => {
             id: '5c6cc52b0685e278',
             name: 'myfrontend-dev',
             origin: 'AWS::EC2::Instance',
+            subsegments: [
+              {
+                id: 'e5ea9d95ecda4d8a',
+                name: 'response',
+                start_time: 1595878288.1899369,
+                in_progress: true,
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    expect(transformTraceResponse(aws as any).spans[1].duration).toBe(0);
+  });
+
+  it('should handle response without full url', () => {
+    const aws = {
+      Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
+      Segments: [
+        {
+          Document: {
+            id: '5c6cc52b0685e278',
+            name: 'myfrontend-dev',
+            origin: 'AWS::EC2::Instance',
+            http: {
+              request: {
+                url: '/path/something'
+              }
+            },
             subsegments: [
               {
                 id: 'e5ea9d95ecda4d8a',
