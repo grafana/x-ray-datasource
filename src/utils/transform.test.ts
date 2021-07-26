@@ -322,8 +322,8 @@ describe('transformResponse function', () => {
             origin: 'AWS::EC2::Instance',
             http: {
               request: {
-                url: '/path/something'
-              }
+                url: '/path/something',
+              },
             },
             subsegments: [
               {
