@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { XrayJsonData, XrayQuery, XrayQueryType, XrayTraceDataRaw, XrayTraceDataSegmentDocument } from './types';
 import { of } from 'rxjs';
-import { TemplateSrv } from '@grafana/runtime/services/templateSrv';
+import { TemplateSrv } from '@grafana/runtime';
 
 jest.mock('@grafana/runtime', () => {
   const runtime = jest.requireActual('@grafana/runtime');
@@ -35,11 +35,15 @@ jest.mock('@grafana/runtime', () => {
           if (!target) {
             return '';
           }
-          if (!scopedVars) {
-            return target;
-          }
-          for (const key of Object.keys(scopedVars)) {
-            target = target!.replace(`\$${key}`, scopedVars[key].value);
+          const vars: Record<string, { value: any }> = {
+            ...scopedVars,
+            someVar: {
+              value: '200',
+            },
+          };
+          for (const key of Object.keys(vars)) {
+            target = target!.replace(`\$${key}`, vars[key].value);
+            target = target!.replace(`\${${key}}`, vars[key].value);
           }
           return target!;
         },
@@ -155,6 +159,18 @@ describe('XrayDataSource', () => {
       } as XrayQuery);
       expect(url).toBe(`https://us-east.console.aws.amazon.com/xray/home?region=us-east#/${expected}`);
     });
+  });
+
+  it('should replace variables', () => {
+    const ds = makeDatasourceWithResponse({} as any);
+    const logQuery: XrayQuery = {
+      refId: 'someRefId',
+      query: 'http.status = ${someVar}',
+    };
+
+    const interpolated = ds.interpolateVariablesInQueries([logQuery], {});
+
+    expect(interpolated[0].query).toBe(`http.status = 200`);
   });
 });
 
