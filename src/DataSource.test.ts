@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { XrayJsonData, XrayQuery, XrayQueryType, XrayTraceDataRaw, XrayTraceDataSegmentDocument } from './types';
 import { of } from 'rxjs';
-import { getTemplateSrv, setTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { TemplateSrv } from '@grafana/runtime';
 
 jest.mock('@grafana/runtime', () => {
   const runtime = jest.requireActual('@grafana/runtime');
