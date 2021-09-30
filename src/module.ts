@@ -10,5 +10,5 @@ export const plugin = new DataSourcePlugin<XrayDataSource, XrayQuery, XrayJsonDa
   XrayDataSource
 )
   .setConfigEditor(ConfigEditor)
-  .setExploreStartPage(CheatSheet) // Use this for Grafana versions before 7.4
+  .setQueryEditorHelp(CheatSheet)
   .setQueryEditor(QueryEditor);

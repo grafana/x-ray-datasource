@@ -1,9 +1,9 @@
 import { QueryEditorHelpProps } from '@grafana/data';
-import { css } from 'emotion';
+import { css } from '@emotion/css';
 import React from 'react';
 import { XrayQuery, XrayQueryType } from 'types';
 
-function renderExpression(expr: string, onClickExample: QueryEditorHelpProps['onClickExample']) {
+function renderExpression(expr: string, onClickExample: QueryEditorHelpProps<XrayQuery>['onClickExample']) {
   return (
     <div
       className="cheat-sheet-item__example"
@@ -17,7 +17,7 @@ function renderExpression(expr: string, onClickExample: QueryEditorHelpProps['on
   );
 }
 
-export default function CheatSheet({ onClickExample }: QueryEditorHelpProps) {
+export default function CheatSheet({ onClickExample }: QueryEditorHelpProps<XrayQuery>) {
   return (
     <div>
       <h2>X-Ray Cheat Sheet</h2>
