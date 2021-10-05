@@ -24,7 +24,7 @@ import { flatten } from './flatten';
 const MS_MULTIPLIER = 1000000;
 
 /**
- * Transforms response to format similar to Jaegers as we use Jaeger ui on the frontend.
+ * Transforms response to format used by Grafana.
  */
 export function transformTraceResponse(data: XrayTraceData): DataFrame {
   const subSegmentSpans: TraceSpanRow[] = [];
@@ -71,12 +71,12 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
       { name: 'duration', type: FieldType.number },
       { name: 'logs', type: FieldType.other },
       { name: 'tags', type: FieldType.other },
+      { name: 'warnings', type: FieldType.other },
+      { name: 'stackTraces', type: FieldType.other },
+      { name: 'errorIconColor', type: FieldType.string },
     ],
     meta: {
       preferredVisualisationType: 'trace',
-      custom: {
-        traceFormat: 'zipkin',
-      },
     },
   });
 
@@ -106,7 +106,7 @@ function transformSegmentDocument(
   parentId?: string
 ): TraceSpanRow {
   const duration = document.end_time ? document.end_time * MS_MULTIPLIER - document.start_time * MS_MULTIPLIER : 0;
-  const span: TraceSpanRow = {
+  return {
     traceID: document.trace_id,
     spanID: document.id,
     parentSpanID: parentId,
@@ -120,8 +120,6 @@ function transformSegmentDocument(
     tags: getTagsForSpan(document),
     errorIconColor: getIconColor(document),
   };
-
-  return span;
 }
 
 function getIconColor(segment: XrayTraceDataSegmentDocument) {
