@@ -1,5 +1,5 @@
 import { transformTraceResponse } from './transform';
-import {DataFrameView, MutableDataFrame} from '@grafana/data';
+import { DataFrameView, MutableDataFrame } from '@grafana/data';
 
 const awsResponse = {
   Duration: 0.048,
@@ -127,7 +127,13 @@ const result = new MutableDataFrame({
     {
       name: 'parentSpanID',
       config: {},
-      values: [undefined, undefined, 'myfrontend-devAWS::EC2::Instance', 'DynamoDBAWS::DynamoDB::Table', 'eebec87ce4dd8225'],
+      values: [
+        undefined,
+        undefined,
+        'myfrontend-devAWS::EC2::Instance',
+        'DynamoDBAWS::DynamoDB::Table',
+        'eebec87ce4dd8225',
+      ],
     },
     {
       name: 'operationName',
