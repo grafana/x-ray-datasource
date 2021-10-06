@@ -1,13 +1,11 @@
 import { sortBy } from 'lodash';
 import {
-  ArrayVector,
   DataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceInstanceSettings,
   DateTimeDuration,
   FieldType,
-  MutableDataFrame,
   ScopedVars,
   TimeRange,
   toDuration,
@@ -221,22 +219,10 @@ function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[]
     Segments: parsedSegments,
   };
 
-  return [
-    new MutableDataFrame({
-      name: 'Trace',
-      refId: query?.refId,
-      fields: [
-        {
-          name: 'trace',
-          type: FieldType.trace,
-          values: new ArrayVector([transformTraceResponse(traceParsedForReal)]),
-        },
-      ],
-      meta: {
-        preferredVisualisationType: 'trace',
-      },
-    }),
-  ];
+  const frame = transformTraceResponse(traceParsedForReal);
+  frame.refId = query?.refId;
+
+  return [frame];
 }
 
 /**

@@ -263,6 +263,7 @@ jobs:
       - run:
           name: Package Distribution (for signing/etc)
           command: |
+            ln -s /root/project/node_modules/.bin/rimraf /usr/local/bin/rimraf
             EXEC_PREFIX=gpx_x-ray-datasource
             #
             # ci-package will create the zip file
