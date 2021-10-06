@@ -1,14 +1,12 @@
 import {
-  TraceProcess,
-  TraceSpanData,
-  TraceData,
-  TraceSpanReference,
+  TraceSpanRow,
   TraceKeyValuePair,
   DataFrame,
   FieldType,
   ArrayVector,
   MutableDataFrame,
   FieldColorModeId,
+  NodeGraphDataFrameFieldNames,
 } from '@grafana/data';
 import {
   XrayTraceData,
@@ -20,53 +18,73 @@ import {
   XrayQuery,
   XrayEdge,
 } from 'types';
-import { keyBy, isPlainObject } from 'lodash';
-import { NodeGraphDataFrameFieldNames } from '@grafana/ui';
+import { isPlainObject } from 'lodash';
 import { flatten } from './flatten';
 
 const MS_MULTIPLIER = 1000000;
 
 /**
- * Transforms response to format similar to Jaegers as we use Jaeger ui on the frontend.
+ * Transforms response to format used by Grafana.
  */
-export function transformTraceResponse(data: XrayTraceData): TraceData & { spans: TraceSpanData[] } {
-  const processes = gatherProcesses(data.Segments);
+export function transformTraceResponse(data: XrayTraceData): DataFrame {
+  const subSegmentSpans: TraceSpanRow[] = [];
+  // parentSpans are artificial spans used to group services that has the same name to mimic how the traces look
+  // in X-ray console.
+  const parentSpans: TraceSpanRow[] = [];
 
-  const subSegmentSpans: TraceSpanData[] = [];
-  // parentSpans is used to group services that has the same name
-  const parentSpans: TraceSpanData[] = [];
   const segmentSpans = data.Segments.map((segment) => {
-    let subSegmentProcessId = segment.Document.name;
+    const [serviceName, serviceTags] = getProcess(segment);
     getSubSegments(segment.Document, (subSegment, segmentParent) => {
-      subSegmentProcessId = processes[subSegment.name]?.serviceName ?? subSegmentProcessId;
-      subSegmentSpans.push(transformSegment(subSegment, subSegmentProcessId, segmentParent.id));
+      subSegmentSpans.push(transformSegmentDocument(subSegment, serviceName, serviceTags, segmentParent.id));
     });
 
     let parentSpan = parentSpans.find((ps) => ps.spanID === segment.Document.name + segment.Document.origin);
 
     if (!parentSpan) {
       parentSpan = {
+        // TODO: maybe the duration should be the min(startTime) - max(endTime) of all child spans
         duration: 0,
-        flags: 1,
         logs: [],
         operationName: segment.Document.origin ?? segment.Document.name,
-        processID: segment.Document.name,
+        serviceName,
+        serviceTags,
         spanID: segment.Document.name + segment.Document.origin,
         startTime: segment.Document.start_time * MS_MULTIPLIER,
         traceID: segment.Document.trace_id,
+        parentSpanID: undefined,
       };
       parentSpans.push(parentSpan);
     }
 
-    return transformSegment(segment.Document, segment.Document.name, parentSpan.spanID);
+    return transformSegmentDocument(segment.Document, serviceName, serviceTags, parentSpan.spanID);
   });
 
-  return {
-    processes,
-    traceID: data.Id,
-    spans: [...subSegmentSpans, ...segmentSpans, ...parentSpans],
-    warnings: null,
-  };
+  const frame = new MutableDataFrame({
+    fields: [
+      { name: 'traceID', type: FieldType.string },
+      { name: 'spanID', type: FieldType.string },
+      { name: 'parentSpanID', type: FieldType.string },
+      { name: 'operationName', type: FieldType.string },
+      { name: 'serviceName', type: FieldType.string },
+      { name: 'serviceTags', type: FieldType.other },
+      { name: 'startTime', type: FieldType.number },
+      { name: 'duration', type: FieldType.number },
+      { name: 'logs', type: FieldType.other },
+      { name: 'tags', type: FieldType.other },
+      { name: 'warnings', type: FieldType.other },
+      { name: 'stackTraces', type: FieldType.other },
+      { name: 'errorIconColor', type: FieldType.string },
+    ],
+    meta: {
+      preferredVisualisationType: 'trace',
+    },
+  });
+
+  for (const span of [...parentSpans, ...segmentSpans, ...subSegmentSpans]) {
+    frame.add(span);
+  }
+
+  return frame;
 }
 
 function getSubSegments(
@@ -81,28 +99,27 @@ function getSubSegments(
   }
 }
 
-function transformSegment(segment: XrayTraceDataSegmentDocument, processID: string, parentId?: string): TraceSpanData {
-  let references: TraceSpanReference[] = [];
-  if (parentId) {
-    references.push({ refType: 'CHILD_OF', spanID: parentId, traceID: segment.trace_id });
-  }
-  const duration = segment.end_time ? segment.end_time * MS_MULTIPLIER - segment.start_time * MS_MULTIPLIER : 0;
-  const jaegerSpan: TraceSpanData = {
+function transformSegmentDocument(
+  document: XrayTraceDataSegmentDocument,
+  serviceName: string,
+  serviceTags: TraceKeyValuePair[],
+  parentId?: string
+): TraceSpanRow {
+  const duration = document.end_time ? document.end_time * MS_MULTIPLIER - document.start_time * MS_MULTIPLIER : 0;
+  return {
+    traceID: document.trace_id,
+    spanID: document.id,
+    parentSpanID: parentId,
     duration,
-    flags: 1,
     logs: [],
-    operationName: segment.name,
-    processID,
-    startTime: segment.start_time * MS_MULTIPLIER,
-    spanID: segment.id,
-    traceID: segment.trace_id,
-    stackTraces: getStackTrace(segment),
-    tags: getTagsForSpan(segment),
-    references,
-    errorIconColor: getIconColor(segment),
+    operationName: document.name,
+    serviceName,
+    serviceTags,
+    startTime: document.start_time * MS_MULTIPLIER,
+    stackTraces: getStackTrace(document),
+    tags: getTagsForSpan(document),
+    errorIconColor: getIconColor(document),
   };
-
-  return jaegerSpan;
 }
 
 function getIconColor(segment: XrayTraceDataSegmentDocument) {
@@ -138,17 +155,17 @@ function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
     ...segmentToTag({ http: segment.http }),
     ...segmentToTag({ annotations: segment.annotations }),
     ...segmentToTag({ metadata: segment.metadata }),
-    { key: 'in progress', value: Boolean(segment.in_progress), type: 'boolean' },
+    { key: 'in progress', value: Boolean(segment.in_progress) },
   ];
 
   if (segment.origin) {
-    tags.push({ key: 'origin', value: segment.origin, type: 'string' });
+    tags.push({ key: 'origin', value: segment.origin });
   }
 
   const isError = segment.error || segment.fault || segment.throttle;
 
   if (isError) {
-    tags.push({ key: 'error', value: true, type: 'boolean' });
+    tags.push({ key: 'error', value: true });
   }
 
   return tags;
@@ -162,7 +179,7 @@ function segmentToTag(segment: any | undefined) {
 
   const flattenedObject = flatten(segment);
   Object.keys(flattenedObject).map((key) => {
-    const tag = valueToTag(key, flattenedObject[key], typeof flattenedObject[key]);
+    const tag = valueToTag(key, flattenedObject[key]);
     if (tag) {
       result.push(tag);
     }
@@ -185,40 +202,33 @@ function getTagsFromAws(aws: AWS | undefined) {
       if (isPlainObject(aws[key])) {
         tags.push(...segmentToTag(aws[key]));
       } else {
-        tags.push({ key, value: aws[key], type: 'string' });
+        tags.push({ key, value: aws[key] });
       }
     }
   });
   return tags;
 }
 
-function gatherProcesses(segments: XrayTraceDataSegment[]): Record<string, TraceProcess> {
-  const processes = segments.map((segment) => {
-    const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.Document.name, type: 'string' }];
-    tags.push(...getTagsFromAws(segment.Document.aws));
-    if (segment.Document.http?.request?.url) {
-      try {
-        const url = new URL(segment.Document.http.request.url);
-        tags.push({ key: 'hostname', value: url.hostname, type: 'string' });
-      } catch (e) {
-        // just skip, sometimes the url may not be a full url just a path and so there is no hostname to extract.
-      }
+function getProcess(segment: XrayTraceDataSegment): [string, TraceKeyValuePair[]] {
+  const tags: TraceKeyValuePair[] = [{ key: 'name', value: segment.Document.name }];
+  tags.push(...getTagsFromAws(segment.Document.aws));
+  if (segment.Document.http?.request?.url) {
+    try {
+      const url = new URL(segment.Document.http.request.url);
+      tags.push({ key: 'hostname', value: url.hostname });
+    } catch (e) {
+      // just skip, sometimes the url may not be a full url just a path and so there is no hostname to extract.
     }
-    return {
-      serviceName: segment.Document.name,
-      tags,
-    };
-  });
-  return keyBy(processes, 'serviceName');
+  }
+  return [segment.Document.name, tags];
 }
 
-function valueToTag(key: string, value: string | number | undefined, type: string): TraceKeyValuePair | undefined {
+function valueToTag(key: string, value: string | number | undefined): TraceKeyValuePair | undefined {
   if (!value || (Array.isArray(value) && !value.length)) {
     return undefined;
   }
   return {
     key,
-    type,
     value,
   };
 }

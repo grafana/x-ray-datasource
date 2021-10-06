@@ -1,3 +1,7 @@
+import React from 'react';
+import { css } from '@emotion/css';
+import { QueryEditorProps } from '@grafana/data';
+import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory, Select } from '@grafana/ui';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { useInitQuery } from './useInitQuery';
 import {
@@ -10,12 +14,8 @@ import {
   traceListOption,
   traceStatisticsOption,
 } from './constants';
-import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory, Select } from '@grafana/ui';
-import React from 'react';
-import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
-import { css } from 'emotion';
 import { XrayLinks } from './XrayLinks';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {

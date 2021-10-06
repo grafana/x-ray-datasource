@@ -3,7 +3,7 @@ import { XRayQueryField } from './XRayQueryField';
 import React from 'react';
 import { queryTypeOptionToQueryType } from './QueryEditorForm';
 import { XrayDataSource } from '../../DataSource';
-import { css } from 'emotion';
+import { css } from '@emotion/css';
 import { XrayQuery } from '../../types';
 import { QueryTypeOption } from './constants';
 
