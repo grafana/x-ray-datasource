@@ -1,15 +1,24 @@
-import { AwsAuthDataSourceJsonData, AwsAuthDataSourceSecureJsonData, ConnectionConfig } from '@grafana/aws-sdk';
-import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
+import { AwsAuthDataSourceSecureJsonData, ConnectionConfig } from '@grafana/aws-sdk';
+import { DataSourcePluginOptionsEditorProps, updateDatasourcePluginJsonDataOption } from '@grafana/data';
 import React, { PureComponent } from 'react';
+import { TraceToLogs } from './TraceToLogs';
+import { XrayJsonData } from '../../types';
 
-export type Props = DataSourcePluginOptionsEditorProps<AwsAuthDataSourceJsonData, AwsAuthDataSourceSecureJsonData>;
+export type Props = DataSourcePluginOptionsEditorProps<XrayJsonData, AwsAuthDataSourceSecureJsonData>;
 
 export class ConfigEditor extends PureComponent<Props> {
   render() {
+    const { onOptionsChange, options } = this.props;
     return (
       <div>
         <ConnectionConfig {...this.props} />
-        {/* can add x-ray specific things here */}
+        <TraceToLogs
+          onChange={(uid) =>
+            updateDatasourcePluginJsonDataOption({ onOptionsChange, options }, 'tracesToLogs', {
+              datasourceUid: uid,
+            })
+          }
+        />
       </div>
     );
   }

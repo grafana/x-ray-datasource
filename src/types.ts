@@ -53,7 +53,9 @@ export enum XrayQueryType {
 }
 
 export interface XrayJsonData extends AwsAuthDataSourceJsonData {
-  // Can add X-Ray specific values here
+  tracesToLogs?: {
+    datasourceUid: string;
+  };
 }
 
 export interface TSDBResponse<T = any> {
