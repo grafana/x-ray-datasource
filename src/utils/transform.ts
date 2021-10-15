@@ -21,8 +21,6 @@ import {
 import { isPlainObject } from 'lodash';
 import { flatten } from './flatten';
 
-const MS_MULTIPLIER = 1000000;
-
 type XrayTraceSpanRow = TraceSpanRow & {
   __log_group: string;
 };
@@ -51,7 +49,7 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
         serviceName,
         serviceTags,
         spanID: parentSpanId,
-        startTime: segment.Document.start_time * MS_MULTIPLIER,
+        startTime: segment.Document.start_time,
         traceID: segment.Document.trace_id,
         parentSpanID: undefined,
         __log_group: span.__log_group,
@@ -114,7 +112,7 @@ function transformSegmentDocument(
   serviceTags: TraceKeyValuePair[],
   parentId?: string
 ): XrayTraceSpanRow {
-  const duration = document.end_time ? document.end_time * MS_MULTIPLIER - document.start_time * MS_MULTIPLIER : 0;
+  const duration = document.end_time ? document.end_time - document.start_time : 0;
   return {
     traceID: document.trace_id,
     spanID: document.id,
@@ -124,7 +122,7 @@ function transformSegmentDocument(
     operationName: document.name,
     serviceName,
     serviceTags,
-    startTime: document.start_time * MS_MULTIPLIER,
+    startTime: document.start_time,
     stackTraces: getStackTrace(document),
     tags: getTagsForSpan(document),
     errorIconColor: getIconColor(document),
