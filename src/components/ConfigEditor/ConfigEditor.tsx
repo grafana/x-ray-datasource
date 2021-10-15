@@ -13,6 +13,7 @@ export class ConfigEditor extends PureComponent<Props> {
       <div>
         <ConnectionConfig {...this.props} />
         <TraceToLogs
+          datasourceUid={options.jsonData.tracesToLogs?.datasourceUid}
           onChange={(uid) =>
             updateDatasourcePluginJsonDataOption({ onOptionsChange, options }, 'tracesToLogs', {
               datasourceUid: uid,

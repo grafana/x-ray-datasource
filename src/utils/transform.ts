@@ -23,41 +23,49 @@ import { flatten } from './flatten';
 
 const MS_MULTIPLIER = 1000000;
 
+type XrayTraceSpanRow = TraceSpanRow & {
+  __log_group: string;
+};
+
 /**
  * Transforms response to format used by Grafana.
  */
 export function transformTraceResponse(data: XrayTraceData): DataFrame {
-  const subSegmentSpans: TraceSpanRow[] = [];
-  // parentSpans are artificial spans used to group services that has the same name to mimic how the traces look
-  // in X-ray console.
-  const parentSpans: TraceSpanRow[] = [];
+  const parentSpans: Record<string, XrayTraceSpanRow> = {};
+  const spans: XrayTraceSpanRow[] = [];
 
-  const segmentSpans = data.Segments.map((segment) => {
+  for (const segment of data.Segments) {
     const [serviceName, serviceTags] = getProcess(segment);
-    getSubSegments(segment.Document, (subSegment, segmentParent) => {
-      subSegmentSpans.push(transformSegmentDocument(subSegment, serviceName, serviceTags, segmentParent.id));
-    });
 
-    let parentSpan = parentSpans.find((ps) => ps.spanID === segment.Document.name + segment.Document.origin);
+    const parentSpanId = segment.Document.name + segment.Document.origin;
+    const span = transformSegmentDocument(segment.Document, serviceName, serviceTags, parentSpanId);
 
-    if (!parentSpan) {
-      parentSpan = {
+    if (!parentSpans[parentSpanId]) {
+      // parent span is artificial span used to group services that has the same name to mimic how the traces look
+      // in X-ray console.
+      const parentSpan = {
         // TODO: maybe the duration should be the min(startTime) - max(endTime) of all child spans
         duration: 0,
         logs: [],
         operationName: segment.Document.origin ?? segment.Document.name,
         serviceName,
         serviceTags,
-        spanID: segment.Document.name + segment.Document.origin,
+        spanID: parentSpanId,
         startTime: segment.Document.start_time * MS_MULTIPLIER,
         traceID: segment.Document.trace_id,
         parentSpanID: undefined,
+        __log_group: span.__log_group,
       };
-      parentSpans.push(parentSpan);
+      spans.push(parentSpan);
+      parentSpans[parentSpanId] = parentSpan;
     }
 
-    return transformSegmentDocument(segment.Document, serviceName, serviceTags, parentSpan.spanID);
-  });
+    spans.push(span);
+
+    getSubSegments(segment.Document, (subSegment, segmentParent) => {
+      spans.push(transformSegmentDocument(subSegment, serviceName, serviceTags, segmentParent.id));
+    });
+  }
 
   const frame = new MutableDataFrame({
     fields: [
@@ -74,13 +82,14 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
       { name: 'warnings', type: FieldType.other },
       { name: 'stackTraces', type: FieldType.other },
       { name: 'errorIconColor', type: FieldType.string },
+      { name: '__log_group', type: FieldType.string },
     ],
     meta: {
       preferredVisualisationType: 'trace',
     },
   });
 
-  for (const span of [...parentSpans, ...segmentSpans, ...subSegmentSpans]) {
+  for (const span of spans) {
     frame.add(span);
   }
 
@@ -104,7 +113,7 @@ function transformSegmentDocument(
   serviceName: string,
   serviceTags: TraceKeyValuePair[],
   parentId?: string
-): TraceSpanRow {
+): XrayTraceSpanRow {
   const duration = document.end_time ? document.end_time * MS_MULTIPLIER - document.start_time * MS_MULTIPLIER : 0;
   return {
     traceID: document.trace_id,
@@ -119,6 +128,7 @@ function transformSegmentDocument(
     stackTraces: getStackTrace(document),
     tags: getTagsForSpan(document),
     errorIconColor: getIconColor(document),
+    __log_group: getLogGroup(document),
   };
 }
 
@@ -221,6 +231,13 @@ function getProcess(segment: XrayTraceDataSegment): [string, TraceKeyValuePair[]
     }
   }
   return [segment.Document.name, tags];
+}
+
+function getLogGroup(document: XrayTraceDataSegmentDocument) {
+  if (document.origin?.includes('AWS::Lambda')) {
+    return '/aws/lambda/' + document.name;
+  }
+  return 'unknown';
 }
 
 function valueToTag(key: string, value: string | number | undefined): TraceKeyValuePair | undefined {

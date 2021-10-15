@@ -12,7 +12,7 @@ import {
 } from '@grafana/data';
 import { DataSourceWithBackend, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 
 import {
   Group,
@@ -26,7 +26,7 @@ import {
 } from './types';
 import { parseGraphResponse, transformTraceResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
-import { makeLinks } from './utils/links';
+import { addTraceToLogsLinks, makeServiceMapLinks } from './utils/links';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -43,13 +43,17 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     const processedRequest = processRequest(request, getTemplateSrv());
     let response = super.query(processedRequest);
     return response.pipe(
-      map((dataQueryResponse) => {
-        return {
-          ...dataQueryResponse,
-          data: dataQueryResponse.data.flatMap((frame) => {
+      mergeMap(async (dataQueryResponse) => {
+        const parsedData = await Promise.all(
+          dataQueryResponse.data.map((frame) => {
             const target = request.targets.find((t) => t.refId === frame.refId);
             return this.parseResponse(frame, target);
-          }),
+          })
+        );
+
+        return {
+          ...dataQueryResponse,
+          data: parsedData.flat(),
         };
       })
     );
@@ -142,11 +146,11 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return `https://${region}.console.aws.amazon.com/xray/home?region=${region}`;
   }
 
-  private parseResponse(response: DataFrame, query?: XrayQuery): DataFrame[] {
+  private async parseResponse(response: DataFrame, query?: XrayQuery): Promise<DataFrame[]> {
     // TODO this would better be based on type but backend Go def does not have dataFrame.type
     switch (response.name) {
       case 'Traces':
-        return parseTraceResponse(response, query);
+        return parseTraceResponse(response, query, this.instanceSettings.jsonData.tracesToLogs?.datasourceUid);
       case 'TraceSummaries':
         return parseTracesListResponse(response, this.instanceSettings, query);
       case 'InsightSummaries':
@@ -203,7 +207,11 @@ function getDurationText(duration: DateTimeDuration) {
  The x-ray trace has a bit strange format where it comes as json and then some parts are string which also contains
  json, so some parts are escaped and we have to double parse that.
  */
-function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[] {
+async function parseTraceResponse(
+  response: DataFrame,
+  query: XrayQuery | undefined,
+  logsDatasourceUid: string | undefined
+): Promise<DataFrame[]> {
   // Again assuming this will ge single field with single value which will be the trace data blob
   const traceData = response.fields[0].values.get(0);
   const traceParsed: XrayTraceDataRaw = JSON.parse(traceData);
@@ -220,6 +228,7 @@ function parseTraceResponse(response: DataFrame, query?: XrayQuery): DataFrame[]
   };
 
   const frame = transformTraceResponse(traceParsedForReal);
+  await addTraceToLogsLinks(frame, query?.region, logsDatasourceUid);
   frame.refId = query?.refId;
 
   return [frame];
@@ -262,12 +271,12 @@ function parseServiceMapResponse(
   const [servicesFrame, edgesFrame] = parseGraphResponse(response, query);
   const serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subTitle}"))';
   servicesFrame.fields[0].config = {
-    links: makeLinks(serviceQuery, instanceSettings, query),
+    links: makeServiceMapLinks(serviceQuery, instanceSettings, query),
   };
 
   const edgeQuery = 'edge("${__data.fields.sourceName}", "${__data.fields.targetName}")';
   edgesFrame.fields[0].config = {
-    links: makeLinks(edgeQuery, instanceSettings, query),
+    links: makeServiceMapLinks(edgeQuery, instanceSettings, query),
   };
   return [servicesFrame, edgesFrame];
 }
