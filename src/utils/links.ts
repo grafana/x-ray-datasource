@@ -32,9 +32,12 @@ export async function addTraceToLogsLinks(frame: DataFrame, region?: string, dat
     return;
   }
   try {
-    const field = frame.fields.find((f) => f.name === 'spanID')!;
-    const link = await makeTraceToLogsLink(datasourceUid, region);
-    field.config.links = [link];
+    const spanField = frame.fields.find((f) => f.name === 'spanID')!;
+    const requestIdField = frame.fields.find((f) => f.name === '__request_id')!;
+    const link = await makeTraceToLogsLink(datasourceUid, region, {
+      hasRequestId: Boolean(requestIdField.values.get(0)),
+    });
+    spanField.config.links = [link];
   } catch (error) {
     // There are some things that can go wrong like datasourceUID not existing anymore etc. Does not seem useful to
     // error the whole query in that case so we will just skip the links.
@@ -42,8 +45,15 @@ export async function addTraceToLogsLinks(frame: DataFrame, region?: string, dat
   }
 }
 
-async function makeTraceToLogsLink(datasourceUid: string, region = 'default'): Promise<DataLink> {
+async function makeTraceToLogsLink(
+  datasourceUid: string,
+  region = 'default',
+  options: { hasRequestId: boolean }
+): Promise<DataLink> {
   const logsDS = await getDataSourceSrv().get(datasourceUid);
+  const filter = options.hasRequestId
+    ? 'filter @requestId = "${__data.fields.__request_id}" or @message like "${__data.fields.traceID}"'
+    : 'filter @message like "${__data.fields.traceID}"';
   return {
     title: 'CloudWatch Logs',
     url: '',
@@ -53,7 +63,7 @@ async function makeTraceToLogsLink(datasourceUid: string, region = 'default'): P
         queryMode: 'Logs',
         // Just use the data from the data frame. Needs to be filled in during transform.
         logGroupNames: ['${__data.fields.__log_group}'],
-        expression: 'fields @message',
+        expression: `fields @message | ${filter}`,
       },
       datasourceUid,
       datasourceName: logsDS.name,

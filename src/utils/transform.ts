@@ -33,8 +33,13 @@ type XrayTraceSpanRow = TraceSpanRow & {
 export function transformTraceResponse(data: XrayTraceData): DataFrame {
   const parentSpans: Record<string, XrayTraceSpanRow> = {};
   const spans: XrayTraceSpanRow[] = [];
+  let requestId: string | undefined = undefined;
 
   for (const segment of data.Segments) {
+    if (segment.Document.aws?.request_id) {
+      requestId = segment.Document.aws?.request_id;
+    }
+
     const [serviceName, serviceTags] = getProcess(segment);
 
     const parentSpanId = segment.Document.name + segment.Document.origin;
@@ -83,6 +88,7 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
       { name: 'stackTraces', type: FieldType.other },
       { name: 'errorIconColor', type: FieldType.string },
       { name: '__log_group', type: FieldType.string },
+      { name: '__request_id', type: FieldType.string },
     ],
     meta: {
       preferredVisualisationType: 'trace',
@@ -90,7 +96,7 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
   });
 
   for (const span of spans) {
-    frame.add(span);
+    frame.add({ ...span, __request_id: requestId });
   }
 
   return frame;
