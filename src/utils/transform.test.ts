@@ -1,5 +1,5 @@
 import { transformTraceResponse } from './transform';
-import { DataFrameView, MutableDataFrame } from '@grafana/data';
+import { DataFrameView, FieldType, MutableDataFrame } from '@grafana/data';
 
 const awsResponse = {
   Duration: 0.048,
@@ -108,9 +108,9 @@ const result = new MutableDataFrame({
       values: [
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         undefined,
+        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
       ],
     },
     {
@@ -118,32 +118,33 @@ const result = new MutableDataFrame({
       config: {},
       values: [
         'myfrontend-devAWS::EC2::Instance',
-        'DynamoDBAWS::DynamoDB::Table',
         'eebec87ce4dd8225',
-        '3f8b028e1847bc4c',
         '4ab39ad12cff04b5',
+        'DynamoDBAWS::DynamoDB::Table',
+        '3f8b028e1847bc4c',
       ],
     },
     {
       name: 'parentSpanID',
+      type: FieldType.string,
       config: {},
       values: [
         undefined,
-        undefined,
         'myfrontend-devAWS::EC2::Instance',
-        'DynamoDBAWS::DynamoDB::Table',
         'eebec87ce4dd8225',
+        undefined,
+        'DynamoDBAWS::DynamoDB::Table',
       ],
     },
     {
       name: 'operationName',
       config: {},
-      values: ['AWS::EC2::Instance', 'AWS::DynamoDB::Table', 'myfrontend-dev', 'DynamoDB', 'DynamoDB'],
+      values: ['AWS::EC2::Instance', 'myfrontend-dev', 'DynamoDB', 'AWS::DynamoDB::Table', 'DynamoDB'],
     },
     {
       name: 'serviceName',
       config: {},
-      values: ['myfrontend-dev', 'DynamoDB', 'myfrontend-dev', 'DynamoDB', 'myfrontend-dev'],
+      values: ['myfrontend-dev', 'myfrontend-dev', 'myfrontend-dev', 'DynamoDB', 'DynamoDB'],
     },
     {
       name: 'serviceTags',
@@ -158,7 +159,7 @@ const result = new MutableDataFrame({
         [
           {
             key: 'name',
-            value: 'DynamoDB',
+            value: 'myfrontend-dev',
           },
         ],
         [
@@ -176,7 +177,7 @@ const result = new MutableDataFrame({
         [
           {
             key: 'name',
-            value: 'myfrontend-dev',
+            value: 'DynamoDB',
           },
         ],
       ],
@@ -189,7 +190,7 @@ const result = new MutableDataFrame({
     {
       name: 'duration',
       config: {},
-      values: [0, 0, 48, 47, 47],
+      values: [0, 48, 47, 0, 47],
     },
     {
       name: 'logs',
@@ -200,7 +201,6 @@ const result = new MutableDataFrame({
       name: 'tags',
       config: {},
       values: [
-        undefined,
         undefined,
         [
           {
@@ -214,28 +214,6 @@ const result = new MutableDataFrame({
           {
             key: 'origin',
             value: 'AWS::EC2::Instance',
-          },
-        ],
-        [
-          {
-            key: 'metadata.http.dns.addresses[0].IP',
-            value: '4.2.123.160',
-          },
-          {
-            key: 'metadata.http.dns.addresses[1].IP',
-            value: '22.23.14.122',
-          },
-          {
-            key: 'in progress',
-            value: false,
-          },
-          {
-            key: 'origin',
-            value: 'AWS::DynamoDB::Table',
-          },
-          {
-            key: 'error',
-            value: true,
           },
         ],
         [
@@ -260,6 +238,29 @@ const result = new MutableDataFrame({
             value: true,
           },
         ],
+        undefined,
+        [
+          {
+            key: 'metadata.http.dns.addresses[0].IP',
+            value: '4.2.123.160',
+          },
+          {
+            key: 'metadata.http.dns.addresses[1].IP',
+            value: '22.23.14.122',
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+          {
+            key: 'origin',
+            value: 'AWS::DynamoDB::Table',
+          },
+          {
+            key: 'error',
+            value: true,
+          },
+        ],
       ],
     },
     {
@@ -273,18 +274,33 @@ const result = new MutableDataFrame({
       values: [
         undefined,
         undefined,
-        undefined,
-        undefined,
         [
           'ConditionalCheckFailedException: The conditional request failed\nat features.constructor.captureAWSRequest [as customRequestHandler] (/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js:66)\nat features.constructor.addAllRequestListeners (/var/app/current/node_modules/aws-sdk/lib/service.js:266)',
           'UndefinedStackException: Undefined stack exception',
         ],
+        undefined,
+        undefined,
       ],
     },
     {
       name: 'errorIconColor',
+      type: FieldType.string,
       config: {},
-      values: [undefined, undefined, undefined, undefined, '#FFC46E'],
+      values: [undefined, undefined, '#FFC46E', undefined, undefined],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: '__log_group',
+      type: FieldType.string,
+      values: ['unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: '__request_id',
+      type: FieldType.string,
+      values: [undefined, undefined, undefined, undefined, undefined],
     },
   ],
   meta: {
@@ -293,7 +309,7 @@ const result = new MutableDataFrame({
 });
 
 describe('transformResponse function', () => {
-  it('should transform aws x-ray response to jaeger span', () => {
+  it('should transform aws x-ray response to correct format', () => {
     expect(transformTraceResponse(awsResponse as any)).toEqual(result);
   });
 
