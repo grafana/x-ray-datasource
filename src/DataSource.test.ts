@@ -58,7 +58,7 @@ describe('XrayDataSource', () => {
       const ds = makeDatasourceWithResponse(makeTraceResponse(makeTrace()));
       const response = await ds.query(makeQuery()).toPromise();
       expect(response.data.length).toBe(1);
-      expect(response.data[0].fields.length).toBe(13);
+      expect(response.data[0].fields.length).toBe(15);
       expect(response.data[0].fields[0].values.length).toBe(2);
     });
 
