@@ -74,6 +74,9 @@ func CreateEc2Client(awsSettings *awsds.AWSDatasourceSettings, backendSettings *
 		HTTPClient:    httpClient,
 		UserAgentName: aws.String("X-ray"),
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	ec2Client := ec2.New(sess, &aws.Config{})
 	ec2Client.Handlers.Send.PushFront(func(r *request.Request) {
