@@ -47,10 +47,10 @@ func (s *instanceSettings) Dispose() {
 	// to cleanup.
 }
 
-type XrayClientFactory = func(pluginContext *backend.PluginContext, region string) (XrayClient, error)
+type XrayClientFactory = func(pluginContext *backend.PluginContext) (XrayClient, error)
 
 // Should probably return an interface similar to XrayClientFactory
-type Ec2ClientFactory = func(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error)
+type Ec2ClientFactory = func(pluginContext *backend.PluginContext) (*ec2.EC2, error)
 
 type Datasource struct {
 	// The instance manager can help with lifecycle management
@@ -80,7 +80,7 @@ const (
 	QueryGetAnalyticsUser                         = "getAnalyticsUser"
 	QueryGetAnalyticsStatusCode                   = "getAnalyticsStatusCode"
 	QueryGetInsights                              = "getInsights"
-  QueryGetServiceMap                            = "getServiceMap"
+	QueryGetServiceMap                            = "getServiceMap"
 )
 
 func NewDatasource(
@@ -108,7 +108,7 @@ func NewDatasource(
 	mux.HandleFunc(QueryGetAnalyticsUrl, ds.getAnalytics)
 	mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
 	mux.HandleFunc(QueryGetInsights, ds.getInsights)
-  mux.HandleFunc(QueryGetServiceMap, ds.getServiceMap)
+	mux.HandleFunc(QueryGetServiceMap, ds.getServiceMap)
 
 	ds.QueryMux = mux
 
@@ -119,26 +119,26 @@ func NewDatasource(
 	return ds
 }
 
-func getXrayClient(pluginContext *backend.PluginContext, region string) (XrayClient, error) {
-	dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
+func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
+	awsSettings, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
 
-	xrayClient, err := client.CreateXrayClient(region, dsInfo)
+	xrayClient, err := client.CreateXrayClient(awsSettings, pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
 	return xrayClient, nil
 }
 
-func getEc2Client(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
+func getEc2Client(pluginContext *backend.PluginContext) (*ec2.EC2, error) {
 	dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
 
-	ec2Client, err := client.CreateEc2Client(region, dsInfo)
+	ec2Client, err := client.CreateEc2Client(dsInfo, pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -158,5 +158,5 @@ type XrayClient interface {
 	GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error)
 	GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error
 	GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error
-  GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error
+	GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error
 }
