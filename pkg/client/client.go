@@ -20,7 +20,7 @@ import (
 var sessions = awsds.NewSessionCache()
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
-func CreateXrayClient(awsSettings *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*xray.XRay, error) {
+func CreateXrayClient(datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*xray.XRay, error) {
 	httpClientProvider := httpclient.NewProvider()
 	httpClientOptions, err := backendSettings.HTTPClientOptions()
 	if err != nil {
@@ -32,7 +32,7 @@ func CreateXrayClient(awsSettings *awsds.AWSDatasourceSettings, backendSettings 
 		return nil, err
 	}
 	sess, err := sessions.GetSession(awsds.SessionConfig{
-		Settings:      *awsSettings,
+		Settings:      *datasourceInfo,
 		HTTPClient:    httpClient,
 		UserAgentName: aws.String("X-ray"),
 	})
@@ -41,8 +41,8 @@ func CreateXrayClient(awsSettings *awsds.AWSDatasourceSettings, backendSettings 
 	}
 
 	config := &aws.Config{}
-	if awsSettings.Endpoint != "" {
-		config.Endpoint = aws.String(awsSettings.Endpoint)
+	if datasourceInfo.Endpoint != "" {
+		config.Endpoint = aws.String(datasourceInfo.Endpoint)
 	}
 
 	clt := xray.New(sess, config)
@@ -56,9 +56,6 @@ func CreateXrayClient(awsSettings *awsds.AWSDatasourceSettings, backendSettings 
 
 // CreateEc2Client creates client for EC2 api. We need this for some introspection queries like getting regions.
 func CreateEc2Client(awsSettings *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*ec2.EC2, error) {
-	if awsSettings == nil {
-		return nil, fmt.Errorf("x-ray datasource settings required")
-	}
 	httpClientProvider := httpclient.NewProvider()
 	httpClientOptions, err := backendSettings.HTTPClientOptions()
 	if err != nil {
