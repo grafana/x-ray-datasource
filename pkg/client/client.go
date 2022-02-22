@@ -31,6 +31,7 @@ func CreateXrayClient(datasourceInfo *awsds.AWSDatasourceSettings, backendSettin
 		backend.Logger.Error("failed to create HTTP client", "error", err.Error())
 		return nil, err
 	}
+
 	sess, err := sessions.GetSession(awsds.SessionConfig{
 		Settings:      *datasourceInfo,
 		HTTPClient:    httpClient,
@@ -66,6 +67,7 @@ func CreateEc2Client(awsSettings *awsds.AWSDatasourceSettings, backendSettings *
 		backend.Logger.Error("failed to create HTTP client", "error", err.Error())
 		return nil, err
 	}
+
 	sess, err := sessions.GetSession(awsds.SessionConfig{
 		Settings:      *awsSettings,
 		HTTPClient:    httpClient,
