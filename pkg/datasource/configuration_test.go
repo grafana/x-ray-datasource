@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getDsSettings(t *testing.T) {
+func Test_getDsSettings_test(t *testing.T) {
 	awsSettings, err := getDsSettings(&backend.DataSourceInstanceSettings{
 		ID:               33,
 		BasicAuthEnabled: false,
