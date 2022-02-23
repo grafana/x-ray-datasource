@@ -41,7 +41,7 @@ func (ds *Datasource) getSingleInsight(query backend.DataQuery, pluginContext *b
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	xrayClient, err := ds.xrayClientFactory(pluginContext)
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

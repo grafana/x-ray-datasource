@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## TBD
+- Modify the User-Agent for requests. Now it will follow this form: `"aws-sdk-go/$aws-sdk-version ($go-version; $OS;) X-Ray/$X-ray-version-$git-hash Grafana/$grafana-version"`
+
+
 ## v1.3.4
 
 #### Bug fixes

@@ -291,11 +291,11 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func xrayClientFactory(pluginContext *backend.PluginContext, region string) (datasource.XrayClient, error) {
+func xrayClientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient, error) {
 	return &XrayClientMock{}, nil
 }
 
-func ec2clientFactory(pluginContext *backend.PluginContext, region string) (*ec2.EC2, error) {
+func ec2clientFactory(pluginContext *backend.PluginContext) (*ec2.EC2, error) {
 	return nil, nil
 }
 

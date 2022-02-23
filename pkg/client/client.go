@@ -1,25 +1,21 @@
 package client
 
 import (
-	"fmt"
-	"os"
-	"runtime"
-
-	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 )
 
 // Global session cache
 var sessions = awsds.NewSessionCache()
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
-func CreateXrayClient(region string, datasourceInfo *awsds.AWSDatasourceSettings) (*xray.XRay, error) {
-	sess, err := sessions.GetSession(region, *datasourceInfo)
+func CreateXrayClient(datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*xray.XRay, error) {
+	sess, err := getXRaySession(datasourceInfo, backendSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -29,29 +25,37 @@ func CreateXrayClient(region string, datasourceInfo *awsds.AWSDatasourceSettings
 		config.Endpoint = aws.String(datasourceInfo.Endpoint)
 	}
 
-	clt := xray.New(sess, config)
-	clt.Handlers.Send.PushFront(func(r *request.Request) {
-		r.HTTPRequest.Header.Set("User-Agent", userAgentString())
-		log.DefaultLogger.Debug("CreateXrayClient", "userAgent", userAgentString())
-	})
+	backend.Logger.Debug("CreateXrayClient", "userAgent", awsds.GetUserAgentString("X-ray"))
 
-	return clt, nil
+	return xray.New(sess, config), nil
 }
 
 // CreateEc2Client creates client for EC2 api. We need this for some introspection queries like getting regions.
-func CreateEc2Client(region string, datasourceInfo *awsds.AWSDatasourceSettings) (*ec2.EC2, error) {
-	sess, err := sessions.GetSession(region, *datasourceInfo)
+func CreateEc2Client(datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*ec2.EC2, error) {
+	sess, err := getXRaySession(datasourceInfo, backendSettings)
 	if err != nil {
 		return nil, err
 	}
 
-	ec2Client := ec2.New(sess, &aws.Config{})
-	ec2Client.Handlers.Send.PushFront(func(r *request.Request) {
-		r.HTTPRequest.Header.Set("User-Agent", userAgentString())
-	})
-	return ec2Client, nil
+	return ec2.New(sess, &aws.Config{}), nil
 }
 
-func userAgentString() string {
-	return fmt.Sprintf("%s/%s (%s; %s) Grafana/%s", aws.SDKName, aws.SDKVersion, runtime.Version(), runtime.GOOS, os.Getenv("GF_VERSION"))
+func getXRaySession(datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*session.Session, error) {
+	httpClientProvider := httpclient.NewProvider()
+	httpClientOptions, err := backendSettings.HTTPClientOptions()
+	if err != nil {
+		return nil, err
+	}
+
+	httpClient, err := httpClientProvider.New(httpClientOptions)
+	if err != nil {
+		backend.Logger.Error("failed to create HTTP client", "error", err.Error())
+		return nil, err
+	}
+
+	return sessions.GetSession(awsds.SessionConfig{
+		Settings:      *datasourceInfo,
+		HTTPClient:    httpClient,
+		UserAgentName: aws.String("X-ray"),
+	})
 }

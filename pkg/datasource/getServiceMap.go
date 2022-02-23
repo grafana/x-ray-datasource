@@ -39,7 +39,7 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	xrayClient, err := ds.xrayClientFactory(pluginContext)
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,
