@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add fallback if url isn't full url and we cannot extract hostname [#84](https://github.com/grafana/x-ray-datasource/pull/84)
 
 #### Other
-- Modify the User-Agent for requests. Now it will follow this form: `"aws-sdk-go/$aws-sdk-version ($go-version; $OS;) X-Ray/$X-ray-version-$git-hash Grafana/$grafana-version"`
+- Modify the User-Agent for requests. Now it will follow this form: `"aws-sdk-go/$aws-sdk-version ($go-version; $OS;) X-ray/$X-ray-version-$git-hash Grafana/$grafana-version"`
 
 ## v1.3.4
 
