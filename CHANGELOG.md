@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 - Use non opt-in region when obtaining tokens for assumed roles
 - Fix wrong start and end times [#89](https://github.com/grafana/x-ray-datasource/pull/89)
 - Fix time durations after format change [#88](https://github.com/grafana/x-ray-datasource/pull/88)
-- Add fallback if url isn't full url and we cannot extract hostname [#84](https://github.com/grafana/x-ray-datasource/pull/84)
+- Avoid error if the URL in tags cannot be parsed [#84](https://github.com/grafana/x-ray-datasource/pull/84)
 
 #### Other
 - Modify the User-Agent for requests. Now it will follow this form: `"aws-sdk-go/$aws-sdk-version ($go-version; $OS;) X-ray/$X-ray-version-$git-hash Grafana/$grafana-version"`
