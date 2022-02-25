@@ -56,6 +56,7 @@ Here is a minimal policy example:
         "xray:GetTimeSeriesServiceStatistics",
         "xray:GetInsightSummaries",
         "xray:GetInsight",
+        "xray:GetServiceGraph",
         "ec2:DescribeRegions"
       ],
       "Resource": "*"
