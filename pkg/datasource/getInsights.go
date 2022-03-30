@@ -125,7 +125,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 		responseDataFrame.AppendRow(
 			insight.InsightId,
 			getDescription(insight, rootCauseService),
-			cases.Title(language.English).String(strings.ToLower(*insight.State)),
+			cases.Title(language.Und).String(strings.ToLower(*insight.State)),
 			getCategories(aws.StringValueSlice(insight.Categories)),
 			getDuration(insight.StartTime, insight.EndTime),
 			rootCauseService,
@@ -139,7 +139,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 
 func getCategories(categories []string) string {
 	for index, category := range categories {
-		categories[index] = cases.Title(language.English).String(strings.ToLower(category))
+		categories[index] = cases.Title(language.Und).String(strings.ToLower(category))
 	}
 	return strings.Join(categories, ", ")
 }
