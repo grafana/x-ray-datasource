@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.0.0
+_Not released yet_
+
+- Breaking Change: X-Ray data source now requires Grafana 8.0+ to run.
+
 ## v1.4.0
 
 #### Bug fixes
