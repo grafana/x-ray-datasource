@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.0.0
+_Not released yet_
+
+- Stopping support for Grafana versions under `8.0.0`.
+
 ## v1.4.0
 
 #### Bug fixes
