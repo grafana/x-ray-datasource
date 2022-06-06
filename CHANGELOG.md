@@ -3,9 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 ## v2.0.0
-_Not released yet_
+#### What's Changed
+* Stopping support for Grafana versions under `8.0.0` by @yaelleC in https://github.com/grafana/x-ray-datasource/pull/122
 
-- Stopping support for Grafana versions under `8.0.0`.
+#### Bug fixes
+* Update minimum IAM policy by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/115
+* Fix deprecated use of strings.Title by @fridgepoet in https://github.com/grafana/x-ray-datasource/pull/119
+
+#### Other
+* Update grafana-aws-sdk by @andresmgot in https://github.com/grafana/x-ray-datasource/pull/121
 
 ## v1.4.0
 
