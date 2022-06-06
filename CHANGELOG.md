@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 * Stopping support for Grafana versions under `8.0.0` by @yaelleC in https://github.com/grafana/x-ray-datasource/pull/122
 
 #### Bug fixes
-* Update minimum iam policy by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/115
+* Update minimum IAM policy by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/115
 * Fix deprecated use of strings.Title by @fridgepoet in https://github.com/grafana/x-ray-datasource/pull/119
 
 #### Other
