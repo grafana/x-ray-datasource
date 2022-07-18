@@ -13,7 +13,7 @@
   "author": "Grafana",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/aws-sdk": "0.0.3",
+    "@grafana/aws-sdk": "0.0.37",
     "@grafana/data": "8.1.5",
     "@grafana/runtime": "8.1.5",
     "@grafana/toolkit": "8.1.5",
