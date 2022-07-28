@@ -3,7 +3,47 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { QueryEditor } from './QueryEditor';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../DataSource';
-import { DataSourceInstanceSettings } from '@grafana/data';
+import { DataSourceInstanceSettings, ScopedVars, VariableModel } from '@grafana/data';
+import { TemplateSrv } from '@grafana/runtime';
+
+jest.mock('@grafana/runtime', () => {
+  const runtime = jest.requireActual('@grafana/runtime');
+  return {
+    __esModule: true,
+    ...runtime,
+    // We need to mock DataSourceWithBackend.query as we extend it and call super(). At the same time doing
+    // query = jest.fn() would be harder to access due to how that is transpiled
+    DataSourceWithBackend: class DataSourceWithBackendMock extends runtime.DataSourceWithBackend {
+      mockQuery = jest.fn();
+      query(...args: any[]) {
+        return this.mockQuery(...args);
+      }
+    },
+    getTemplateSrv(): TemplateSrv {
+      return {
+        getVariables(): VariableModel[] {
+          return [];
+        },
+        replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
+          if (!target) {
+            return '';
+          }
+          const vars: Record<string, { value: any }> = {
+            ...scopedVars,
+            someVar: {
+              value: '200',
+            },
+          };
+          for (const key of Object.keys(vars)) {
+            target = target!.replace(`\$${key}`, vars[key].value);
+            target = target!.replace(`\${${key}}`, vars[key].value);
+          }
+          return target!;
+        },
+      };
+    },
+  };
+});
 
 const defaultProps = {
   onRunQuery: undefined as any,
