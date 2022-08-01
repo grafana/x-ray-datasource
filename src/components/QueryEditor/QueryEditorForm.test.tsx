@@ -1,44 +1,29 @@
 import { queryTypeOptionToQueryType } from './QueryEditorForm';
 import { queryTypeOptions } from './constants';
 import { XrayQueryType } from '../../types';
-import { TemplateSrv } from '@grafana/runtime';
 import { ScopedVars, VariableModel } from '@grafana/data';
+import * as grafanaRuntime from '@grafana/runtime';
 
-jest.mock('@grafana/runtime', () => {
-  const runtime = jest.requireActual('@grafana/runtime');
+jest.spyOn(grafanaRuntime, 'getTemplateSrv').mockImplementation(() => {
   return {
-    __esModule: true,
-    ...runtime,
-    // We need to mock DataSourceWithBackend.query as we extend it and call super(). At the same time doing
-    // query = jest.fn() would be harder to access due to how that is transpiled
-    DataSourceWithBackend: class DataSourceWithBackendMock extends runtime.DataSourceWithBackend {
-      mockQuery = jest.fn();
-      query(...args: any[]) {
-        return this.mockQuery(...args);
-      }
+    getVariables(): VariableModel[] {
+      return [];
     },
-    getTemplateSrv(): TemplateSrv {
-      return {
-        getVariables(): VariableModel[] {
-          return [];
-        },
-        replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
-          if (!target) {
-            return '';
-          }
-          const vars: Record<string, { value: any }> = {
-            ...scopedVars,
-            someVar: {
-              value: '200',
-            },
-          };
-          for (const key of Object.keys(vars)) {
-            target = target!.replace(`\$${key}`, vars[key].value);
-            target = target!.replace(`\${${key}}`, vars[key].value);
-          }
-          return target!;
+    replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
+      if (!target) {
+        return '';
+      }
+      const vars: Record<string, { value: any }> = {
+        ...scopedVars,
+        someVar: {
+          value: '200',
         },
       };
+      for (const key of Object.keys(vars)) {
+        target = target!.replace(`\$${key}`, vars[key].value);
+        target = target!.replace(`\${${key}}`, vars[key].value);
+      }
+      return target!;
     },
   };
 });
