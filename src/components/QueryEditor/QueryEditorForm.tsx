@@ -1,6 +1,6 @@
 import React from 'react';
 import { css } from '@emotion/css';
-import { QueryEditorProps } from '@grafana/data';
+import { QueryEditorProps, ScopedVars } from '@grafana/data';
 import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory, Select } from '@grafana/ui';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { useInitQuery } from './useInitQuery';
@@ -17,6 +17,7 @@ import {
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
 import { XrayLinks } from './XrayLinks';
+import { getTemplateSrv } from '@grafana/runtime';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -57,9 +58,10 @@ export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTyp
   return findOptionForQueryType(queryType);
 }
 
-export function queryTypeOptionToQueryType(selected: string[], query: string): XrayQueryType {
+export function queryTypeOptionToQueryType(selected: string[], query: string, scopedVars?: ScopedVars): XrayQueryType {
   if (selected[0] === traceListOption.value) {
-    const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(query.trim());
+    const resolvedQuery = getTemplateSrv().replace(query, scopedVars);
+    const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(resolvedQuery.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
   } else {
     let found: any = undefined;
@@ -94,6 +96,7 @@ export function QueryEditorForm({
   groups,
   range,
   regions,
+  data,
 }: XrayQueryEditorFormProps) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   const allRegions = [{ label: 'default', value: 'default', text: 'default' }, ...regions];
@@ -144,7 +147,7 @@ export function QueryEditorForm({
             value={selectedOptions.map((option) => option.value)}
             options={queryTypeOptions}
             onChange={(value) => {
-              const newQueryType = queryTypeOptionToQueryType(value, query.query || '');
+              const newQueryType = queryTypeOptionToQueryType(value, query.query || '', data?.request?.scopedVars);
               onChange({
                 ...query,
                 queryType: newQueryType,
