@@ -1,12 +1,13 @@
 package datasource
 
 import (
-  "encoding/json"
-  "github.com/aws/aws-sdk-go/service/ec2"
-  "net/http"
+	"encoding/json"
+	"net/http"
 
-  "github.com/grafana/grafana-plugin-sdk-go/backend/log"
-  "github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/service/xray"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 func (ds *Datasource) getRegions(rw http.ResponseWriter, req *http.Request) {
@@ -15,20 +16,15 @@ func (ds *Datasource) getRegions(rw http.ResponseWriter, req *http.Request) {
     return
   }
 
-  pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
-  ec2Client, err := ds.ec2ClientFactory(&pluginConfig)
-
-  if err != nil {
-    sendError(rw, err)
-    return
-  }
-
-  regions, err := getRegions(ec2Client)
-
-  if err != nil {
-    sendError(rw, err)
-    return
-  }
+	regions := []string{}
+	for _, partition := range endpoints.DefaultPartitions() {
+		regionsForPartition, exists := endpoints.RegionsForService(endpoints.DefaultPartitions(), partition.ID(), xray.EndpointsID)
+		if exists {
+			for region := range regionsForPartition {
+				regions = append(regions, region)
+			}
+		}
+	}
 
   body, err := json.Marshal(regions)
   if err != nil {
@@ -42,13 +38,4 @@ func (ds *Datasource) getRegions(rw http.ResponseWriter, req *http.Request) {
     log.DefaultLogger.Error("failed to write response", "err", err.Error())
     return
   }
-}
-
-func getRegions(client *ec2.EC2) ([]*ec2.Region, error) {
-  input := &ec2.DescribeRegionsInput{}
-  out, err := client.DescribeRegions(input)
-  if err != nil {
-    return nil, err
-  }
-  return out.Regions, err
 }
