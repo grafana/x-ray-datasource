@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
-func (ds *Datasource) getRegions(rw http.ResponseWriter, req *http.Request) {
+func (ds *Datasource) GetRegions(rw http.ResponseWriter, req *http.Request) {
   if req.Method != "GET" {
     rw.WriteHeader(http.StatusMethodNotAllowed)
     return
