@@ -85,7 +85,7 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{region: queryData.Region})
+	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

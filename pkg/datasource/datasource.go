@@ -83,7 +83,6 @@ func NewDatasource(
 	ds := &Datasource{
 		xrayClientFactory: xrayClientFactory,
 	}
-
 	mux := datasource.NewQueryTypeMux()
 	mux.HandleFunc(QueryGetTrace, ds.getTrace)
 	mux.HandleFunc(QueryGetTraceSummaries, ds.getTraceSummaries)
@@ -112,7 +111,7 @@ func NewDatasource(
 }
 
 type RequestSettings struct {
-	region string
+	Region string
 }
 
 func getXrayClient(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
@@ -122,8 +121,8 @@ func getXrayClient(pluginContext *backend.PluginContext, requestSettings Request
 	}
 
 	// add region from the request body if it exists, otherwise default region will be used
-	if requestSettings.region != "" {
-		awsSettings.Region = requestSettings.region
+	if requestSettings.Region != "" {
+		awsSettings.Region = requestSettings.Region
 	}
 
 	xrayClient, err := client.CreateXrayClient(awsSettings, pluginContext.DataSourceInstanceSettings)
