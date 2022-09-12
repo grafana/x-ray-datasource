@@ -41,7 +41,7 @@ func (ds *Datasource) getSingleTrace(query backend.DataQuery, pluginContext *bac
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext)
+	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

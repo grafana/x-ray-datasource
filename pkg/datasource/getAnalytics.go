@@ -65,7 +65,7 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
 		return nil, err
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext)
+	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{region: queryData.Region})
 	if err != nil {
 		return nil, err
 	}
