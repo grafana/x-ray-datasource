@@ -13,6 +13,7 @@ import (
 type GetServiceMapQueryData struct {
 	Region string      `json:"region"`
 	Group  *xray.Group `json:"group"`
+	AccountIds []string `json:"accountIds,omitempty"`
 }
 
 func (ds *Datasource) getServiceMap(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -59,6 +60,22 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 	}
 	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {
 		for _, service := range page.Services {
+			// filter results by selected accountIds if any are passed
+			if len(queryData.AccountIds) > 0 {
+				// sometimes traces don't have accountId data, without knowing where it came from we have to filter it out
+				if service.AccountId == nil {
+					continue;
+				}
+				selectedAccountIdsContainsThisAccountId := false
+				for _, v := range queryData.AccountIds {
+					if v == *service.AccountId {
+						selectedAccountIdsContainsThisAccountId = true
+					}
+				}
+				if !selectedAccountIdsContainsThisAccountId {
+					continue
+				}
+			}
 			bytes, err := json.Marshal(service)
 			if err != nil {
 				// TODO: probably does not make sense to fail just because of one service but I assume the layout will fail
