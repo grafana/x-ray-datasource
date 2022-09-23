@@ -61,11 +61,11 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       const params = new URLSearchParams({ region });
       searchString = '?' + params.toString();
     }
-    return this.getResource(`/groups${searchString}`);
+    return this.getResource(`groups${searchString}`);
   }
 
   async getRegions(): Promise<Region[]> {
-    const response = await this.getResource('/regions');
+    const response = await this.getResource('regions');
     return [
       ...sortBy(
         response.map((r: any) => ({
@@ -76,6 +76,18 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         'label'
       ),
     ];
+  }
+
+  async getAccountIdsForServiceMap(range?: TimeRange, group?: Group): Promise<string[]> {
+    const params = new URLSearchParams({
+      startTime: range ? range.from.toISOString() : '',
+      endTime: range ? range.to.toISOString() : '',
+      group: group?.GroupName || '',
+    });
+    const searchString = '?' + params.toString();
+
+    const response = await this.getResource(`accountIds${searchString}`);
+    return response;
   }
 
   getServiceMapUrl(region?: string): string {

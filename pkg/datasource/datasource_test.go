@@ -21,7 +21,12 @@ func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, i
 	output := &xray.GetServiceGraphOutput{
 		NextToken: nil,
 		Services: []*xray.Service{
-			{},
+			{
+				AccountId: aws.String("testAccount1"),
+			},
+			{
+				AccountId: aws.String("testAccount2"),
+			},
 		},
 	}
 	fn(output, false)

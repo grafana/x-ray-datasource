@@ -239,7 +239,7 @@ function valueToTag(key: string, value: string | number | undefined): TraceKeyVa
  * trace graph cannot compute traces pre minute.
  */
 export function parseGraphResponse(response: DataFrame, query?: XrayQuery, options?: { showRequestCounts: boolean }) {
-  const allPresentAccountIds = [];
+  // const allPresentAccountIds = [];
   // Again assuming this will be single field with single value which will be the trace data blob
   const services: XrayService[] = response.fields[0].values.toArray().map((serviceJson) => {
     return JSON.parse(serviceJson);
@@ -382,9 +382,11 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     typeField.values.add(service.Type);
     mainStatField.values.add(avgResponseTime(stats));
 
-    if (service.AccountId) {
-      allPresentAccountIds.push(service.AccountId);
-    }
+    // if (service.AccountId) {
+    //   allPresentAccountIds.push(service.AccountId);
+    // } else {
+    //   allPresentAccountIds.push("mockid");
+    // }
 
     if (showRequestCounts) {
       const count = statsSource.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
@@ -458,9 +460,9 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
       ],
       meta: {
         preferredVisualisationType: 'nodeGraph',
-        custom: {
-          allPresentAccountIds,
-        },
+        // custom: {
+        // allPresentAccountIds,
+        // },
       },
     }),
     new MutableDataFrame({

@@ -87,6 +87,7 @@ const getStyles = stylesFactory(() => ({
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {
   groups: Group[];
   regions: Region[];
+  accountIds?: string[];
 };
 export function QueryEditorForm({
   query,
@@ -96,6 +97,7 @@ export function QueryEditorForm({
   groups,
   range,
   regions,
+  accountIds,
   data,
 }: XrayQueryEditorFormProps) {
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
@@ -103,7 +105,6 @@ export function QueryEditorForm({
   useInitQuery(query, onChange, groups, allRegions, datasource);
 
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
-  const allAccountIds = data?.series[0]?.meta?.custom?.allPresentAccountIds || [];
 
   const styles = getStyles();
   return (
@@ -185,7 +186,7 @@ export function QueryEditorForm({
               AccountId
             </InlineFormLabel>
             <MultiSelect
-              options={allAccountIds.map((accountId: string) => ({
+              options={(accountIds || []).map((accountId: string) => ({
                 value: accountId,
                 label: accountId,
               }))}
