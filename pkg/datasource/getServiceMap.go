@@ -58,22 +58,24 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		EndTime:   &query.TimeRange.To,
 		GroupName: queryData.Group.GroupName,
 	}
+	
+	// convert account ids into map for easy look up
+	accountIdsToFilterBy := make(map[string]bool)
+	for i := 0; i < len(queryData.AccountIds); i +=1 {
+		accountIdsToFilterBy[queryData.AccountIds[i]] = true
+	}
+
 	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {
 		for _, service := range page.Services {
-			// filter results by selected accountIds if any are passed
+			// filter out non matching account ids, if user has selected them
 			if len(queryData.AccountIds) > 0 {
 				// sometimes traces don't have accountId data, without knowing where it came from we have to filter it out
 				if service.AccountId == nil {
 					continue;
 				}
-				selectedAccountIdsContainsThisAccountId := false
-				for _, v := range queryData.AccountIds {
-					if v == *service.AccountId {
-						selectedAccountIdsContainsThisAccountId = true
-					}
-				}
-				if !selectedAccountIdsContainsThisAccountId {
-					continue
+
+				if accountIdsToFilterBy[*service.AccountId] != true {
+					continue;
 				}
 			}
 			bytes, err := json.Marshal(service)
