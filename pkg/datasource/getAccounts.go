@@ -10,7 +10,11 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
-func (ds *Datasource) GetAccountIds(rw http.ResponseWriter, req *http.Request) {
+type Account struct {
+  Id string
+}
+
+func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
   if req.Method != "GET" {
     rw.WriteHeader(http.StatusMethodNotAllowed)
     return
@@ -46,20 +50,22 @@ func (ds *Datasource) GetAccountIds(rw http.ResponseWriter, req *http.Request) {
 		GroupName: &group,
 	}
 
-  accountIds := []string{};
+  accounts := []Account{};
 
   err = xrayClient.GetServiceGraphPagesWithContext(req.Context(), input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {
 		for _, service := range page.Services {
       if service.AccountId != nil {
-        accountIds = append(accountIds, *service.AccountId)
+        account := Account{
+          Id: *service.AccountId,
+        }
+        accounts = append(accounts, account)
       }        
 		}
 		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
 		return true
 	})
 
-
-  body, err := json.Marshal(accountIds)
+  body, err := json.Marshal(accounts)
   if err != nil {
     sendError(rw, err)
     return

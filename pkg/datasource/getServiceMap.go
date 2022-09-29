@@ -59,10 +59,9 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		GroupName: queryData.Group.GroupName,
 	}
 	
-	// convert account ids into map for easy look up
 	accountIdsToFilterBy := make(map[string]bool)
-	for i := 0; i < len(queryData.AccountIds); i +=1 {
-		accountIdsToFilterBy[queryData.AccountIds[i]] = true
+	for _, value := range queryData.AccountIds {
+		accountIdsToFilterBy[value] = true
 	}
 
 	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {

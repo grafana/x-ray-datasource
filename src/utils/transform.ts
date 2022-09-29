@@ -239,7 +239,6 @@ function valueToTag(key: string, value: string | number | undefined): TraceKeyVa
  * trace graph cannot compute traces pre minute.
  */
 export function parseGraphResponse(response: DataFrame, query?: XrayQuery, options?: { showRequestCounts: boolean }) {
-  // const allPresentAccountIds = [];
   // Again assuming this will be single field with single value which will be the trace data blob
   const services: XrayService[] = response.fields[0].values.toArray().map((serviceJson) => {
     return JSON.parse(serviceJson);
@@ -376,17 +375,10 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
   for (const service of services) {
     const statsSource = service.SummaryStatistics ? service : service.Edges[0];
     const stats = statsSource.SummaryStatistics;
-
     idField.values.add(service.ReferenceId);
     titleField.values.add(service.Name);
     typeField.values.add(service.Type);
     mainStatField.values.add(avgResponseTime(stats));
-
-    // if (service.AccountId) {
-    //   allPresentAccountIds.push(service.AccountId);
-    // } else {
-    //   allPresentAccountIds.push("mockid");
-    // }
 
     if (showRequestCounts) {
       const count = statsSource.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
@@ -411,6 +403,11 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
   for (const edgeData of edges) {
     const { edge, source } = edgeData;
     const target = servicesMap[edge.ReferenceId];
+    // when filtering results by account id, not every target/source will always be returned
+    // if this is the case, there's no need to render an edge
+    if (!target) {
+      continue;
+    }
     edgeIdField.values.add(source.ReferenceId + '__' + target.ReferenceId);
     edgeSourceField.values.add(source.ReferenceId);
     edgeTargetField.values.add(edge.ReferenceId);
@@ -460,9 +457,6 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
       ],
       meta: {
         preferredVisualisationType: 'nodeGraph',
-        // custom: {
-        // allPresentAccountIds,
-        // },
       },
     }),
     new MutableDataFrame({

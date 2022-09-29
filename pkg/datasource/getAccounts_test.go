@@ -1,6 +1,7 @@
 package datasource_test
 
 import (
+	"encoding/json"
 	"io"
 	"testing"
 
@@ -10,16 +11,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAccountIds(t *testing.T) {
+type Account struct {
+  Id string
+}
+func TestAccounts(t *testing.T) {
 	t.Run("when passed a get request it returns a list of all accountIds in the traces in the selected time frame", func(t *testing.T) {
 		ds := datasource.NewDatasource(xrayClientFactory, ec2clientFactory)
-		req := httptest.NewRequest("GET", "http://example.com/accountIds?startTime=2022-09-23T00:15:14.365Z&endTime=2022-09-23T01:15:14.365Z&group=somegroup", nil)
+		req := httptest.NewRequest("GET", "http://example.com/accounts?startTime=2022-09-23T00:15:14.365Z&endTime=2022-09-23T01:15:14.365Z&group=somegroup", nil)
 		w := httptest.NewRecorder()
-		ds.GetAccountIds(w, req)
+		ds.GetAccounts(w, req)
 		resp := w.Result()
 		body, _ := io.ReadAll(resp.Body)
-		accountIdList := string(body)
-		require.Contains(t, accountIdList, "testAccount1")
-		require.Contains(t, accountIdList, "testAccount2")
+		accounts := []Account{};
+		json.Unmarshal(body, &accounts)
+		require.Contains(t, accounts[0].Id, "testAccount1")
+		require.Contains(t, accounts[1].Id, "testAccount2")
 	});
 }

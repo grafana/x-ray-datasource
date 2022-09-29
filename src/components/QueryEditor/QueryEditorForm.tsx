@@ -17,7 +17,8 @@ import {
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
 import { XrayLinks } from './XrayLinks';
-import { getTemplateSrv } from '@grafana/runtime';
+import { getTemplateSrv, config } from '@grafana/runtime';
+import { useAccountIds } from './useAccountIds';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -87,7 +88,6 @@ const getStyles = stylesFactory(() => ({
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {
   groups: Group[];
   regions: Region[];
-  accountIds?: string[];
 };
 export function QueryEditorForm({
   query,
@@ -97,9 +97,10 @@ export function QueryEditorForm({
   groups,
   range,
   regions,
-  accountIds,
   data,
 }: XrayQueryEditorFormProps) {
+  const accountIds = useAccountIds(datasource, query, range);
+
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   const allRegions = [{ label: 'default', value: 'default', text: 'default' }, ...regions];
   useInitQuery(query, onChange, groups, allRegions, datasource);
@@ -107,6 +108,11 @@ export function QueryEditorForm({
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
 
   const styles = getStyles();
+
+  const hasStoredAccountIdFilter = !!(query.accountIds && query.accountIds.length);
+  const showAccountIdDropdown =
+    [serviceMapOption].includes(selectedOptions[0]) && (config.featureToggles.lattice || hasStoredAccountIdFilter);
+
   return (
     <div>
       {![insightsOption, serviceMapOption].includes(selectedOptions[0]) && (
@@ -180,7 +186,7 @@ export function QueryEditorForm({
           />
         </div>
 
-        {[serviceMapOption].includes(selectedOptions[0]) && (
+        {showAccountIdDropdown && (
           <div className="gf-form">
             <InlineFormLabel className="query-keyword" width="auto">
               AccountId

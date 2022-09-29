@@ -10,7 +10,7 @@ import {
   TimeRange,
   toDuration,
 } from '@grafana/data';
-import { DataSourceWithBackend, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { DataSourceWithBackend, getTemplateSrv, TemplateSrv, config } from '@grafana/runtime';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -79,6 +79,9 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 
   async getAccountIdsForServiceMap(range?: TimeRange, group?: Group): Promise<string[]> {
+    if (!config.featureToggles.lattice) {
+      return [];
+    }
     const params = new URLSearchParams({
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
@@ -86,8 +89,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     });
     const searchString = '?' + params.toString();
 
-    const response = await this.getResource(`accountIds${searchString}`);
-    return response;
+    const response = await this.getResource(`accounts${searchString}`);
+    return response.map((account: { Id: string }) => account.Id);
   }
 
   getServiceMapUrl(region?: string): string {
