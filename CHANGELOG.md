@@ -12,12 +12,6 @@ All notable changes to this project will be documented in this file.
 - Fix Trace List with variable by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/132
 - Upgrade to grafana-aws-sdk v0.11.0 by @fridgepoet in https://github.com/grafana/x-ray-datasource/pull/139
 
-## 2.1.0
-
-- Bump terser from 4.8.0 to 4.8.1 by @dependabot in https://github.com/grafana/x-ray-datasource/pull/130
-- Fix Trace List with variable by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/132
-- Upgrade to grafana-aws-sdk v0.11.0 by @fridgepoet in https://github.com/grafana/x-ray-datasource/pull/139
-
 Full Changelog: https://github.com/grafana/x-ray-datasource/compare/v2.0.1...v2.1.0
 
 ## v.2.0.1
