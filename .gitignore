@@ -28,3 +28,7 @@ e2e-results/
 
 # Editor
 .idea
+
+# vscode
+.vscode
+__debug_bin
