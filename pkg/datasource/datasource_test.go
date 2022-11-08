@@ -3,6 +3,7 @@ package datasource_test
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -515,6 +516,14 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, 10.5, *frame.Fields[3].At(0).(*float64))
 		require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
 	})
+	t.Run("getTraceSummaries query with region", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{Query: "", Region: "us-east-1"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		require.Equal(t, "id-us-east-1", *frame.Fields[0].At(0).(*string))
+	})
 
 	t.Run("getServiceMap query", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}})
@@ -524,6 +533,17 @@ func TestDatasource(t *testing.T) {
 		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
 		frame := response.Responses["A"].Frames[0]
 		require.Equal(t, 1, frame.Fields[0].Len())
+	})
+
+	t.Run("getServiceMap query with region", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}, Region: "us-east-1"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
+		frame := response.Responses["A"].Frames[0]
+		require.Equal(t, 1, frame.Fields[0].Len())
+		require.True(t, strings.Contains(frame.Fields[0].At(0).(string), "mockServiceName-us-east-1"))
 	})
 
 	//

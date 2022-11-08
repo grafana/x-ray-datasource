@@ -3,10 +3,9 @@ package main
 import (
 	"os"
 
-	xraydatasource "github.com/grafana/x-ray-datasource/pkg/datasource"
-
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	xraydatasource "github.com/grafana/x-ray-datasource/pkg/datasource"
 )
 
 func main() {

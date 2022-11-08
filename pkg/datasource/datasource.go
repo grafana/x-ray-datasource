@@ -129,7 +129,7 @@ func getXrayClient(pluginContext *backend.PluginContext, requestSettings Request
 		return nil, err
 	}
 
-	// add region from the request body if it exists, otherwise default region will be used
+	// add region from the request body if it's set, otherwise default region will be used
 	if requestSettings.Region != "" && requestSettings.Region != "default" {
 		awsSettings.Region = requestSettings.Region
 	}
