@@ -47,7 +47,7 @@ func (s *instanceSettings) Dispose() {
 	// to cleanup.
 }
 
-type XrayClientFactory = func(pluginContext *backend.PluginContext) (XrayClient, error)
+type XrayClientFactory = func(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
 
 // Should probably return an interface similar to XrayClientFactory
 type Ec2ClientFactory = func(pluginContext *backend.PluginContext) (*ec2.EC2, error)
@@ -119,10 +119,19 @@ func NewDatasource(
 	return ds
 }
 
-func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
+type RequestSettings struct {
+	Region string
+}
+
+func getXrayClient(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
 	awsSettings, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
+	}
+
+	// add region from the request body if it exists, otherwise default region will be used
+	if requestSettings.Region != "" && requestSettings.Region != "default" {
+		awsSettings.Region = requestSettings.Region
 	}
 
 	xrayClient, err := client.CreateXrayClient(awsSettings, pluginContext.DataSourceInstanceSettings)

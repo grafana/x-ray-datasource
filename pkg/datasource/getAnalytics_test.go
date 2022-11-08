@@ -21,11 +21,11 @@ type XrayClientMock struct {
 }
 
 func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
-  panic("implement me")
+	panic("implement me")
 }
 
 func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
-  panic("implement me")
+	panic("implement me")
 }
 
 func NewXrayClientMock(traces ...[]*xray.TraceSummary) *XrayClientMock {
@@ -125,7 +125,7 @@ func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func
 }
 
 func getXrayClientFactory(client XrayClient) XrayClientFactory {
-	return func(pluginContext *backend.PluginContext) (XrayClient, error) {
+	return func(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
 		return client, nil
 	}
 }
