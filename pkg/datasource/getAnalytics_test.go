@@ -21,11 +21,11 @@ type XrayClientMock struct {
 }
 
 func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
-  panic("implement me")
+	panic("implement me")
 }
 
 func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
-  panic("implement me")
+	panic("implement me")
 }
 
 func NewXrayClientMock(traces ...[]*xray.TraceSummary) *XrayClientMock {
@@ -143,7 +143,7 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:03Z", "0", 100),
 			makeTrace("2020-09-16T00:00:04Z", "0", 100),
 		)
-		ds := NewDatasource(getXrayClientFactory(xrayMock), ec2clientFactory)
+		ds := NewDatasource(getXrayClientFactory(xrayMock))
 		// This should go happy path use 0.5 sampling and return half of the traces
 		traces, err := ds.getTraceSummariesData(
 			context.Background(),
@@ -167,7 +167,7 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:06Z", "0", 200),
 			makeTrace("2020-09-16T00:00:06Z", "1", 100),
 		)
-		ds := NewDatasource(getXrayClientFactory(xrayMock), ec2clientFactory)
+		ds := NewDatasource(getXrayClientFactory(xrayMock))
 		// first loop should return 600 traces which is more than 400
 		// sample those 600 to 300 (actual 299 due to probability)
 		// second loop returns 150 traces (using 0.5 sampling in the request)
