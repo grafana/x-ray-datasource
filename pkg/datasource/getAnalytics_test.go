@@ -10,7 +10,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/stretchr/testify/require"
@@ -128,10 +127,6 @@ func getXrayClientFactory(client XrayClient) XrayClientFactory {
 	return func(pluginContext *backend.PluginContext) (XrayClient, error) {
 		return client, nil
 	}
-}
-
-func ec2clientFactory(pluginContext *backend.PluginContext) (*ec2.EC2, error) {
-	return nil, nil
 }
 
 func TestGetAnalytics(t *testing.T) {
