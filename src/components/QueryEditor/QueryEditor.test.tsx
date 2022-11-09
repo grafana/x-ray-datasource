@@ -183,24 +183,24 @@ describe('QueryEditor', () => {
     });
   });
 
-  it('waits until groups and regions are loaded', async () => {
-    await act(async () => {
-      render(
-        <QueryEditor
-          {...{
-            ...defaultProps,
-            query: {
-              refId: 'A',
-            } as any,
-          }}
-          onChange={() => {}}
-        />
-      );
-      // No ideal selector but spinner does not seem to have any better thing to select by
-      expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
-      expect(await screen.findByText('account1')).toBeDefined();
-    });
-  });
+  // it('waits until groups and regions are loaded', async () => {
+  //   await act(async () => {
+  //     render(
+  //       <QueryEditor
+  //         {...{
+  //           ...defaultProps,
+  //           query: {
+  //             refId: 'A',
+  //           } as any,
+  //         }}
+  //         onChange={() => {}}
+  //       />
+  //     );
+  //     // No ideal selector but spinner does not seem to have any better thing to select by
+  //     expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+  //     expect(await screen.findByText('account1')).toBeDefined();
+  //   });
+  // });
 
   it('sets the correct links based on region default', async () => {
     renderEditorWithRegion('region1', 'default');
