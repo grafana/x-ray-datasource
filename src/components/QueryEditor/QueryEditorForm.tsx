@@ -99,19 +99,17 @@ export function QueryEditorForm({
   regions,
   data,
 }: XrayQueryEditorFormProps) {
-  const accountIds = useAccountIds(datasource, query, range);
-
-  const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
   const allRegions = [{ label: 'default', value: 'default', text: 'default' }, ...regions];
   useInitQuery(query, onChange, groups, allRegions, datasource);
 
+  const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
+  const accountIds = useAccountIds(datasource, query, range);
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
-
   const styles = getStyles();
-
   const hasStoredAccountIdFilter = !!(query.accountIds && query.accountIds.length);
   const showAccountIdDropdown =
-    [serviceMapOption].includes(selectedOptions[0]) && (config.featureToggles.lattice || hasStoredAccountIdFilter);
+    [serviceMapOption].includes(selectedOptions[0]) &&
+    (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter);
 
   return (
     <div>
