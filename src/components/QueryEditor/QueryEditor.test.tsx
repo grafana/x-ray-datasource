@@ -156,9 +156,7 @@ describe('QueryEditor', () => {
 
     fireEvent.change(field, { target: { value: '1-5f160a8b-83190adad07f429219c0e259' } });
 
-    // First call would be the query init call. We do not update the query based on that so when doing this second one
-    // it's done without default region or group.
-    expect(onChange.mock.calls[1][0]).toEqual({
+    expect(onChange.mock.calls[3][0]).toEqual({
       refId: 'A',
       query: '1-5f160a8b-83190adad07f429219c0e259',
       queryType: XrayQueryType.getTrace,

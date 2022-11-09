@@ -79,7 +79,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   }
 
   async getAccountIdsForServiceMap(range?: TimeRange, group?: Group): Promise<string[]> {
-    if (!config.featureToggles.lattice) {
+    if (!config.featureToggles.cloudWatchCrossAccountQuerying) {
       return [];
     }
     const params = new URLSearchParams({
