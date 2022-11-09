@@ -198,7 +198,7 @@ describe('QueryEditor', () => {
       );
       // No ideal selector but spinner does not seem to have any better thing to select by
       expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
-      await waitFor(() => expect(screen.getByText('Query')).toBeDefined());
+      expect(await screen.findByText('account1')).toBeDefined();
     });
   });
 
