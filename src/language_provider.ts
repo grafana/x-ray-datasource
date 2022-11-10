@@ -18,12 +18,12 @@ export class XRayLanguageProvider extends LanguageProvider {
     Object.assign(this, initialValues);
   }
 
-  request = () => {
+  request = async () => {
     return Promise.resolve();
   };
 
-  start = () => {
-    return Promise.resolve([]);
+  start = async () => {
+    return [];
   };
 
   /**
