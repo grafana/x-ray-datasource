@@ -85,8 +85,9 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     const params = new URLSearchParams({
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
-      group: group?.GroupName || '',
+      group: group?.GroupName || 'Default',
     });
+
     const searchString = '?' + params.toString();
 
     const response = await this.getResource(`accounts${searchString}`);
