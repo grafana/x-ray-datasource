@@ -10,7 +10,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/stretchr/testify/require"
@@ -130,10 +129,6 @@ func getXrayClientFactory(client XrayClient) XrayClientFactory {
 	}
 }
 
-func ec2clientFactory(pluginContext *backend.PluginContext) (*ec2.EC2, error) {
-	return nil, nil
-}
-
 func TestGetAnalytics(t *testing.T) {
 	t.Run("use precise sampling", func(t *testing.T) {
 
@@ -143,7 +138,7 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:03Z", "0", 100),
 			makeTrace("2020-09-16T00:00:04Z", "0", 100),
 		)
-		ds := NewDatasource(getXrayClientFactory(xrayMock), ec2clientFactory)
+		ds := NewDatasource(getXrayClientFactory(xrayMock))
 		// This should go happy path use 0.5 sampling and return half of the traces
 		traces, err := ds.getTraceSummariesData(
 			context.Background(),
@@ -167,7 +162,7 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:06Z", "0", 200),
 			makeTrace("2020-09-16T00:00:06Z", "1", 100),
 		)
-		ds := NewDatasource(getXrayClientFactory(xrayMock), ec2clientFactory)
+		ds := NewDatasource(getXrayClientFactory(xrayMock))
 		// first loop should return 600 traces which is more than 400
 		// sample those 600 to 300 (actual 299 due to probability)
 		// second loop returns 150 traces (using 0.5 sampling in the request)
