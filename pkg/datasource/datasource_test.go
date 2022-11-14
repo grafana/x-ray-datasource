@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/x-ray-datasource/pkg/datasource"
@@ -295,10 +294,6 @@ func xrayClientFactory(pluginContext *backend.PluginContext) (datasource.XrayCli
 	return &XrayClientMock{}, nil
 }
 
-func ec2clientFactory(pluginContext *backend.PluginContext) (*ec2.EC2, error) {
-	return nil, nil
-}
-
 func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
 	jsonData, _ := json.Marshal(query)
 
@@ -330,7 +325,7 @@ func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourc
 }
 
 func TestDatasource(t *testing.T) {
-	ds := datasource.NewDatasource(xrayClientFactory, ec2clientFactory)
+	ds := datasource.NewDatasource(xrayClientFactory)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
 		// Insight with nil EndTime should not throw error
