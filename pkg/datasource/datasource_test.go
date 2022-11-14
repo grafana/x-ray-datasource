@@ -3,6 +3,7 @@ package datasource_test
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,13 +15,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type XrayClientMock struct{}
+type XrayClientMock struct {
+	queryCalledWithRegion string
+}
 
 func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
+	serviceName := "mockServiceName"
+	if client.queryCalledWithRegion != "" {
+		serviceName = serviceName + "-" + client.queryCalledWithRegion
+	}
 	output := &xray.GetServiceGraphOutput{
 		NextToken: nil,
 		Services: []*xray.Service{
-			{},
+			{Name: aws.String(serviceName)},
 		},
 	}
 	fn(output, false)
@@ -38,7 +45,7 @@ func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput,
 	return nil
 }
 
-func makeSummary() *xray.TraceSummary {
+func makeSummary(region string) *xray.TraceSummary {
 	http := &xray.Http{
 		ClientIp:   aws.String("127.0.0.1"),
 		HttpMethod: aws.String("GET"),
@@ -60,11 +67,16 @@ func makeSummary() *xray.TraceSummary {
 		ServiceIds:      []*xray.ServiceId{},
 	}}
 
+	traceId := "id1"
+	if region != "" {
+		traceId = "id-" + region
+	}
+
 	return &xray.TraceSummary{
 		Annotations: annotations,
 		Duration:    aws.Float64(10.5),
 		Http:        http,
-		Id:          aws.String("id1"),
+		Id:          aws.String(traceId),
 		ErrorRootCauses: []*xray.ErrorRootCause{
 			{
 				ClientImpacting: nil,
@@ -141,7 +153,7 @@ func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummari
 
 func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error) {
 	// To make sure we don't panic in this case.
-	nilHttpSummary := makeSummary()
+	nilHttpSummary := makeSummary(client.queryCalledWithRegion)
 	nilHttpSummary.Http.ClientIp = nil
 	nilHttpSummary.Http.HttpURL = nil
 	nilHttpSummary.Http.HttpMethod = nil
@@ -149,7 +161,7 @@ func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, inpu
 
 	output := &xray.GetTraceSummariesOutput{
 		ApproximateTime: aws.Time(time.Now()),
-		TraceSummaries:  []*xray.TraceSummary{makeSummary(), nilHttpSummary},
+		TraceSummaries:  []*xray.TraceSummary{makeSummary(client.queryCalledWithRegion), nilHttpSummary},
 	}
 
 	return output, nil
@@ -161,10 +173,14 @@ func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*
 			Traces: []*xray.Trace{},
 		}, nil
 	}
+	traceId := "trace1"
+	if client.queryCalledWithRegion != "" {
+		traceId = traceId + "-" + client.queryCalledWithRegion
+	}
 	return &xray.BatchGetTracesOutput{
 		Traces: []*xray.Trace{{
 			Duration: aws.Float64(1.0),
-			Id:       aws.String("trace1"),
+			Id:       aws.String(traceId),
 			Segments: []*xray.Segment{
 				{
 					Id:       aws.String("segment1"),
@@ -176,9 +192,14 @@ func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*
 }
 
 func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(context aws.Context, input *xray.GetTimeSeriesServiceStatisticsInput, fn func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool, options ...request.Option) error {
+	firstRow := 0
+	if client.queryCalledWithRegion != "" {
+		firstRow = 13
+	}
+
 	output := &xray.GetTimeSeriesServiceStatisticsOutput{
 		TimeSeriesServiceStatistics: []*xray.TimeSeriesServiceStatistics{
-			makeTimeSeriesRow(0, Edge),
+			makeTimeSeriesRow(firstRow, Edge),
 			makeTimeSeriesRow(1, Edge),
 			makeTimeSeriesRow(2, Service),
 		},
@@ -201,7 +222,7 @@ func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummarie
 				GroupName:            aws.String("Grafana"),
 				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
 				TopAnomalousServices: []*xray.AnomalousService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
-				InsightId:            aws.String("ID"),
+				InsightId:            aws.String("id-" + client.queryCalledWithRegion),
 			},
 			{
 				Summary:              aws.String(insightSummary),
@@ -212,7 +233,7 @@ func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummarie
 				GroupName:            aws.String("Grafana"),
 				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
 				TopAnomalousServices: []*xray.AnomalousService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
-				InsightId:            aws.String("ID2"),
+				InsightId:            aws.String("id-2-" + client.queryCalledWithRegion),
 			},
 		},
 	}, nil
@@ -290,8 +311,10 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func xrayClientFactory(pluginContext *backend.PluginContext) (datasource.XrayClient, error) {
-	return &XrayClientMock{}, nil
+func xrayClientFactory(pluginContext *backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.XrayClient, error) {
+	return &XrayClientMock{
+		queryCalledWithRegion: requestSettings.Region,
+	}, nil
 }
 
 func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
@@ -355,6 +378,15 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, "graf2 (AWS2)", response.Responses["A"].Frames[0].Fields[6].At(0))
 	})
 
+	t.Run("getInsightSummaries query with different region", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xray.Group{GroupName: aws.String("Grafana")}, Region: "us-east-1"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+		frame := response.Responses["A"].Frames[0]
+
+		require.Equal(t, "id-us-east-1", *frame.Fields[0].At(0).(*string))
+	})
+
 	t.Run("getTrace query", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "traceID"})
 		require.NoError(t, err)
@@ -371,13 +403,24 @@ func TestDatasource(t *testing.T) {
 		)
 	})
 
+	t.Run("getTrace query with different region", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "traceID", Region: "us-east-1"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+		require.JSONEq(
+			t,
+			"{\"Duration\":1,\"Id\":\"trace1-us-east-1\",\"LimitExceeded\":null,\"Segments\":[{\"Document\":\"{}\",\"Id\":\"segment1\"}]}",
+			response.Responses["A"].Frames[0].Fields[0].At(0).(string),
+		)
+	})
+
 	t.Run("getTrace query trace not found", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "notFound"})
 		require.NoError(t, err)
 		require.Error(t, response.Responses["A"].Error, "trace not found")
 	})
 
-	t.Run("getTimeSeriesServiceStatistics query", func(t *testing.T) {
+	t.Run("getTimeSeriesServiceStatistics query with no columns selected", func(t *testing.T) {
 		response, err := queryDatasource(
 			ds,
 			datasource.QueryGetTimeSeriesServiceStatistics,
@@ -401,6 +444,23 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, 3.14/80, *response.Responses["A"].Frames[5].Fields[1].At(0).(*float64))
 	})
 
+	t.Run("getTimeSeriesServiceStatistics query with region", func(t *testing.T) {
+		response, err := queryDatasource(
+			ds,
+			datasource.QueryGetTimeSeriesServiceStatistics,
+			datasource.GetTimeSeriesServiceStatisticsQueryData{Query: "traceID", Columns: []string{}, Region: "us-east-1"},
+		)
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		// expect different time as a stand-in for different results based on region, notice 13
+		require.Equal(
+			t,
+			time.Date(2020, 6, 20, 1, 13, 1, 0, time.UTC).String(),
+			response.Responses["A"].Frames[0].Fields[0].At(0).(*time.Time).String(),
+		)
+	})
+
 	t.Run("getTimeSeriesServiceStatistics query returns filtered columns", func(t *testing.T) {
 		response, err := queryDatasource(
 			ds,
@@ -415,13 +475,7 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, "Fault Count", response.Responses["A"].Frames[1].Fields[1].Name)
 	})
 
-	t.Run("getTrace query trace not found", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "notFound"})
-		require.NoError(t, err)
-		require.Error(t, response.Responses["A"].Error, "trace not found")
-	})
-
-	t.Run("getTimeSeriesServiceStatistics query", func(t *testing.T) {
+	t.Run("getTimeSeriesServiceStatistics query with all columns selected", func(t *testing.T) {
 		response, err := queryDatasource(
 			ds,
 			datasource.QueryGetTimeSeriesServiceStatistics,
@@ -445,20 +499,6 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, 3.14/80, *response.Responses["A"].Frames[5].Fields[1].At(0).(*float64))
 	})
 
-	t.Run("getTimeSeriesServiceStatistics query returns filtered columns", func(t *testing.T) {
-		response, err := queryDatasource(
-			ds,
-			datasource.QueryGetTimeSeriesServiceStatistics,
-			datasource.GetTimeSeriesServiceStatisticsQueryData{Query: "traceID", Columns: []string{"OkCount", "FaultStatistics.TotalCount"}},
-		)
-		require.NoError(t, err)
-		require.NoError(t, response.Responses["A"].Error)
-
-		require.Equal(t, 2, len(response.Responses["A"].Frames))
-		require.Equal(t, "Success Count", response.Responses["A"].Frames[0].Fields[1].Name)
-		require.Equal(t, "Fault Count", response.Responses["A"].Frames[1].Fields[1].Name)
-	})
-
 	t.Run("getTraceSummaries query", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{Query: ""})
 		require.NoError(t, err)
@@ -471,6 +511,14 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, 10.5, *frame.Fields[3].At(0).(*float64))
 		require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
 	})
+	t.Run("getTraceSummaries query with region", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{Query: "", Region: "us-east-1"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		require.Equal(t, "id-us-east-1", *frame.Fields[0].At(0).(*string))
+	})
 
 	t.Run("getServiceMap query", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}})
@@ -480,6 +528,17 @@ func TestDatasource(t *testing.T) {
 		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
 		frame := response.Responses["A"].Frames[0]
 		require.Equal(t, 1, frame.Fields[0].Len())
+	})
+
+	t.Run("getServiceMap query with region", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}, Region: "us-east-1"})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
+		frame := response.Responses["A"].Frames[0]
+		require.Equal(t, 1, frame.Fields[0].Len())
+		require.True(t, strings.Contains(frame.Fields[0].At(0).(string), "mockServiceName-us-east-1"))
 	})
 
 	//
