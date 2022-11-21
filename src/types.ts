@@ -194,11 +194,11 @@ interface HistogramValue {
 }
 
 export interface SummaryStatistics {
-  ErrorStatistics: { OtherCount: number; ThrottleCount: number; TotalCount: number };
-  FaultStatistics: { OtherCount: number; TotalCount: number };
-  OkCount: number;
-  TotalCount: number;
-  TotalResponseTime: number;
+  ErrorStatistics?: { OtherCount: number; ThrottleCount: number; TotalCount: number };
+  FaultStatistics?: { OtherCount: number; TotalCount: number };
+  OkCount?: number;
+  TotalCount?: number;
+  TotalResponseTime?: number;
 }
 
 export interface XrayEdge {
