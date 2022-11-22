@@ -124,7 +124,7 @@ func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func
 }
 
 func getXrayClientFactory(client XrayClient) XrayClientFactory {
-	return func(pluginContext *backend.PluginContext) (XrayClient, error) {
+	return func(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
 		return client, nil
 	}
 }
