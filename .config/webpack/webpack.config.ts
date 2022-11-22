@@ -43,6 +43,7 @@ const config = async (env): Promise<Configuration> => ({
     'react',
     'react-dom',
     'react-redux',
+    'react-use',
     'redux',
     'rxjs',
     'react-router',
@@ -52,6 +53,7 @@ const config = async (env): Promise<Configuration> => ({
     '@grafana/ui',
     '@grafana/runtime',
     '@grafana/data',
+    'tslib',
 
     // Mark legacy SDK imports as external if their name starts with the "grafana/" prefix
     ({ request }, callback) => {
@@ -93,7 +95,7 @@ const config = async (env): Promise<Configuration> => ({
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"]
+        use: ['style-loader', 'css-loader'],
       },
       {
         exclude: /(node_modules)/,
