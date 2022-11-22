@@ -115,6 +115,8 @@ func NewDatasource(
 	resMux := http.NewServeMux()
 	resMux.HandleFunc("/groups", ds.getGroups)
 	resMux.HandleFunc("/regions", ds.getRegions)
+	resMux.HandleFunc("/accounts", ds.GetAccounts)
+
 	ds.ResourceMux = httpadapter.New(resMux)
 	return ds
 }

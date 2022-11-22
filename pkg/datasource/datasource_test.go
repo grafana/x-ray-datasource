@@ -21,7 +21,12 @@ func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, i
 	output := &xray.GetServiceGraphOutput{
 		NextToken: nil,
 		Services: []*xray.Service{
-			{},
+			{
+				AccountId: aws.String("testAccount1"),
+			},
+			{
+				AccountId: aws.String("testAccount2"),
+			},
 		},
 	}
 	fn(output, false)
@@ -484,7 +489,7 @@ func TestDatasource(t *testing.T) {
 
 		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
 		frame := response.Responses["A"].Frames[0]
-		require.Equal(t, 1, frame.Fields[0].Len())
+		require.Equal(t, 2, frame.Fields[0].Len()) // 2 because of the 2 services added to the mock
 	})
 
 	//
