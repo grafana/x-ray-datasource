@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.2.0
+
+- Make properties of `SummaryStatistics` optional
+
 ## 2.1.2
 
 - Security: Upgrade Go in build process to 1.19.3
