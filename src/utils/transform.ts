@@ -483,7 +483,7 @@ export function avgResponseTime(statistics: SummaryStatistics) {
 
 export function tracesPerMinute(statistics: SummaryStatistics, startTime: number | string, endTime: number | string) {
   if (!statistics.TotalCount) {
-    return 0;
+    return undefined;
   }
   return endTime && startTime ? statistics.TotalCount / ((toMs(endTime) - toMs(startTime)) / (60 * 1000)) : undefined;
 }
