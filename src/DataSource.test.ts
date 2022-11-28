@@ -9,7 +9,14 @@ import {
   ScopedVars,
   VariableModel,
 } from '@grafana/data';
-import { XrayJsonData, XrayQuery, XrayQueryType, XrayTraceDataRaw, XrayTraceDataSegmentDocument } from './types';
+import {
+  XrayJsonData,
+  XrayQuery,
+  XrayQueryType,
+  XrayService,
+  XrayTraceDataRaw,
+  XrayTraceDataSegmentDocument,
+} from './types';
 import { of } from 'rxjs';
 import { TemplateSrv } from '@grafana/runtime';
 
@@ -75,6 +82,22 @@ describe('XrayDataSource', () => {
         query: '${__value.raw}',
         queryType: 'getTrace',
       });
+    });
+
+    it('returns parsed data when querying service map', async () => {
+      const ds = makeDatasourceWithResponse(makeServiceMapResponse());
+      const response = await ds.query(makeQuery({ queryType: XrayQueryType.getServiceMap, query: '' })).toPromise();
+      expect(response.data.length).toBe(2);
+      const nodes: DataFrame = response.data[0];
+      expect(nodes.fields.length).toBe(9);
+      const edges: DataFrame = response.data[1];
+      expect(edges.fields.length).toBe(7);
+      expect(edges.fields.find((f) => f.name === 'mainStat')?.values.toArray()).toEqual(
+        expect.arrayContaining(['N/A'])
+      );
+      expect(edges.fields.find((f) => f.name === 'secondaryStat')?.values.toArray()).toEqual(
+        expect.arrayContaining([undefined])
+      );
     });
 
     it('should parse insight response correctly', async () => {
@@ -214,6 +237,244 @@ function makeTrace(): XrayTraceDataRaw {
   };
 }
 
+function makeServiceMapWithLinkedEdge() {
+  const serviceMap: XrayService[] = [
+    {
+      AccountId: null,
+      DurationHistogram: [
+        { Count: 1, Value: 0.375 },
+        { Count: 1, Value: 0.012 },
+      ],
+      Edges: [
+        {
+          Aliases: [],
+          EndTime: 9,
+          ReferenceId: 1,
+          ResponseTimeHistogram: [
+            { Count: 1, Value: 0.375 },
+            { Count: 1, Value: 0.012 },
+          ],
+          StartTime: 1,
+          SummaryStatistics: {
+            ErrorStatistics: { OtherCount: 0, ThrottleCount: 0, TotalCount: 0 },
+            FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+            OkCount: 2,
+            TotalCount: 2,
+            TotalResponseTime: 0.387,
+          },
+        },
+      ],
+      EndTime: 9,
+      Name: 'ProcessSQSRecord',
+      Names: ['ProcessSQSRecord'],
+      ReferenceId: 0,
+      ResponseTimeHistogram: [
+        { Count: 1, Value: 0.375 },
+        { Count: 1, Value: 0.012 },
+      ],
+      Root: null,
+      StartTime: 1,
+      State: 'active',
+      SummaryStatistics: {
+        ErrorStatistics: { OtherCount: 0, ThrottleCount: 0, TotalCount: 0 },
+        FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+        OkCount: 2,
+        TotalCount: 2,
+        TotalResponseTime: 0.387,
+      },
+      Type: 'AWS::Lambda',
+    },
+    {
+      AccountId: '1',
+      DurationHistogram: [
+        { Count: 1, Value: 0.002 },
+        { Count: 1, Value: 0.242 },
+      ],
+      Edges: [],
+      EndTime: 9,
+      Name: 'ProcessSQSRecord',
+      Names: ['ProcessSQSRecord'],
+      ReferenceId: 1,
+      ResponseTimeHistogram: [
+        { Count: 1, Value: 0.002 },
+        { Count: 1, Value: 0.013 },
+      ],
+      Root: null,
+      StartTime: 1,
+      State: 'active',
+      SummaryStatistics: {
+        ErrorStatistics: { OtherCount: 0, ThrottleCount: 0, TotalCount: 0 },
+        FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+        OkCount: 2,
+        TotalCount: 2,
+        TotalResponseTime: 0.014,
+      },
+      Type: 'AWS::Lambda::Function',
+    },
+    {
+      AccountId: null,
+      DurationHistogram: [
+        { Count: 1, Value: 0.506 },
+        { Count: 33, Value: 0.002 },
+        { Count: 147, Value: -0 },
+        { Count: 2, Value: 0.522 },
+        { Count: 1, Value: 0.51 },
+        { Count: 2, Value: 0.507 },
+        { Count: 1, Value: 0.508 },
+        { Count: 333, Value: 0.501 },
+        { Count: 160, Value: 0.503 },
+        { Count: 497, Value: 0.001 },
+        { Count: 1, Value: 0.514 },
+        { Count: 2, Value: 0.509 },
+        { Count: 2, Value: 0.505 },
+        { Count: 9, Value: 0.504 },
+        { Count: 2326, Value: 0.502 },
+        { Count: 36, Value: 0.044 },
+      ],
+      Edges: [
+        {
+          Aliases: [],
+          EndTime: 9,
+          ReferenceId: 4,
+          ResponseTimeHistogram: [
+            { Count: 1, Value: 0.073 },
+            { Count: 1, Value: 0.117 },
+          ],
+          StartTime: 1,
+          SummaryStatistics: {
+            ErrorStatistics: { OtherCount: 0, ThrottleCount: 0, TotalCount: 0 },
+            FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+            OkCount: 2,
+            TotalCount: 2,
+            TotalResponseTime: 0.19,
+          },
+        },
+      ],
+      EndTime: 9,
+      Name: 'SampleSite',
+      Names: ['SampleSite'],
+      ReferenceId: 2,
+      ResponseTimeHistogram: [
+        { Count: 1, Value: 0.506 },
+        { Count: 33, Value: 0.002 },
+        { Count: 147, Value: -0 },
+        { Count: 2, Value: 0.522 },
+        { Count: 1, Value: 0.51 },
+        { Count: 2, Value: 0.507 },
+        { Count: 1, Value: 0.508 },
+        { Count: 333, Value: 0.501 },
+        { Count: 160, Value: 0.503 },
+        { Count: 497, Value: 0.001 },
+        { Count: 1, Value: 0.514 },
+        { Count: 2, Value: 0.509 },
+        { Count: 2, Value: 0.505 },
+        { Count: 9, Value: 0.504 },
+        { Count: 2326, Value: 0.502 },
+        { Count: 36, Value: 0.044 },
+      ],
+      Root: true,
+      StartTime: 1,
+      State: 'active',
+      SummaryStatistics: {
+        ErrorStatistics: { OtherCount: 711, ThrottleCount: 0, TotalCount: 711 },
+        FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+        OkCount: 2842,
+        TotalCount: 3553,
+        TotalResponseTime: 1427.793,
+      },
+      Type: 'AWS::ElasticBeanstalk::Environment',
+    },
+    {
+      AccountId: null,
+      DurationHistogram: [],
+      Edges: [
+        {
+          Aliases: [],
+          EndTime: 9,
+          ReferenceId: 2,
+          ResponseTimeHistogram: [
+            { Count: 1, Value: 0.506 },
+            { Count: 33, Value: 0.002 },
+            { Count: 147, Value: -0 },
+            { Count: 2, Value: 0.522 },
+            { Count: 1, Value: 0.51 },
+            { Count: 2, Value: 0.507 },
+            { Count: 1, Value: 0.508 },
+            { Count: 333, Value: 0.501 },
+            { Count: 160, Value: 0.503 },
+            { Count: 497, Value: 0.001 },
+            { Count: 1, Value: 0.514 },
+            { Count: 2, Value: 0.509 },
+            { Count: 2, Value: 0.505 },
+            { Count: 9, Value: 0.504 },
+            { Count: 2326, Value: 0.502 },
+            { Count: 36, Value: 0.044 },
+          ],
+          StartTime: 1,
+          SummaryStatistics: {
+            ErrorStatistics: {
+              OtherCount: 711,
+              ThrottleCount: 0,
+              TotalCount: 711,
+            },
+            FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+            OkCount: 2842,
+            TotalCount: 3553,
+            TotalResponseTime: 1427.793,
+          },
+        },
+      ],
+      EndTime: 9,
+      Name: 'SampleSite',
+      Names: ['SampleSite'],
+      ReferenceId: 3,
+      ResponseTimeHistogram: [],
+      Root: null,
+      StartTime: 1,
+      State: 'unknown',
+      SummaryStatistics: {},
+      Type: 'client',
+    },
+    {
+      AccountId: null,
+      DurationHistogram: [
+        { Count: 1, Value: 0.073 },
+        { Count: 1, Value: 0.117 },
+      ],
+      Edges: [
+        {
+          Aliases: [],
+          EndTime: 9,
+          ReferenceId: 0,
+          ResponseTimeHistogram: [],
+          StartTime: 1,
+          SummaryStatistics: {},
+        },
+      ],
+      EndTime: 9,
+      Name: 'https://sqs.us-east-1.amazonaws.com/123456789012/SampleQueue',
+      Names: ['https://sqs.us-east-1.amazonaws.com/123456789012/SampleQueue'],
+      ReferenceId: 4,
+      ResponseTimeHistogram: [
+        { Count: 1, Value: 0.073 },
+        { Count: 1, Value: 0.117 },
+      ],
+      Root: null,
+      StartTime: 1,
+      State: 'unknown',
+      SummaryStatistics: {
+        ErrorStatistics: { OtherCount: 0, ThrottleCount: 0, TotalCount: 0 },
+        FaultStatistics: { OtherCount: 0, TotalCount: 0 },
+        OkCount: 2,
+        TotalCount: 2,
+        TotalResponseTime: 0.19,
+      },
+      Type: 'AWS::SQS::Queue',
+    },
+  ];
+  return serviceMap.map((json) => JSON.stringify(json));
+}
+
 function makeTraceSummariesResponse(): DataFrame {
   return new MutableDataFrame({
     name: 'TraceSummaries',
@@ -245,6 +506,19 @@ function makeInsightResponse(): DataFrame {
         name: 'Duration',
         type: FieldType.number,
         values: new ArrayVector([4590000, 1422000, 42000]),
+      },
+    ],
+  });
+}
+
+function makeServiceMapResponse(): DataFrame {
+  return new MutableDataFrame({
+    name: 'ServiceMap',
+    fields: [
+      {
+        name: 'Service',
+        type: FieldType.string,
+        values: new ArrayVector(makeServiceMapWithLinkedEdge()),
       },
     ],
   });

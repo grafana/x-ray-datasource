@@ -479,26 +479,44 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
 }
 
 export function avgResponseTime(statistics: SummaryStatistics) {
+  if (!statistics.TotalResponseTime || !statistics.TotalCount) {
+    return 0;
+  }
   return (statistics.TotalResponseTime / statistics.TotalCount) * 1000;
 }
 
 export function tracesPerMinute(statistics: SummaryStatistics, startTime: number | string, endTime: number | string) {
+  if (!statistics.TotalCount) {
+    return undefined;
+  }
   return endTime && startTime ? statistics.TotalCount / ((toMs(endTime) - toMs(startTime)) / (60 * 1000)) : undefined;
 }
 
 export function successPercentage(statistics: SummaryStatistics) {
+  if (!statistics.OkCount || !statistics.TotalCount) {
+    return 0;
+  }
   return statistics.OkCount / statistics.TotalCount;
 }
 
 export function throttledPercentage(statistics: SummaryStatistics) {
+  if (!statistics.ErrorStatistics || !statistics.TotalCount) {
+    return 0;
+  }
   return statistics.ErrorStatistics.ThrottleCount / statistics.TotalCount;
 }
 
 export function errorsPercentage(statistics: SummaryStatistics) {
+  if (!statistics.ErrorStatistics || !statistics.TotalCount) {
+    return 0;
+  }
   return (statistics.ErrorStatistics.TotalCount - statistics.ErrorStatistics.ThrottleCount) / statistics.TotalCount;
 }
 
 export function faultsPercentage(statistics: SummaryStatistics) {
+  if (!statistics.FaultStatistics || !statistics.TotalCount) {
+    return 0;
+  }
   return statistics.FaultStatistics.TotalCount / statistics.TotalCount;
 }
 
