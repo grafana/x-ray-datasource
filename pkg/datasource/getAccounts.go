@@ -19,20 +19,21 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-
-	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
-	xrayClient, err := ds.xrayClientFactory(&pluginConfig)
-
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-
 	urlQuery, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
 		sendError(rw, err)
 		return
 	}
+	region := urlQuery.Get("region")
+
+	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
+	xrayClient, err := ds.xrayClientFactory(&pluginConfig, RequestSettings{Region: region})
+
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
 	group := urlQuery.Get("group")
 
 	layout := "2006-01-02T15:04:05.000Z"

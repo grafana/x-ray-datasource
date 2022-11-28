@@ -68,10 +68,10 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     const response = await this.getResource('regions');
     return [
       ...sortBy(
-        response.map((r: any) => ({
-          label: r.RegionName,
-          value: r.RegionName,
-          text: r.RegionName,
+        response.map((name: string) => ({
+          label: name,
+          value: name,
+          text: name,
         })),
         'label'
       ),

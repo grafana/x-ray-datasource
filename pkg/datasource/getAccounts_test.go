@@ -1,13 +1,13 @@
 package datasource_test
 
 import (
-  "encoding/json"
-  "io"
-  "net/http/httptest"
-  "testing"
+	"encoding/json"
+	"io"
+	"net/http/httptest"
+	"testing"
 
-  "github.com/grafana/x-ray-datasource/pkg/datasource"
-  "github.com/stretchr/testify/require"
+	"github.com/grafana/x-ray-datasource/pkg/datasource"
+	"github.com/stretchr/testify/require"
 )
 
 type Account struct {
@@ -16,7 +16,7 @@ type Account struct {
 
 func TestAccounts(t *testing.T) {
   t.Run("when passed a get request it returns a list of all accountIds in the traces in the selected time frame", func(t *testing.T) {
-    ds := datasource.NewDatasource(xrayClientFactory, ec2clientFactory)
+    ds := datasource.NewDatasource(xrayClientFactory)
     req := httptest.NewRequest("GET", "http://example.com/accounts?startTime=2022-09-23T00:15:14.365Z&endTime=2022-09-23T01:15:14.365Z&group=somegroup", nil)
     w := httptest.NewRecorder()
     ds.GetAccounts(w, req)

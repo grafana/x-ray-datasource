@@ -3,7 +3,6 @@ package datasource
 import (
 	"net/http"
 
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/xray"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,9 +21,8 @@ func GetServeOpts() datasource.ServeOpts {
 	// creates a instance manager for your plugin. The function passed
 	// into `NewInstanceManger` is called when the instance is created
 	// for the first time or when a datasource configuration changed.
-	ds := NewDatasource(getXrayClient, getEc2Client)
+	ds := NewDatasource(getXrayClient)
 	ds.im = datasource.NewInstanceManager(newDataSourceInstanceSettings)
-
 	return datasource.ServeOpts{
 		QueryDataHandler:    ds.QueryMux,
 		CallResourceHandler: ds.ResourceMux,
@@ -47,10 +45,7 @@ func (s *instanceSettings) Dispose() {
 	// to cleanup.
 }
 
-type XrayClientFactory = func(pluginContext *backend.PluginContext) (XrayClient, error)
-
-// Should probably return an interface similar to XrayClientFactory
-type Ec2ClientFactory = func(pluginContext *backend.PluginContext) (*ec2.EC2, error)
+type XrayClientFactory = func(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
 
 type Datasource struct {
 	// The instance manager can help with lifecycle management
@@ -60,7 +55,6 @@ type Datasource struct {
 	QueryMux          *datasource.QueryTypeMux
 	ResourceMux       backend.CallResourceHandler
 	xrayClientFactory XrayClientFactory
-	ec2ClientFactory  Ec2ClientFactory
 }
 
 // Needs to match XrayQueryType in frontend code
@@ -83,14 +77,8 @@ const (
 	QueryGetServiceMap                            = "getServiceMap"
 )
 
-func NewDatasource(
-	xrayClientFactory XrayClientFactory,
-	ec2ClientFactory Ec2ClientFactory,
-) *Datasource {
-	ds := &Datasource{
-		xrayClientFactory: xrayClientFactory,
-		ec2ClientFactory:  ec2ClientFactory,
-	}
+func NewDatasource(xrayClientFactory XrayClientFactory) *Datasource {
+	ds := &Datasource{xrayClientFactory: xrayClientFactory}
 
 	mux := datasource.NewQueryTypeMux()
 	mux.HandleFunc(QueryGetTrace, ds.getTrace)
@@ -114,17 +102,26 @@ func NewDatasource(
 
 	resMux := http.NewServeMux()
 	resMux.HandleFunc("/groups", ds.getGroups)
-	resMux.HandleFunc("/regions", ds.getRegions)
+	resMux.HandleFunc("/regions", ds.GetRegions)
 	resMux.HandleFunc("/accounts", ds.GetAccounts)
 
 	ds.ResourceMux = httpadapter.New(resMux)
 	return ds
 }
 
-func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
+type RequestSettings struct {
+	Region string
+}
+
+func getXrayClient(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
 	awsSettings, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
+	}
+
+	// add region from the request body if it's set, otherwise default region will be used
+	if requestSettings.Region != "" && requestSettings.Region != "default" {
+		awsSettings.Region = requestSettings.Region
 	}
 
 	xrayClient, err := client.CreateXrayClient(awsSettings, pluginContext.DataSourceInstanceSettings)
@@ -132,19 +129,6 @@ func getXrayClient(pluginContext *backend.PluginContext) (XrayClient, error) {
 		return nil, err
 	}
 	return xrayClient, nil
-}
-
-func getEc2Client(pluginContext *backend.PluginContext) (*ec2.EC2, error) {
-	dsInfo, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
-	if err != nil {
-		return nil, err
-	}
-
-	ec2Client, err := client.CreateEc2Client(dsInfo, pluginContext.DataSourceInstanceSettings)
-	if err != nil {
-		return nil, err
-	}
-	return ec2Client, nil
 }
 
 type XrayClient interface {
