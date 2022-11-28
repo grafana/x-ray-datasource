@@ -146,7 +146,7 @@ In Insights you can see the summary table for Insights. Clicking the InsightId w
 
 Service map in Grafana enables customers to view the map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or API running on API Gateway or a DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
 
-![Service map](https://grafana.com/static/img/docs/node-graph/node-graph-7-4.png "Service map")
+![Service map](https://grafana.com/static/img/docs/node-graph/node-graph-7-4.png 'Service map')
 
 Service Map query type shows the same data as a service map inside X-ray console.
 
@@ -158,8 +158,7 @@ To display the service map:
 
 You can pan and zoom the view with buttons or you mouse. For details about the visualization, refer to [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/).
 
-![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif "Service map navigation")
-
+![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif 'Service map navigation')
 
 Similar to X-ray root nodes, nodes in the service map representing the client application are on the left side of the map.
 
@@ -221,3 +220,22 @@ datasources:
       accessKey: '<your access key>'
       secretKey: '<your secret key>'
 ```
+
+## Cross-Account Observability
+
+The X-Ray plugin allows you to monitor traces across multiple AWS accounts within a region with a feature called Cross-Account Observability. Using cross-account observability, you can seamlessly search, visualize and analyze AWS traces without worrying about account boundaries.
+
+### Getting started
+
+To enable cross-account observability, first enable the feature in AWS using the official [CloudWatch docs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html), then add [two new API actions]({{< relref "../Metrics_and_Logs" >}}) to the IAM policy attached to the role/user running the plugin.
+
+This feature is currently behind the `cloudWatchCrossAccountQuerying` feature toggle.
+
+> You can enable feature toggles through configuration file or environment variables. See configuration [docs]({{< relref "../setup-grafana/configure-grafana/#feature_toggles" >}}) for details.
+> Grafana Cloud users can access this feature by [opening a support ticket in the Cloud Portal](https://grafana.com/profile/org#support).
+
+## Filtering Traces by Account Id
+
+Once the feature is enabled, you will be able to both display traces across multiple accounts and filter those traces by account ID. When you select the Service Map query type in Grafana, an account dropdown displays and populates with the account IDs shown in the traces returned in the selected time frame.
+
+You can also add account ID as part of a query filter expression in the Trace List query type.
