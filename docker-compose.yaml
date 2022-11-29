@@ -10,5 +10,5 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/rafana-ay-datasource
+      - ./dist:/var/lib/grafana/plugins/grafana-x-ray-datasource
       - ./provisioning:/etc/grafana/provisioning
