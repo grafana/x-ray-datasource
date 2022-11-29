@@ -1,7 +1,7 @@
 {
   "type": "datasource",
   "name": "X-Ray",
-  "id": "grafana-x-ray-datasource-private-mirror",
+  "id": "grafana-x-ray-datasource",
   "category": "tracing",
   "metrics": true,
   "tracing": true,
