@@ -30,6 +30,9 @@ export interface XrayQuery extends DataQuery {
 
   // Can be used to override the default region set in data source config
   region?: string;
+
+  // used to manually filter service map queries by account ids
+  accountIds?: string[];
 }
 
 // Needs to match datasource Query* constants in backend code

@@ -11,8 +11,9 @@ import (
 )
 
 type GetServiceMapQueryData struct {
-	Region string      `json:"region"`
-	Group  *xray.Group `json:"group"`
+	Region     string      `json:"region"`
+	Group      *xray.Group `json:"group"`
+	AccountIds []string    `json:"accountIds,omitempty"`
 }
 
 func (ds *Datasource) getServiceMap(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
@@ -57,8 +58,25 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		EndTime:   &query.TimeRange.To,
 		GroupName: queryData.Group.GroupName,
 	}
+
+	accountIdsToFilterBy := make(map[string]bool)
+	for _, value := range queryData.AccountIds {
+		accountIdsToFilterBy[value] = true
+	}
+
 	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {
 		for _, service := range page.Services {
+			// filter out non matching account ids, if user has selected them
+			if len(queryData.AccountIds) > 0 {
+				// sometimes traces don't have accountId data, without knowing where it came from we have to filter it out
+				if service.AccountId == nil {
+					continue
+				}
+
+				if !accountIdsToFilterBy[*service.AccountId] {
+					continue
+				}
+			}
 			bytes, err := json.Marshal(service)
 			if err != nil {
 				// TODO: probably does not make sense to fail just because of one service but I assume the layout will fail
