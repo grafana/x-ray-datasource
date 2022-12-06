@@ -3,6 +3,7 @@
   "version": "2.2.0",
   "description": "AWS X-Ray data source",
   "scripts": {
+    "spellcheck": "cspell -c cspell.config.json \"**/*.{ts,tsx,js,go,md,mdx,yml,yaml,json,scss,css}\"",
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test",
     "test:coverage": "jest --coverage",
@@ -22,6 +23,7 @@
     "@types/lodash": "latest",
     "@types/prismjs": "1.16.0",
     "@types/slate": "0.47.1",
+    "cspell": "6.13.3",
     "jest-environment-jsdom-sixteen": "^1.0.3"
   },
   "dependencies": {
