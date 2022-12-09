@@ -103,6 +103,8 @@ func NewDatasource(xrayClientFactory XrayClientFactory) *Datasource {
 	resMux := http.NewServeMux()
 	resMux.HandleFunc("/groups", ds.getGroups)
 	resMux.HandleFunc("/regions", ds.GetRegions)
+	resMux.HandleFunc("/accounts", ds.GetAccounts)
+
 	ds.ResourceMux = httpadapter.New(resMux)
 	return ds
 }

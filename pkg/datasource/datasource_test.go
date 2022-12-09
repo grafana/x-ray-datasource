@@ -27,7 +27,14 @@ func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, i
 	output := &xray.GetServiceGraphOutput{
 		NextToken: nil,
 		Services: []*xray.Service{
-			{Name: aws.String(serviceName)},
+			{
+				Name:      aws.String(serviceName),
+				AccountId: aws.String("testAccount1"),
+			},
+			{
+				Name:      aws.String(serviceName + "2"),
+				AccountId: aws.String("testAccount2"),
+			},
 		},
 	}
 	fn(output, false)
@@ -527,7 +534,7 @@ func TestDatasource(t *testing.T) {
 
 		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
 		frame := response.Responses["A"].Frames[0]
-		require.Equal(t, 1, frame.Fields[0].Len())
+		require.Equal(t, 2, frame.Fields[0].Len()) // 2 because of the 2 services added to the mock
 	})
 
 	t.Run("getServiceMap query with region", func(t *testing.T) {
@@ -537,7 +544,7 @@ func TestDatasource(t *testing.T) {
 
 		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
 		frame := response.Responses["A"].Frames[0]
-		require.Equal(t, 1, frame.Fields[0].Len())
+		require.Equal(t, 2, frame.Fields[0].Len())
 		require.True(t, strings.Contains(frame.Fields[0].At(0).(string), "mockServiceName-us-east-1"))
 	})
 

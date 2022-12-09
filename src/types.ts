@@ -30,6 +30,9 @@ export interface XrayQuery extends DataQuery {
 
   // Can be used to override the default region set in data source config
   region?: string;
+
+  // used to manually filter service map queries by account ids
+  accountIds?: string[];
 }
 
 // Needs to match datasource Query* constants in backend code
@@ -194,11 +197,11 @@ interface HistogramValue {
 }
 
 export interface SummaryStatistics {
-  ErrorStatistics: { OtherCount: number; ThrottleCount: number; TotalCount: number };
-  FaultStatistics: { OtherCount: number; TotalCount: number };
-  OkCount: number;
-  TotalCount: number;
-  TotalResponseTime: number;
+  ErrorStatistics?: { OtherCount: number; ThrottleCount: number; TotalCount: number };
+  FaultStatistics?: { OtherCount: number; TotalCount: number };
+  OkCount?: number;
+  TotalCount?: number;
+  TotalResponseTime?: number;
 }
 
 export interface XrayEdge {
