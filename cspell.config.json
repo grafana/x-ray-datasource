@@ -90,6 +90,7 @@
     "mediumpurple",
     "availabilityzone",
     "ENDSWITH",
-    "dataframes"
+    "dataframes",
+    "typecheck"
   ]
 }
