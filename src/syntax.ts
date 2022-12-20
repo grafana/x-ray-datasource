@@ -32,6 +32,7 @@ export const STRING_KEYWORDS: CompletionItem[] = [
   { label: 'http.useragent', documentation: 'Request user agent string.' },
   { label: 'http.clientip', documentation: "Requestor's IP address." },
   { label: 'user', documentation: 'Value of the user field on any segment in the trace.' },
+  { label: 'account.id', documentation: 'AccountId associated with trace.' },
   { label: 'name', documentation: 'The name of a service or exception.' },
   { label: 'type', documentation: 'Service type.' },
   { label: 'message', documentation: 'Exception message.' },

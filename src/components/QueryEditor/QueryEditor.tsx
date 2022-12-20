@@ -3,7 +3,6 @@ import { Spinner } from '@grafana/ui';
 import { useGroups } from './useGroups';
 import { QueryEditorForm, XrayQueryEditorFormProps } from './QueryEditorForm';
 import { useRegions } from './useRegions';
-
 /**
  * Simple wrapper that is only responsible to load groups and delay actual render of the QueryEditorForm. Main reason
  * for that is that there is queryInit code that requires groups to be already loaded and is separate hook and it

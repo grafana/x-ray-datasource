@@ -12,6 +12,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type GetInsightsQueryData struct {
@@ -41,7 +43,7 @@ func (ds *Datasource) getSingleInsight(query backend.DataQuery, pluginContext *b
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,
@@ -123,7 +125,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 		responseDataFrame.AppendRow(
 			insight.InsightId,
 			getDescription(insight, rootCauseService),
-			strings.Title(strings.ToLower(*insight.State)),
+			cases.Title(language.Und).String(strings.ToLower(*insight.State)),
 			getCategories(aws.StringValueSlice(insight.Categories)),
 			getDuration(insight.StartTime, insight.EndTime),
 			rootCauseService,
@@ -137,7 +139,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 
 func getCategories(categories []string) string {
 	for index, category := range categories {
-		categories[index] = strings.Title(strings.ToLower(category))
+		categories[index] = cases.Title(language.Und).String(strings.ToLower(category))
 	}
 	return strings.Join(categories, ", ")
 }

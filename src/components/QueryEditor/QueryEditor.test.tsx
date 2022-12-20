@@ -3,7 +3,32 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { QueryEditor } from './QueryEditor';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../DataSource';
-import { DataSourceInstanceSettings } from '@grafana/data';
+import { DataSourceInstanceSettings, ScopedVars, VariableModel } from '@grafana/data';
+import * as grafanaRuntime from '@grafana/runtime';
+
+jest.spyOn(grafanaRuntime, 'getTemplateSrv').mockImplementation(() => {
+  return {
+    getVariables(): VariableModel[] {
+      return [];
+    },
+    replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
+      if (!target) {
+        return '';
+      }
+      const vars: Record<string, { value: any }> = {
+        ...scopedVars,
+        someVar: {
+          value: '200',
+        },
+      };
+      for (const key of Object.keys(vars)) {
+        target = target!.replace(`\$${key}`, vars[key].value);
+        target = target!.replace(`\${${key}}`, vars[key].value);
+      }
+      return target!;
+    },
+  };
+});
 
 const defaultProps = {
   onRunQuery: undefined as any,
@@ -13,6 +38,9 @@ const defaultProps = {
     },
     async getRegions(): Promise<Region[]> {
       return [{ label: 'region1', text: 'region1', value: 'region1' }];
+    },
+    async getAccountIdsForServiceMap(): Promise<string[]> {
+      return ['account1', 'account2'];
     },
     getServiceMapUrl() {
       return 'service-map';
@@ -128,9 +156,7 @@ describe('QueryEditor', () => {
 
     fireEvent.change(field, { target: { value: '1-5f160a8b-83190adad07f429219c0e259' } });
 
-    // First call would be the query init call. We do not update the query based on that so when doing this second one
-    // it's done without default region or group.
-    expect(onChange.mock.calls[1][0]).toEqual({
+    expect(onChange.mock.calls[3][0]).toEqual({
       refId: 'A',
       query: '1-5f160a8b-83190adad07f429219c0e259',
       queryType: XrayQueryType.getTrace,
@@ -189,6 +215,26 @@ describe('QueryEditor', () => {
     await checkLinks({
       console: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/analytics',
       serviceMap: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/service-map/',
+    });
+  });
+
+  it('shows the accountIds in a dropdown on service map selection', async () => {
+    await act(async () => {
+      render(
+        <QueryEditor
+          {...{
+            ...defaultProps,
+            query: {
+              refId: 'A',
+              queryType: 'getServiceMap',
+              accountIds: ['account1'],
+            } as any,
+          }}
+          onChange={() => {}}
+        />
+      );
+      expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+      await waitFor(() => expect(screen.getByText('account1')).toBeDefined());
     });
   });
 });

@@ -3,6 +3,7 @@ import { DataSourcePluginOptionsEditorProps, updateDatasourcePluginJsonDataOptio
 import React, { PureComponent } from 'react';
 import { TraceToLogs } from './TraceToLogs';
 import { XrayJsonData } from '../../types';
+import { standardRegions } from './regions';
 
 export type Props = DataSourcePluginOptionsEditorProps<XrayJsonData, AwsAuthDataSourceSecureJsonData>;
 
@@ -11,7 +12,7 @@ export class ConfigEditor extends PureComponent<Props> {
     const { onOptionsChange, options } = this.props;
     return (
       <div>
-        <ConnectionConfig {...this.props} />
+        <ConnectionConfig {...this.props} standardRegions={standardRegions} />
         <TraceToLogs
           datasourceUid={options.jsonData.tracesToLogs?.datasourceUid}
           onChange={(uid) =>

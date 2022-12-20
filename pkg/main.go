@@ -1,16 +1,16 @@
 package main
 
 import (
-  xraydatasource "github.com/grafana/x-ray-datasource/pkg/datasource"
-  "os"
+	"os"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	xraydatasource "github.com/grafana/x-ray-datasource/pkg/datasource"
 )
 
 func main() {
 	// Start listening to requests send from Grafana. This call is blocking so
-	// it wont finish until Grafana shutsdown the process or the plugin choose
+	// it won't finish until Grafana shuts down the process or the plugin choose
 	// to exit close down by itself
 	err := datasource.Serve(xraydatasource.GetServeOpts())
 

@@ -38,7 +38,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(query backend.DataQuery, p
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext, queryData.Region)
+	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

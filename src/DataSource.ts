@@ -10,7 +10,7 @@ import {
   TimeRange,
   toDuration,
 } from '@grafana/data';
-import { DataSourceWithBackend, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { DataSourceWithBackend, getTemplateSrv, TemplateSrv, config } from '@grafana/runtime';
 import { Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
@@ -65,21 +65,37 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       const params = new URLSearchParams({ region });
       searchString = '?' + params.toString();
     }
-    return this.getResource(`/groups${searchString}`);
+    return this.getResource(`groups${searchString}`);
   }
 
   async getRegions(): Promise<Region[]> {
-    const response = await this.getResource('/regions');
+    const response = await this.getResource('regions');
     return [
       ...sortBy(
-        response.map((r: any) => ({
-          label: r.RegionName,
-          value: r.RegionName,
-          text: r.RegionName,
+        response.map((name: string) => ({
+          label: name,
+          value: name,
+          text: name,
         })),
         'label'
       ),
     ];
+  }
+
+  async getAccountIdsForServiceMap(range?: TimeRange, group?: Group): Promise<string[]> {
+    if (!config.featureToggles.cloudWatchCrossAccountQuerying) {
+      return [];
+    }
+    const params = new URLSearchParams({
+      startTime: range ? range.from.toISOString() : '',
+      endTime: range ? range.to.toISOString() : '',
+      group: group?.GroupName || 'Default',
+    });
+
+    const searchString = '?' + params.toString();
+
+    const response = await this.getResource(`accounts${searchString}`);
+    return response.map((account: { Id: string }) => account.Id);
   }
 
   getServiceMapUrl(region?: string): string {
