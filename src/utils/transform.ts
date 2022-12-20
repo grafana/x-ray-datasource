@@ -240,10 +240,12 @@ function getProcess(segment: XrayTraceDataSegment): [string, TraceKeyValuePair[]
 }
 
 function getLogGroup(document: XrayTraceDataSegmentDocument) {
+  // TODO: support log group traces from other services once we know how to construct or fetch log group names
   if (document.origin?.includes('AWS::Lambda')) {
     return '/aws/lambda/' + document.name;
   }
-  return 'unknown';
+
+  return '';
 }
 
 function valueToTag(key: string, value: string | number | undefined): TraceKeyValuePair | undefined {
@@ -443,13 +445,11 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     if (success === 1) {
       edgeMainStatField.values.add(`Success ${(success * 100).toFixed(2)}%`);
     } else {
-      const firstNonZero = (
-        [
-          [faultsPercentage(stats), 'Faults'],
-          [errorsPercentage(stats), 'Errors'],
-          [throttledPercentage(stats), 'Throttled'],
-        ] as Array<[number, string]>
-      ).find((v) => v[0] !== 0);
+      const firstNonZero = ([
+        [faultsPercentage(stats), 'Faults'],
+        [errorsPercentage(stats), 'Errors'],
+        [throttledPercentage(stats), 'Throttled'],
+      ] as Array<[number, string]>).find((v) => v[0] !== 0);
       if (!firstNonZero) {
         edgeMainStatField.values.add(`N/A`);
       } else {

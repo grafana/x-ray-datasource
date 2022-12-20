@@ -293,7 +293,7 @@ const result = new MutableDataFrame({
       labels: undefined,
       name: '__log_group',
       type: FieldType.string,
-      values: ['unknown', 'unknown', 'unknown', 'unknown', 'unknown'],
+      values: ['', '', '', '', ''],
     },
     {
       config: {},
