@@ -6,8 +6,9 @@ import {
   DataSourceInstanceSettings,
   FieldType,
   MutableDataFrame,
+  NodeGraphDataFrameFieldNames,
   ScopedVars,
-  VariableModel,
+  TypedVariableModel,
 } from '@grafana/data';
 import {
   XrayJsonData,
@@ -17,7 +18,7 @@ import {
   XrayTraceDataRaw,
   XrayTraceDataSegmentDocument,
 } from './types';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { TemplateSrv } from '@grafana/runtime';
 
 jest.mock('@grafana/runtime', () => {
@@ -35,7 +36,7 @@ jest.mock('@grafana/runtime', () => {
     },
     getTemplateSrv(): TemplateSrv {
       return {
-        getVariables(): VariableModel[] {
+        getVariables(): TypedVariableModel[] {
           return [];
         },
         replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
@@ -54,6 +55,8 @@ jest.mock('@grafana/runtime', () => {
           }
           return target!;
         },
+        containsTemplate: jest.fn(),
+        updateTimeRange: jest.fn(),
       };
     },
   };
@@ -63,7 +66,7 @@ describe('XrayDataSource', () => {
   describe('.query()', () => {
     it('returns parsed data when querying single trace', async () => {
       const ds = makeDatasourceWithResponse(makeTraceResponse(makeTrace()));
-      const response = await ds.query(makeQuery()).toPromise();
+      const response = await firstValueFrom(ds.query(makeQuery()));
       expect(response.data.length).toBe(1);
       expect(response.data[0].fields.length).toBe(13);
       expect(response.data[0].fields[0].values.length).toBe(2);
@@ -71,7 +74,9 @@ describe('XrayDataSource', () => {
 
     it('returns parsed data with links when querying trace list', async () => {
       const ds = makeDatasourceWithResponse(makeTraceSummariesResponse());
-      const response = await ds.query(makeQuery({ queryType: XrayQueryType.getTraceSummaries, query: '' })).toPromise();
+      const response = await firstValueFrom(
+        ds.query(makeQuery({ queryType: XrayQueryType.getTraceSummaries, query: '' }))
+      );
       expect(response.data.length).toBe(1);
       const df: DataFrame = response.data[0];
       expect(df.fields.length).toBe(2);
@@ -86,23 +91,23 @@ describe('XrayDataSource', () => {
 
     it('returns parsed data when querying service map', async () => {
       const ds = makeDatasourceWithResponse(makeServiceMapResponse());
-      const response = await ds.query(makeQuery({ queryType: XrayQueryType.getServiceMap, query: '' })).toPromise();
+      const response = await firstValueFrom(ds.query(makeQuery({ queryType: XrayQueryType.getServiceMap, query: '' })));
       expect(response.data.length).toBe(2);
       const nodes: DataFrame = response.data[0];
       expect(nodes.fields.length).toBe(9);
       const edges: DataFrame = response.data[1];
       expect(edges.fields.length).toBe(7);
-      expect(edges.fields.find((f) => f.name === 'mainStat')?.values.toArray()).toEqual(
+      expect(edges.fields.find((f) => f.name === NodeGraphDataFrameFieldNames.mainStat)?.values.toArray()).toEqual(
         expect.arrayContaining(['N/A'])
       );
-      expect(edges.fields.find((f) => f.name === 'secondaryStat')?.values.toArray()).toEqual(
+      expect(edges.fields.find((f) => f.name === NodeGraphDataFrameFieldNames.secondaryStat)?.values.toArray()).toEqual(
         expect.arrayContaining([undefined])
       );
     });
 
     it('should parse insight response correctly', async () => {
       const ds = makeDatasourceWithResponse(makeInsightResponse());
-      const response = await ds.query(makeQuery({ queryType: XrayQueryType.getInsights, query: '' })).toPromise();
+      const response = await firstValueFrom(ds.query(makeQuery({ queryType: XrayQueryType.getInsights, query: '' })));
       const df: DataFrame = response.data[0];
       expect(df.fields[0].config.links?.[0].url).toBe(
         'https://us-east.console.aws.amazon.com/xray/home?region=us-east#/insights/${__value.raw}'
@@ -114,51 +119,51 @@ describe('XrayDataSource', () => {
 
     it('adds correct resolution based on interval', async () => {
       const ds = makeDatasourceWithResponse({} as any);
-      await ds
-        .query(
+      await firstValueFrom(
+        ds.query(
           makeQuery({ queryType: XrayQueryType.getTimeSeriesServiceStatistics, query: '' }, { intervalMs: 400 * 1000 })
         )
-        .toPromise();
+      );
       const mockQuery = (ds as any).mockQuery as jest.Mock;
       expect(mockQuery.mock.calls[0][0].targets[0].resolution).toBe(300);
     });
 
     it('does not override explicit resolution', async () => {
       const ds = makeDatasourceWithResponse({} as any);
-      await ds
-        .query(
+      await firstValueFrom(
+        ds.query(
           makeQuery(
             { queryType: XrayQueryType.getTimeSeriesServiceStatistics, query: '', resolution: 60 },
             { intervalMs: 400 * 1000 }
           )
         )
-        .toPromise();
+      );
       const mockQuery = (ds as any).mockQuery as jest.Mock;
       expect(mockQuery.mock.calls[0][0].targets[0].resolution).toBe(60);
     });
 
     it('handles variable interpolation', async () => {
       const ds = makeDatasourceWithResponse({} as any);
-      await ds
-        .query(
+      await firstValueFrom(
+        ds.query(
           makeQuery({ query: 'service("$variable")' }, { scopedVars: { variable: { text: 'test', value: 'test' } } })
         )
-        .toPromise();
+      );
       const mockQuery = (ds as any).mockQuery as jest.Mock;
       expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("test")');
     });
 
     it('handles group', async () => {
       const ds = makeDatasourceWithResponse({} as any);
-      await ds
-        .query(
+      await firstValueFrom(
+        ds.query(
           makeQuery({
             queryType: XrayQueryType.getTimeSeriesServiceStatistics,
             query: 'service("something")',
             group: { FilterExpression: 'service("from group")' } as any,
           })
         )
-        .toPromise();
+      );
       const mockQuery = (ds as any).mockQuery as jest.Mock;
       expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("from group") AND service("something")');
     });

@@ -3,12 +3,12 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { QueryEditor } from './QueryEditor';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../DataSource';
-import { DataSourceInstanceSettings, ScopedVars, VariableModel } from '@grafana/data';
+import { DataSourceInstanceSettings, ScopedVars, TypedVariableModel } from '@grafana/data';
 import * as grafanaRuntime from '@grafana/runtime';
 
 jest.spyOn(grafanaRuntime, 'getTemplateSrv').mockImplementation(() => {
   return {
-    getVariables(): VariableModel[] {
+    getVariables(): TypedVariableModel[] {
       return [];
     },
     replace(target?: string, scopedVars?: ScopedVars, format?: string | Function): string {
@@ -27,6 +27,8 @@ jest.spyOn(grafanaRuntime, 'getTemplateSrv').mockImplementation(() => {
       }
       return target!;
     },
+    containsTemplate: jest.fn(),
+    updateTimeRange: jest.fn(),
   };
 });
 
