@@ -2,13 +2,13 @@ import React, { useRef, useEffect } from 'react';
 import Prism from 'prismjs';
 import { Node } from 'slate';
 import { QueryField, TypeaheadInput, TypeaheadOutput, BracesPlugin, SlatePrism } from '@grafana/ui';
-import { ExploreQueryFieldProps } from '@grafana/data';
+import { QueryEditorProps } from '@grafana/data';
 import { XrayDataSource } from 'DataSource';
 import { XrayQuery, XrayJsonData, XrayQueryType } from 'types';
 import { XRayLanguageProvider } from 'language_provider';
 import { tokenizer } from 'syntax';
 
-interface XRayQueryFieldProps extends ExploreQueryFieldProps<XrayDataSource, XrayQuery, XrayJsonData> {}
+interface XRayQueryFieldProps extends QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> {}
 
 const PRISM_LANGUAGE = 'xray';
 const plugins = [
