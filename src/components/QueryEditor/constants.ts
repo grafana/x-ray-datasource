@@ -1,5 +1,5 @@
 import { XrayQueryType } from '../../types';
-import { CascaderOption } from '@grafana/ui/components/Cascader/Cascader';
+import { CascaderOption } from '@grafana/ui';
 
 export type QueryTypeOption = CascaderOption & {
   queryType?: XrayQueryType;
