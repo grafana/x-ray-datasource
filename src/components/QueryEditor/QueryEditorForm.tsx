@@ -17,8 +17,7 @@ import {
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
 import { XrayLinks } from './XrayLinks';
-import { getTemplateSrv, config } from '@grafana/runtime';
-import { useAccountIds } from './useAccountIds';
+import { getTemplateSrv } from '@grafana/runtime';
 import { AccountIdDropdown } from './AccountIdDropdown';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
