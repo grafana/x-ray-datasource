@@ -148,7 +148,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
       expandedQueries = queries.map((query) => {
         const expandedQuery = {
           ...query,
-          datasource: this.name,
+          datasource: this.getRef(),
           query: getTemplateSrv().replace(query.query, scopedVars),
         };
         return expandedQuery;
