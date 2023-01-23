@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { QueryEditor } from './QueryEditor';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../DataSource';
@@ -158,7 +158,7 @@ describe('QueryEditor', () => {
 
     fireEvent.change(field, { target: { value: '1-5f160a8b-83190adad07f429219c0e259' } });
 
-    expect(onChange.mock.calls[3][0]).toEqual({
+    expect(onChange.mock.calls[1][0]).toEqual({
       refId: 'A',
       query: '1-5f160a8b-83190adad07f429219c0e259',
       queryType: XrayQueryType.getTrace,
@@ -221,11 +221,16 @@ describe('QueryEditor', () => {
   });
 
   it('shows the accountIds in a dropdown on service map selection', async () => {
+    const mockGetAccountIdsForServiceMap = jest.fn(() => Promise.resolve(['account1', 'account2']));
     await act(async () => {
       render(
         <QueryEditor
           {...{
             ...defaultProps,
+            datasource: {
+              ...defaultProps.datasource,
+              getAccountIdsForServiceMap: mockGetAccountIdsForServiceMap,
+            },
             query: {
               refId: 'A',
               queryType: 'getServiceMap',
@@ -237,6 +242,33 @@ describe('QueryEditor', () => {
       );
       expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
       await waitFor(() => expect(screen.getByText('account1')).toBeDefined());
+      expect(mockGetAccountIdsForServiceMap).toHaveBeenCalled();
+    });
+  });
+
+  it('does not fetch account ids if service map is not selected', async () => {
+    const mockGetAccountIdsForServiceMap = jest.fn(() => Promise.resolve(['account1', 'account2']));
+    await act(async () => {
+      render(
+        <QueryEditor
+          {...{
+            ...defaultProps,
+            datasource: {
+              ...defaultProps.datasource,
+              getAccountIdsForServiceMap: mockGetAccountIdsForServiceMap,
+            },
+            query: {
+              refId: 'A',
+              queryType: XrayQueryType.getTrace,
+              accountIds: [],
+            } as any,
+          }}
+          onChange={() => {}}
+        />
+      );
+      expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+      await waitForElementToBeRemoved(() => screen.getByText('', { selector: '.fa-spinner' }));
+      expect(mockGetAccountIdsForServiceMap).not.toHaveBeenCalled();
     });
   });
 });
