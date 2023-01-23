@@ -17,8 +17,8 @@ import {
 import { XrayDataSource } from '../../DataSource';
 import { QuerySection } from './QuerySection';
 import { XrayLinks } from './XrayLinks';
-import { getTemplateSrv, config } from '@grafana/runtime';
-import { useAccountIds } from './useAccountIds';
+import { getTemplateSrv } from '@grafana/runtime';
+import { AccountIdDropdown } from './AccountIdDropdown';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -103,13 +103,8 @@ export function QueryEditorForm({
   useInitQuery(query, onChange, groups, allRegions, datasource);
 
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
-  const accountIds = useAccountIds(datasource, query, range);
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
   const styles = getStyles();
-  const hasStoredAccountIdFilter = !!(query.accountIds && query.accountIds.length);
-  const showAccountIdDropdown =
-    [serviceMapOption].includes(selectedOptions[0]) &&
-    (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter);
 
   return (
     <div>
@@ -184,26 +179,18 @@ export function QueryEditorForm({
           />
         </div>
 
-        {showAccountIdDropdown && (
-          <div className="gf-form">
-            <InlineFormLabel className="query-keyword" width="auto">
-              AccountId
-            </InlineFormLabel>
-            <MultiSelect
-              options={(accountIds || []).map((accountId: string) => ({
-                value: accountId,
-                label: accountId,
-              }))}
-              value={query.accountIds}
-              onChange={(items) => {
-                onChange({
-                  ...query,
-                  accountIds: items.map((item) => item.value),
-                } as any);
-              }}
-              placeholder={'All'}
-            />
-          </div>
+        {[serviceMapOption].includes(selectedOptions[0]) && (
+          <AccountIdDropdown
+            datasource={datasource}
+            query={query}
+            range={range}
+            onChange={(accountIds) =>
+              onChange({
+                ...query,
+                accountIds,
+              })
+            }
+          />
         )}
 
         <div className="gf-form">
