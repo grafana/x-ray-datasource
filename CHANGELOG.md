@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.4.0
+
+* Add spellcheck and fix misspellings by @sunker in https://github.com/grafana/x-ray-datasource/pull/158
+* Migrate to create-plugin by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/148
+* Update code coverage workflow by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/162
+* Update @grafana/aws-sdk by @kevinwcyu in https://github.com/grafana/x-ray-datasource/pull/164
+* Dependencies: Update @grafana dependencies to 9.3.2 by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/167
+* Small Refactor: Do not fetch account id if not on service map page by @sarahzinger in https://github.com/grafana/x-ray-datasource/pull/169
+* Upgrade grafana-aws-sdk to v0.12.0 by @fridgepoet in https://github.com/grafana/x-ray-datasource/pull/171
+
+**Full Changelog**: https://github.com/grafana/x-ray-datasource/compare/v2.2.0...v2.4.0****
+
+
 ## 2.3.0
 - Feature: Make it possible to filter on account id in https://github.com/grafana/x-ray-datasource/pull/157
 
