@@ -1,7 +1,8 @@
 import { transformTraceResponse } from './transform';
-import { DataFrameView, MutableDataFrame } from '@grafana/data';
+import { DataFrameView, FieldType, MutableDataFrame } from '@grafana/data';
+import { XrayTraceData } from 'types';
 
-const awsResponse = {
+const awsResponse: XrayTraceData = {
   Duration: 0.048,
   Id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
   Segments: [
@@ -39,6 +40,7 @@ const awsResponse = {
               working_directory: '/var/app/current',
               exceptions: [
                 {
+                  id: 'exception-1',
                   message: 'The conditional request failed',
                   type: 'ConditionalCheckFailedException',
                   stack: [
@@ -55,9 +57,9 @@ const awsResponse = {
                   ],
                 },
                 {
+                  id: 'exception-2',
                   message: 'Undefined stack exception',
                   type: 'UndefinedStackException',
-                  stack: undefined,
                 },
               ],
             },
@@ -96,6 +98,180 @@ const awsResponse = {
         origin: 'AWS::DynamoDB::Table',
       },
       Id: '3f8b028e1847bc4c',
+    },
+  ],
+};
+
+const awsResponseWithSql: XrayTraceData = {
+  Duration: 0.078,
+  Id: '1-12345678-1234567890abcdefghijklmn',
+  Segments: [
+    {
+      Document: {
+        id: 'fakeid11111111aaaaaaaa',
+        name: 'PetSite',
+        start_time: 1675191925.672884,
+        trace_id: '1-12345678-1234567890abcdefghijklmn',
+        end_time: 1675191925.750568,
+        http: {
+          request: {
+            url: 'http://fake-servi-petsi.us-east-2.elb.amazonaws.com/housekeeping/',
+            method: 'GET',
+            client_ip: '203.0.113.0',
+            x_forwarded_for: true,
+          },
+          response: {
+            status: 200,
+          },
+        },
+        aws: {
+          xray: {
+            sampling_rule_name: 'Default',
+            sdk_version: '2.10.1',
+            sdk: 'X-Ray for .NET Core',
+          },
+        },
+        subsegments: [
+          {
+            id: 'fakeid22222222bbbbbbbb',
+            name: 'fake-servi-payfo.us-east-2.elb.amazonaws.com',
+            start_time: 1675191925.673018,
+            end_time: 1675191925.721133,
+            http: {
+              request: {
+                url: 'http://fake-servi-payfo.us-east-2.elb.amazonaws.com/api/home/cleanupadoptions',
+                method: 'POST',
+              },
+              response: {
+                status: 200,
+                content_length: 0,
+              },
+            },
+            namespace: 'remote',
+          },
+          {
+            id: 'fakeid33333333cccccccc',
+            name: 'SimpleSystemsManagement',
+            start_time: 1675191925.722149,
+            end_time: 1675191925.750047,
+            http: {
+              response: {
+                status: 200,
+                content_length: 210,
+              },
+            },
+            aws: {
+              region: 'us-east-2',
+              request_id: '164f6465-12fa-48a5-852c-2529d4b0d6d3',
+              operation: 'GetParameter',
+            },
+            namespace: 'aws',
+          },
+        ],
+      },
+      Id: 'fakeid11111111aaaaaaaa',
+    },
+    {
+      Document: {
+        id: 'fakeid44444444dddddddd',
+        name: 'payforadoption',
+        start_time: 1675191925.6815343,
+        trace_id: '1-12345678-1234567890abcdefghijklmn',
+        end_time: 1675191925.7197223,
+        parent_id: 'fakeid22222222bbbbbbbb',
+        http: {
+          request: {
+            url: 'http://fake-servi-payfo.us-east-2.elb.amazonaws.com/api/home/cleanupadoptions',
+            method: 'POST',
+            client_ip: '203.0.113.0',
+            x_forwarded_for: true,
+          },
+          response: {
+            status: 200,
+          },
+        },
+        aws: {
+          ecs: {
+            container: 'ip-203-0-113-0.us-east-2.compute.internal',
+          },
+          xray: {
+            sdk_version: '1.7.0',
+            sdk: 'X-Ray for Go',
+          },
+        },
+        metadata: {
+          default: {
+            timeTakenSeconds: 0.038097434,
+          },
+        },
+        origin: 'AWS::ECS::Container',
+        subsegments: [
+          {
+            id: 'fakeid55555555eeeeeeee',
+            name: 'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+            start_time: 1675191925.7173781,
+            end_time: 1675191925.7185402,
+            sql: {
+              url: 'postgres://postgres@fake-services-database.fake-cluster..us-east-2.rds.amazonaws.com:5432/adoptions',
+              sanitized_query: 'INSERT INTO transactions_history SELECT * FROM transactions',
+              database_type: 'Postgres',
+              database_version:
+                'PostgreSQL 10.18 on x86_64-pc-linux-gnu, compiled by x86_64-pc-linux-gnu-gcc (GCC) 7.4.0, 64-bit',
+              driver_version: 'github.com/lib/pq',
+              user: 'postgres',
+            },
+            namespace: 'remote',
+          },
+        ],
+      },
+      Id: 'fakeid44444444dddddddd',
+    },
+    {
+      Document: {
+        id: 'fakeid66666666ffffffff',
+        name: 'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+        start_time: 1675191925.7173781,
+        trace_id: '1-12345678-1234567890abcdefghijklmn',
+        end_time: 1675191925.7185402,
+        parent_id: 'fakeid55555555eeeeeeee',
+        inferred: true,
+        sql: {
+          url: 'postgres://postgres@fake-services-database.fake-cluster..us-east-2.rds.amazonaws.com:5432/adoptions',
+          sanitized_query: 'INSERT INTO transactions_history SELECT * FROM transactions',
+          database_type: 'Postgres',
+          database_version:
+            'PostgreSQL 10.18 on x86_64-pc-linux-gnu, compiled by x86_64-pc-linux-gnu-gcc (GCC) 7.4.0, 64-bit',
+          driver_version: 'github.com/lib/pq',
+          user: 'postgres',
+        },
+        origin: 'Database::SQL',
+      },
+      Id: 'fakeid66666666ffffffff',
+    },
+
+    {
+      Document: {
+        id: 'fakeid77777777gggggggg',
+        name: 'SimpleSystemsManagement',
+        start_time: 1675191925.722149,
+        trace_id: '1-12345678-1234567890abcdefghijklmn',
+        end_time: 1675191925.750047,
+        parent_id: 'fakeid33333333cccccccc',
+        inferred: true,
+        http: {
+          response: {
+            status: 200,
+            content_length: 210,
+          },
+        },
+        aws: {
+          region: 'us-east-2',
+          request_id: '164f6465-12fa-48a5-852c-2529d4b0d6d3',
+          operation: 'GetParameter',
+        },
+        origin: 'AWS::SimpleSystemsManagement',
+      },
+      Id: 'fakeid77777777gggggggg',
     },
   ],
 };
@@ -292,9 +468,559 @@ const result = new MutableDataFrame({
   },
 });
 
-describe('transformResponse function', () => {
+const resultWithSql = new MutableDataFrame({
+  fields: [
+    {
+      config: {},
+      labels: undefined,
+      name: 'traceID',
+      type: FieldType.string,
+      values: [
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        '1-12345678-1234567890abcdefghijklmn',
+        undefined,
+        undefined,
+        undefined,
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'spanID',
+      type: FieldType.string,
+      values: [
+        'PetSiteundefined',
+        'payforadoptionAWS::ECS::Container',
+        'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.comDatabase::SQL',
+        'SimpleSystemsManagementAWS::SimpleSystemsManagement',
+        'fakeid11111111aaaaaaaa',
+        'fakeid44444444dddddddd',
+        'fakeid66666666ffffffff',
+        'fakeid77777777gggggggg',
+        'fakeid22222222bbbbbbbb',
+        'fakeid33333333cccccccc',
+        'fakeid55555555eeeeeeee',
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'parentSpanID',
+      type: FieldType.string,
+      values: [
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'PetSiteundefined',
+        'payforadoptionAWS::ECS::Container',
+        'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.comDatabase::SQL',
+        'SimpleSystemsManagementAWS::SimpleSystemsManagement',
+        'fakeid11111111aaaaaaaa',
+        'fakeid11111111aaaaaaaa',
+        'fakeid44444444dddddddd',
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'operationName',
+      type: FieldType.string,
+      values: [
+        'PetSite',
+        'AWS::ECS::Container',
+        'Database::SQL',
+        'AWS::SimpleSystemsManagement',
+        'PetSite',
+        'payforadoption',
+        'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+        'SimpleSystemsManagement',
+        'fake-servi-payfo.us-east-2.elb.amazonaws.com',
+        'SimpleSystemsManagement',
+        'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'serviceName',
+      type: FieldType.string,
+      values: [
+        'PetSite',
+        'payforadoption',
+        'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+        'SimpleSystemsManagement',
+        'PetSite',
+        'payforadoption',
+        'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+        'SimpleSystemsManagement',
+        'PetSite',
+        'PetSite',
+        'payforadoption',
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'serviceTags',
+      type: FieldType.other,
+      values: [
+        [
+          {
+            key: 'name',
+            value: 'PetSite',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-petsi.us-east-2.elb.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'payforadoption',
+          },
+          {
+            key: 'container',
+            value: 'ip-203-0-113-0.us-east-2.compute.internal',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-payfo.us-east-2.elb.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'SimpleSystemsManagement',
+          },
+          {
+            key: 'region',
+            value: 'us-east-2',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'PetSite',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-petsi.us-east-2.elb.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'payforadoption',
+          },
+          {
+            key: 'container',
+            value: 'ip-203-0-113-0.us-east-2.compute.internal',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-payfo.us-east-2.elb.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'adoptions@fake-services-database.fake-cluster.us-east-2.rds.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'SimpleSystemsManagement',
+          },
+          {
+            key: 'region',
+            value: 'us-east-2',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'PetSite',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-petsi.us-east-2.elb.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'PetSite',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-petsi.us-east-2.elb.amazonaws.com',
+          },
+        ],
+        [
+          {
+            key: 'name',
+            value: 'payforadoption',
+          },
+          {
+            key: 'container',
+            value: 'ip-203-0-113-0.us-east-2.compute.internal',
+          },
+          {
+            key: 'hostname',
+            value: 'fake-servi-payfo.us-east-2.elb.amazonaws.com',
+          },
+        ],
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'startTime',
+      type: FieldType.number,
+      values: [
+        1675191925672.884, 1675191925681.5342, 1675191925717.3782, 1675191925722.149, 1675191925672.884,
+        1675191925681.5342, 1675191925717.3782, 1675191925722.149, 1675191925673.018, 1675191925722.149,
+        1675191925717.3782,
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'duration',
+      type: FieldType.number,
+      values: [
+        0, 0, 0, 0, 77.683837890625, 38.18798828125, 1.162109375, 27.89794921875, 48.114990234375, 27.89794921875,
+        1.162109375,
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'logs',
+      type: FieldType.other,
+      values: [[], [], [], [], [], [], [], [], [], [], []],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'tags',
+      type: FieldType.other,
+      values: [
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [
+          {
+            key: 'aws.xray.sampling_rule_name',
+            value: 'Default',
+          },
+          {
+            key: 'aws.xray.sdk_version',
+            value: '2.10.1',
+          },
+          {
+            key: 'aws.xray.sdk',
+            value: 'X-Ray for .NET Core',
+          },
+          {
+            key: 'http.request.url',
+            value: 'http://fake-servi-petsi.us-east-2.elb.amazonaws.com/housekeeping/',
+          },
+          {
+            key: 'http.request.method',
+            value: 'GET',
+          },
+          {
+            key: 'http.request.client_ip',
+            value: '203.0.113.0',
+          },
+          {
+            key: 'http.request.x_forwarded_for',
+            value: true,
+          },
+          {
+            key: 'http.response.status',
+            value: 200,
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+        ],
+        [
+          {
+            key: 'aws.ecs.container',
+            value: 'ip-203-0-113-0.us-east-2.compute.internal',
+          },
+          {
+            key: 'aws.xray.sdk_version',
+            value: '1.7.0',
+          },
+          {
+            key: 'aws.xray.sdk',
+            value: 'X-Ray for Go',
+          },
+          {
+            key: 'http.request.url',
+            value: 'http://fake-servi-payfo.us-east-2.elb.amazonaws.com/api/home/cleanupadoptions',
+          },
+          {
+            key: 'http.request.method',
+            value: 'POST',
+          },
+          {
+            key: 'http.request.client_ip',
+            value: '203.0.113.0',
+          },
+          {
+            key: 'http.request.x_forwarded_for',
+            value: true,
+          },
+          {
+            key: 'http.response.status',
+            value: 200,
+          },
+          {
+            key: 'metadata.default.timeTakenSeconds',
+            value: 0.038097434,
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+          {
+            key: 'origin',
+            value: 'AWS::ECS::Container',
+          },
+        ],
+        [
+          {
+            key: 'sql.url',
+            value:
+              'postgres://postgres@fake-services-database.fake-cluster..us-east-2.rds.amazonaws.com:5432/adoptions',
+          },
+          {
+            key: 'sql.sanitized_query',
+            value: 'INSERT INTO transactions_history SELECT * FROM transactions',
+          },
+          {
+            key: 'sql.database_type',
+            value: 'Postgres',
+          },
+          {
+            key: 'sql.database_version',
+            value: 'PostgreSQL 10.18 on x86_64-pc-linux-gnu, compiled by x86_64-pc-linux-gnu-gcc (GCC) 7.4.0, 64-bit',
+          },
+          {
+            key: 'sql.driver_version',
+            value: 'github.com/lib/pq',
+          },
+          {
+            key: 'sql.user',
+            value: 'postgres',
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+          {
+            key: 'origin',
+            value: 'Database::SQL',
+          },
+        ],
+        [
+          {
+            key: 'aws.region',
+            value: 'us-east-2',
+          },
+          {
+            key: 'aws.request_id',
+            value: '164f6465-12fa-48a5-852c-2529d4b0d6d3',
+          },
+          {
+            key: 'aws.operation',
+            value: 'GetParameter',
+          },
+          {
+            key: 'http.response.status',
+            value: 200,
+          },
+          {
+            key: 'http.response.content_length',
+            value: 210,
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+          {
+            key: 'origin',
+            value: 'AWS::SimpleSystemsManagement',
+          },
+        ],
+        [
+          {
+            key: 'http.request.url',
+            value: 'http://fake-servi-payfo.us-east-2.elb.amazonaws.com/api/home/cleanupadoptions',
+          },
+          {
+            key: 'http.request.method',
+            value: 'POST',
+          },
+          {
+            key: 'http.response.status',
+            value: 200,
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+        ],
+        [
+          {
+            key: 'aws.region',
+            value: 'us-east-2',
+          },
+          {
+            key: 'aws.request_id',
+            value: '164f6465-12fa-48a5-852c-2529d4b0d6d3',
+          },
+          {
+            key: 'aws.operation',
+            value: 'GetParameter',
+          },
+          {
+            key: 'http.response.status',
+            value: 200,
+          },
+          {
+            key: 'http.response.content_length',
+            value: 210,
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+        ],
+        [
+          {
+            key: 'sql.url',
+            value:
+              'postgres://postgres@fake-services-database.fake-cluster..us-east-2.rds.amazonaws.com:5432/adoptions',
+          },
+          {
+            key: 'sql.sanitized_query',
+            value: 'INSERT INTO transactions_history SELECT * FROM transactions',
+          },
+          {
+            key: 'sql.database_type',
+            value: 'Postgres',
+          },
+          {
+            key: 'sql.database_version',
+            value: 'PostgreSQL 10.18 on x86_64-pc-linux-gnu, compiled by x86_64-pc-linux-gnu-gcc (GCC) 7.4.0, 64-bit',
+          },
+          {
+            key: 'sql.driver_version',
+            value: 'github.com/lib/pq',
+          },
+          {
+            key: 'sql.user',
+            value: 'postgres',
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+        ],
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'warnings',
+      type: FieldType.other,
+      values: [
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'stackTraces',
+      type: FieldType.other,
+      values: [
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: 'errorIconColor',
+      type: FieldType.string,
+      values: [
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ],
+    },
+  ],
+  meta: {
+    preferredVisualisationType: 'trace',
+  },
+});
+
+describe('transformTraceResponse function', () => {
   it('should transform aws x-ray response to jaeger span', () => {
-    expect(transformTraceResponse(awsResponse as any)).toEqual(result);
+    expect(transformTraceResponse(awsResponse)).toEqual(result);
+  });
+
+  it('should transform an aws x-ray response with sql to jaeger span', () => {
+    expect(transformTraceResponse(awsResponseWithSql)).toEqual(resultWithSql);
   });
 
   it("should handle response that is in progress (doesn't have an end time)", () => {
