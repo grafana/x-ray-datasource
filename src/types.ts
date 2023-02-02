@@ -206,7 +206,7 @@ export type XrayTraceDataSegmentDocument = {
   end_time?: number;
   in_progress?: boolean;
   // Same as top level Id
-  trace_id: string;
+  trace_id?: string;
   subsegments?: XrayTraceDataSegmentDocument[];
   parent_id?: string;
   origin?: string;

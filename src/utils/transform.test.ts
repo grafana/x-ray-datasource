@@ -286,7 +286,7 @@ const result = new MutableDataFrame({
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        undefined,
+        '',
       ],
     },
     {
@@ -484,9 +484,9 @@ const resultWithSql = new MutableDataFrame({
         '1-12345678-1234567890abcdefghijklmn',
         '1-12345678-1234567890abcdefghijklmn',
         '1-12345678-1234567890abcdefghijklmn',
-        undefined,
-        undefined,
-        undefined,
+        '',
+        '',
+        '',
       ],
     },
     {
