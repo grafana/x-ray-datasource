@@ -143,8 +143,8 @@ export interface AWS {
   operation?: string;
   request_id?: string;
   table_name?: string;
-  attribute_names_substituted: any[];
-  resource_names: string[];
+  attribute_names_substituted?: any[];
+  resource_names?: string[];
 }
 
 interface Request {
@@ -152,6 +152,7 @@ interface Request {
   method: string;
   user_agent?: string;
   client_ip?: string;
+  x_forwarded_for?: boolean;
 }
 
 interface Response {
@@ -166,8 +167,36 @@ interface Http {
 
 interface Cause {
   working_directory: string;
-  exceptions?: Array<{ message: string; type: string; stack: Array<{ path: string; line: number; label: string }> }>;
+  exceptions?: Exception[];
 }
+
+interface Exception {
+  id: string;
+  message?: string;
+  type?: string;
+  remote?: boolean;
+  truncated?: number;
+  skipped?: number;
+  cause?: string;
+  stack?: Stack[];
+}
+
+interface Stack {
+  path?: string;
+  line?: number;
+  label?: string;
+}
+
+export type SQL = {
+  connection_string?: string;
+  url?: string;
+  sanitized_query?: string;
+  database_type?: string;
+  database_version?: string;
+  driver_version?: string;
+  user?: string;
+  preparation?: 'call' | 'statement' | 'unknown';
+};
 
 export type XrayTraceDataSegmentDocument = {
   // Same as Segment Id
@@ -177,7 +206,7 @@ export type XrayTraceDataSegmentDocument = {
   end_time?: number;
   in_progress?: boolean;
   // Same as top level Id
-  trace_id: string;
+  trace_id?: string;
   subsegments?: XrayTraceDataSegmentDocument[];
   parent_id?: string;
   origin?: string;
@@ -185,10 +214,13 @@ export type XrayTraceDataSegmentDocument = {
   error?: boolean;
   fault?: boolean;
   throttle?: boolean;
+  namespace?: 'aws' | 'remote';
   http?: Http;
+  inferred?: boolean;
   cause?: Cause;
   annotations?: any;
   metadata?: any;
+  sql?: SQL;
 };
 
 interface HistogramValue {

@@ -50,7 +50,7 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
         serviceTags,
         spanID: segment.Document.name + segment.Document.origin,
         startTime: segment.Document.start_time * MS_MULTIPLIER,
-        traceID: segment.Document.trace_id,
+        traceID: segment.Document.trace_id || '',
         parentSpanID: undefined,
       };
       parentSpans.push(parentSpan);
@@ -107,7 +107,7 @@ function transformSegmentDocument(
 ): TraceSpanRow {
   const duration = document.end_time ? document.end_time * MS_MULTIPLIER - document.start_time * MS_MULTIPLIER : 0;
   return {
-    traceID: document.trace_id,
+    traceID: document.trace_id || '',
     spanID: document.id,
     parentSpanID: parentId,
     duration,
@@ -155,6 +155,7 @@ function getTagsForSpan(segment: XrayTraceDataSegmentDocument) {
     ...segmentToTag({ http: segment.http }),
     ...segmentToTag({ annotations: segment.annotations }),
     ...segmentToTag({ metadata: segment.metadata }),
+    ...segmentToTag({ sql: segment.sql }),
     { key: 'in progress', value: Boolean(segment.in_progress) },
   ];
 
