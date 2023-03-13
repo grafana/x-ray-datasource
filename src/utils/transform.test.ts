@@ -284,7 +284,7 @@ const result = new MutableDataFrame({
       values: [
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        undefined,
+        '',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
       ],
