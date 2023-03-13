@@ -139,6 +139,12 @@ export interface AWS {
     version_label?: string;
     deployment_id?: number;
   };
+  api_gateway: {
+    account_id: string;
+    request_id: string;
+    rest_api_id: string;
+    stage: string;
+  };
   account_id?: string;
   retries?: number;
   region?: string;

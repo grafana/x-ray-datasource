@@ -240,9 +240,12 @@ function getProcess(segment: XrayTraceDataSegment): [string, TraceKeyValuePair[]
 }
 
 function getLogGroup(document: XrayTraceDataSegmentDocument) {
-  // TODO: support log group traces from other services once we know how to construct or fetch log group names
   if (document.origin?.includes('AWS::Lambda')) {
     return '/aws/lambda/' + document.name;
+  }
+
+  if (document.origin?.includes('AWS::ApiGateway')) {
+    return `API-Gateway-Execution-Logs_${document.aws?.api_gateway.rest_api_id}/${document.aws?.api_gateway.stage}`;
   }
 
   return '';
