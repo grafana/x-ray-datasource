@@ -177,7 +177,7 @@ For more information about the Service map, refer to the official [AWS X-ray doc
 
 ### Alerting
 
-Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](https://grafana.com/docs/grafana/latest/alerting/alerts-overview/) documentation for more on Grafana alerts.
+Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](https://grafana.com/docs/grafana/latest/alerting/#overview) documentation for more on Grafana alerts.
 
 ## Pricing
 
