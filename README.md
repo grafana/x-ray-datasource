@@ -231,7 +231,8 @@ To enable cross-account observability, first enable the feature in AWS using the
 
 This feature is currently behind the `cloudWatchCrossAccountQuerying` feature toggle.
 
-> You can enable feature toggles through configuration file or environment variables. See configuration [docs]({{< relref "../setup-grafana/configure-grafana/#feature_toggles" >}}) for details.
+> You can enable feature toggles through configuration file or environment variables. See [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/) for details on updating the configuration file.
+
 > Grafana Cloud users can access this feature by [opening a support ticket in the Cloud Portal](https://grafana.com/profile/org#support).
 
 ## Filtering Traces by Account Id
