@@ -9,7 +9,7 @@ build dashboards or use Explore with X-Ray to look at traces, analytics, or insi
 1. Click the **Add data source** button.
 1. Select **X-Ray** in the **Distributed tracing** section.
 
-> **Note:** If you have issues getting this data source to work and Grafana is giving you undescriptive errors, then check your log file (try looking in /var/log/grafana/grafana.log).
+> **Note:** If you have issues getting this data source to work and Grafana is giving you undescriptive errors, check your log file (/var/log/grafana/grafana.log).
 
 | Name                     | Description                                                                                                             |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
@@ -19,28 +19,28 @@ build dashboards or use Explore with X-Ray to look at traces, analytics, or insi
 | Auth Provider            | Specify the provider to get credentials.                                                                                |
 | Credentials profile name | Specify the name of the profile to use (if you use `~/.aws/credentials` file), leave blank for default.                 |
 | Assume Role Arn          | Specify the ARN of the role to assume.                                                                                  |
-| External ID              | If you are assuming a role in another account, that has been created with an external ID, specify the external ID here. |
+| External ID              | If you are assuming a role in another account that was created with an external ID, specify the external ID here. |
 
 ## Authentication
 
-In this section we will go through the different type of authentication you can use for X-Ray data source.
+In this section we will go through the different type of authentication you can use for the AWS X-Ray data source.
 
 ### IAM Roles
 
-Currently all access to X-Ray is done server side by the Grafana backend using the official AWS SDK. If your Grafana
+Currently all access to X-Ray is done server-side by the Grafana backend using the official AWS SDK. If your Grafana
 server is running on AWS you can use IAM Roles and authentication will be handled automatically.
 
 See the AWS documentation on [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
 
-> **Note:** [AWS Role Switching](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-cli.html) is not supported at the moment.
+> **Note:** [AWS Role Switching](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-cli.html) is not currently supported.
 
-## IAM Policies
+### IAM Policies
 
 Grafana needs permissions granted via IAM to be able to read X-Ray data
 and EC2 tags/instances/regions. You can attach these permissions to IAM roles and
 utilize Grafana's built-in support for assuming roles.
 
-Here is a minimal policy example:
+Here is a basic policy example:
 
 ```bash
 {
@@ -67,7 +67,7 @@ Here is a minimal policy example:
 
 ### Example AWS credentials
 
-If the Auth Provider is `Credentials file`, then Grafana tries to get credentials in the following order:
+If the Auth Provider is `Credentials file`, Grafana tries to obtain credentials in the following order:
 
 - Hard-code credentials
 - Environment variables (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`)
@@ -79,9 +79,9 @@ Refer to [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go
 
 ### AWS credentials file
 
-Create a file at `~/.aws/credentials`. That is the `HOME` path for user running grafana-server.
+Create a file at `~/.aws/credentials`. That is the `HOME` path for users running grafana-server.
 
-> **Note:** If the credentials file in the right place, but it is not working, then try moving your .aws file to '/usr/share/grafana/'. Make sure your credentials file has at most 0644 permissions.
+> **Note:** If the credentials file is in the correct directory, but it is not working, try moving your .aws file to '/usr/share/grafana/'. Make sure your credentials file has at most 0644 permissions.
 
 Example credential file:
 
@@ -94,7 +94,7 @@ region = us-west-2
 
 ## Query editor
 
-The most important field in the editor is the query type. There are four query types:
+The most important field in the query editor is the query type. There are five query types:
 
 - Trace List (Traces in AWS)
 - Trace Statistics
@@ -106,7 +106,7 @@ The most important field in the editor is the query type. There are four query t
 
 ### Trace List
 
-The Trace List type allows you to search for traces which will be shown in a table. Clicking on the trace id in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or you can insert a single trace ID there that will be shown in a trace view. You can find more details about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
+The Trace List type allows you to search for traces which are shown in a table. Clicking on the `trace id` in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or insert a single trace ID that will be shown in a trace view. You can find more details about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
 
 ![x-ray-trace-list](https://user-images.githubusercontent.com/13729989/93521002-ada0d800-f92f-11ea-9b8b-3f97cd55a763.png)
 
@@ -114,13 +114,13 @@ The Trace List type allows you to search for traces which will be shown in a tab
 
 ### Trace Statistics
 
-In Trace Statistics you can see a graph and a table showing information about error, fault, throttle, success, and total count. You can use the columns field in the query editor to only see specified columns.
+In Trace Statistics you can see a graph and a table showing information about error, fault, throttle, success, and total count. You can use the `columns` field in the query editor to only see specified columns.
 
 ![x-ray-trace-statistics](https://user-images.githubusercontent.com/13729989/93521032-b691a980-f92f-11ea-894c-534a9e5093d5.png)
 
 ### Trace Analytics
 
-In Trace Analytics you can visualize the following tables.
+In Trace Analytics you can visualize the following tables:
 
 - Root Cause
   - Response Time
@@ -140,11 +140,11 @@ In Trace Analytics you can visualize the following tables.
 
 ### Insights
 
-In Insights you can see the summary table for Insights. Clicking the InsightId will take you to AWS console.
+In Insights you can see the summary table for Insights. Clicking the `InsightId` will take you to AWS console.
 
 ### Service map
 
-Service map in Grafana enables customers to view the map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or API running on API Gateway or a DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
+Service map in Grafana enables customers to view a map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or an API running on an API Gateway or DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
 
 ![Service map](https://grafana.com/static/img/docs/node-graph/node-graph-7-4.png 'Service map')
 
@@ -156,7 +156,7 @@ To display the service map:
 - Use [Explore](https://grafana.com/docs/grafana/latest/explore/) in Grafana 7.4 plus.
 - Show the data in a simple table. This is the only option if the Node graph panel is unavailable.
 
-You can pan and zoom the view with buttons or you mouse. For details about the visualization, refer to [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/).
+You can pan and zoom the view with buttons or use your mouse. For details about the visualization, see [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/).
 
 ![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif 'Service map navigation')
 
@@ -173,11 +173,11 @@ A colored circle around the service also matches colors and meaning from X-ray c
 
 Click on the service or the edge to see a context menu with links additional links for quick navigation to other relevant information from X-ray. You can use the links to quickly navigate to a list of all error traces for a particular service and then continue to specific trace.
 
-For more information about the Service map, refer to the official [AWS X-ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-insights.html).
+For more information about Service map, refer to the official [AWS X-ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-insights.html).
 
 ### Alerting
 
-Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](https://grafana.com/docs/grafana/latest/alerting/alerts-overview/) documentation for more on Grafana alerts.
+Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
 
 ## Pricing
 
@@ -186,13 +186,13 @@ Since X-Ray queries can return numeric data, alerts are supported. See the [Aler
 
 ## Configure the data source with provisioning
 
-You can configure data sources using config files with Grafana's provisioning system. You can read more about how it works and all the settings you can set for data sources on the [provisioning docs page](https://grafana.com/docs/grafana/latest/administration/provisioning/).
+You can configure data sources using config files with Grafana's provisioning system. For ,ore information regarding how it works and all available settings, see [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/).
 
 Here are some provisioning examples for this data source.
 
 ### Using a credentials file
 
-If you are using Credentials file authentication type, then you should use a credentials file with a config like this.
+If you are using the Credentials file authentication type, use a config similar to this:
 
 ```yaml
 apiVersion: 1
@@ -223,11 +223,11 @@ datasources:
 
 ## Cross-Account Observability
 
-The X-Ray plugin allows you to monitor traces across multiple AWS accounts within a region with a feature called Cross-Account Observability. Using cross-account observability, you can seamlessly search, visualize and analyze AWS traces without worrying about account boundaries.
+The X-Ray plugin allows you to monitor traces across multiple AWS accounts within a region with the Cross-Account Observability feature. Using cross-account observability, you can seamlessly search, visualize and analyze AWS traces without worrying about account boundaries.
 
 ### Getting started
 
-To enable cross-account observability, first enable the feature in AWS using the official [CloudWatch docs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html), then add [two new API actions]({{< relref "../Metrics_and_Logs" >}}) to the IAM policy attached to the role/user running the plugin.
+To enable cross-account observability, first enable the feature in AWS using the official [CloudWatch docs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html), then add [two API actions](/docs/grafana/latest/datasources/aws-cloudwatch/#cross-account-observability-permissions) to the IAM policy attached to the role/user running the plugin.
 
 This feature is currently behind the `cloudWatchCrossAccountQuerying` feature toggle.
 
@@ -236,6 +236,6 @@ This feature is currently behind the `cloudWatchCrossAccountQuerying` feature to
 
 ## Filtering Traces by Account Id
 
-Once the feature is enabled, you will be able to both display traces across multiple accounts and filter those traces by account ID. When you select the Service Map query type in Grafana, an account dropdown displays and populates with the account IDs shown in the traces returned in the selected time frame.
+Once the feature is enabled, you will be able to display traces across multiple accounts and filter those traces by account ID. When you select the `Service Map` query type in Grafana, an account dropdown displays and populates with the account IDs shown in the traces returned in the selected time frame.
 
 You can also add account ID as part of a query filter expression in the Trace List query type.
