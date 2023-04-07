@@ -153,7 +153,7 @@ Service Map query type shows the same data as a service map inside X-ray console
 To display the service map:
 
 - Use the [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/) visualization in Grafana 7.4 plus.
-- Use [Explore](https://grafana.com/docs/grafana/latest/explore/) in Grafana 7.4 plus.
+- Use [Explore](/docs/grafana/latest/explore/) in Grafana version 7.4 and later.
 - Show the data in a simple table. This is the only option if the Node graph panel is unavailable.
 
 You can pan and zoom the view with buttons or use your mouse. For details about the visualization, see [Node graph panel](/docs/grafana/latest/panels/visualizations/node-graph/).
