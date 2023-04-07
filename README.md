@@ -75,7 +75,7 @@ If the Auth Provider is `Credentials file`, Grafana tries to obtain credentials 
 - ~/.aws/credentials
 - IAM role for Amazon EC2
 
-Refer to [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html) in the AWS documentation for more information.
+See [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html) in the AWS documentation for more information.
 
 ### AWS credentials file
 
@@ -106,7 +106,7 @@ The most important field in the query editor is the query type. There are five q
 
 ### Trace List
 
-The Trace List type allows you to search for traces which are shown in a table. Clicking on the `trace id` in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or insert a single trace ID that will be shown in a trace view. You can find more details about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
+The Trace List type allows you to search for traces which are shown in a table. Clicking on the `trace id` in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or insert a single trace ID that will be shown in a trace view. You can find more detail about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
 
 ![x-ray-trace-list](https://user-images.githubusercontent.com/13729989/93521002-ada0d800-f92f-11ea-9b8b-3f97cd55a763.png)
 
@@ -186,7 +186,7 @@ Since X-Ray queries can return numeric data, alerts are supported. See the [Aler
 
 ## Configure the data source with provisioning
 
-You can configure data sources using config files with Grafana's provisioning system. For ,ore information regarding how it works and all available settings, see [Provision Grafana](/docs/grafana/latest/administration/provisioning/).
+You can configure data sources using config files with Grafana's provisioning system. For more information regarding how it works and all available settings, see [Provision Grafana](/docs/grafana/latest/administration/provisioning/).
 
 Here are some provisioning examples for this data source.
 
