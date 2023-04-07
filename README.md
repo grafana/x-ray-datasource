@@ -186,7 +186,7 @@ Since X-Ray queries can return numeric data, alerts are supported. See the [Aler
 
 ## Configure the data source with provisioning
 
-You can configure data sources using config files with Grafana's provisioning system. For ,ore information regarding how it works and all available settings, see [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/).
+You can configure data sources using config files with Grafana's provisioning system. For ,ore information regarding how it works and all available settings, see [Provision Grafana](/docs/grafana/latest/administration/provisioning/).
 
 Here are some provisioning examples for this data source.
 
