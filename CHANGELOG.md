@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.6.0
+
+- Update backend dependencies
+
 ## 2.5.0
 
 - Add SQL to trace by @kevinwcyu in https://github.com/grafana/x-ray-datasource/pull/173
