@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.6.1
+
+- Update grafana-aws-sdk version to include new region in opt-in region list https://github.com/grafana/grafana-aws-sdk/pull/80 
+- Security: Upgrade Go in build process to 1.20.4
+- Update grafana-plugin-sdk-go version to 0.161.0 to avoid a potential http header problem. https://github.com/grafana/athena-datasource/issues/233
+
 ## 2.6.0
 
 - Update backend dependencies
