@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.6.2
+
+- Bump grafana/aws-sdk-react dependency [#191](https://github.com/grafana/grafana-aws-sdk/pull/191)
+- Remove code coverage workflow [#188](https://github.com/grafana/grafana-aws-sdk/pull/188)
+
 ## 2.6.1
 
 - Update grafana-aws-sdk version to include new region in opt-in region list https://github.com/grafana/grafana-aws-sdk/pull/80 
