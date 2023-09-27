@@ -276,7 +276,7 @@ function parseServiceMapResponse(
   query?: XrayQuery
 ): DataFrame[] {
   const [servicesFrame, edgesFrame] = parseGraphResponse(response, query);
-  const serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subTitle}"))';
+  const serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subtitle}"))';
   servicesFrame.fields[0].config = {
     links: makeLinks(serviceQuery, instanceSettings, query),
   };
