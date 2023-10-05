@@ -9,6 +9,7 @@ import {
   ScopedVars,
   TimeRange,
   toDuration,
+  NodeGraphDataFrameFieldNames,
 } from '@grafana/data';
 import { DataSourceWithBackend, getTemplateSrv, TemplateSrv, config } from '@grafana/runtime';
 import { Observable } from 'rxjs';
@@ -276,7 +277,12 @@ function parseServiceMapResponse(
   query?: XrayQuery
 ): DataFrame[] {
   const [servicesFrame, edgesFrame] = parseGraphResponse(response, query);
-  const serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subtitle}"))';
+  let serviceQuery;
+  if (NodeGraphDataFrameFieldNames.subTitle === 'subtitle') {
+    serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subtitle}"))';
+  } else {
+    serviceQuery = 'service(id(name: "${__data.fields.title}", type: "${__data.fields.subTitle}"))';
+  }
   servicesFrame.fields[0].config = {
     links: makeLinks(serviceQuery, instanceSettings, query),
   };
