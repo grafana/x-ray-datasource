@@ -22,13 +22,13 @@ func (ds *Datasource) getTraceSummaries(ctx context.Context, req *backend.QueryD
 	}
 
 	for _, query := range req.Queries {
-		response.Responses[query.RefID] = ds.getTraceSummariesForSingleQuery(query, &req.PluginContext)
+		response.Responses[query.RefID] = ds.getTraceSummariesForSingleQuery(ctx, query, &req.PluginContext)
 	}
 
 	return response, nil
 }
 
-func (ds *Datasource) getTraceSummariesForSingleQuery(query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	queryData := &GetTraceSummariesQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
@@ -38,7 +38,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(query backend.DataQuery, p
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(pluginContext, RequestSettings{Region: queryData.Region})
+	xrayClient, err := ds.xrayClientFactory(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

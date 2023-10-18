@@ -1,6 +1,7 @@
 package datasource
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -34,7 +35,7 @@ type instanceSettings struct {
 	httpClient *http.Client
 }
 
-func newDataSourceInstanceSettings(setting backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
+func newDataSourceInstanceSettings(ctx context.Context, setting backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
 	return &instanceSettings{
 		httpClient: &http.Client{},
 	}, nil
@@ -45,7 +46,7 @@ func (s *instanceSettings) Dispose() {
 	// to cleanup.
 }
 
-type XrayClientFactory = func(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
+type XrayClientFactory = func(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
 
 type Datasource struct {
 	// The instance manager can help with lifecycle management
@@ -113,7 +114,7 @@ type RequestSettings struct {
 	Region string
 }
 
-func getXrayClient(pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
+func getXrayClient(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
 	awsSettings, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
@@ -124,7 +125,7 @@ func getXrayClient(pluginContext *backend.PluginContext, requestSettings Request
 		awsSettings.Region = requestSettings.Region
 	}
 
-	xrayClient, err := client.CreateXrayClient(awsSettings, pluginContext.DataSourceInstanceSettings)
+	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}

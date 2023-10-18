@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -13,8 +15,8 @@ import (
 var sessions = awsds.NewSessionCache()
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
-func CreateXrayClient(datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*xray.XRay, error) {
-	sess, err := getXRaySession(datasourceInfo, backendSettings)
+func CreateXrayClient(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*xray.XRay, error) {
+	sess, err := getXRaySession(ctx, datasourceInfo, backendSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -29,9 +31,9 @@ func CreateXrayClient(datasourceInfo *awsds.AWSDatasourceSettings, backendSettin
 	return xray.New(sess, config), nil
 }
 
-func getXRaySession(datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*session.Session, error) {
+func getXRaySession(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*session.Session, error) {
 	httpClientProvider := httpclient.NewProvider()
-	httpClientOptions, err := backendSettings.HTTPClientOptions()
+	httpClientOptions, err := backendSettings.HTTPClientOptions(ctx)
 	if err != nil {
 		return nil, err
 	}

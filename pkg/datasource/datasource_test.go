@@ -318,7 +318,7 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func xrayClientFactory(pluginContext *backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.XrayClient, error) {
+func xrayClientFactory(ctx context.Context, pluginContext *backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.XrayClient, error) {
 	return &XrayClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil
