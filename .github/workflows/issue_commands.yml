@@ -2,9 +2,6 @@ name: Run commands when issues are labeled
 on:
   issues:
     types: [labeled, unlabeled]
-  pull_request:
-    types: [labeled, unlabeled]
-    branches-ignore: "dependabot/**"
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -12,13 +9,19 @@ jobs:
       - name: Checkout Actions
         uses: actions/checkout@v2
         with:
-          repository: "grafana/grafana-github-actions"
+          repository: 'grafana/grafana-github-actions'
           path: ./actions
           ref: main
       - name: Install Actions
         run: npm install --production --prefix ./actions
+      - name: 'Generate token'
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        with:
+          app_id: ${{ secrets.AWS_DS_TOKEN_CREATOR_ID }}
+          private_key: ${{ secrets.AWS_DS_TOKEN_CREATOR_PEM }}
       - name: Run Commands
         uses: ./actions/commands
-        with:          
-          token: ${{secrets.ISSUE_COMMANDS_TOKEN}}
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
           configPath: issue_commands
