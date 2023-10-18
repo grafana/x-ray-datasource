@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.7.2
+
+- Fix X-Ray Service Map filter trace list query by @jamesrwhite in https://github.com/grafana/x-ray-datasource/pull/203
+
 ## 2.7.1
 
 - Update @grafana/aws-sdk to fix a bug in temporary credentials
