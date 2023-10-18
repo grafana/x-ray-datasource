@@ -62,6 +62,17 @@ jest.mock('@grafana/runtime', () => {
   };
 });
 
+jest.mock('@grafana/data', () => {
+  const data = jest.requireActual('@grafana/data');
+  return {
+    ...data,
+    NodeGraphDataFrameFieldNames: {
+      ...data.NodeGraphDataFrameFieldNames,
+      subTitle: 'whatever value is behind NodeGraphDataFrameFieldNames.subTitle',
+    },
+  };
+});
+
 describe('XrayDataSource', () => {
   describe('.query()', () => {
     it('returns parsed data when querying single trace', async () => {
@@ -102,6 +113,9 @@ describe('XrayDataSource', () => {
       );
       expect(edges.fields.find((f) => f.name === NodeGraphDataFrameFieldNames.secondaryStat)?.values.toArray()).toEqual(
         expect.arrayContaining([undefined])
+      );
+      expect(response.data[0].fields[0].config.links[0].internal.query.query).toBe(
+        'service(id(name: "${__data.fields.title}", type: "${__data.fields.whatever value is behind NodeGraphDataFrameFieldNames.subTitle}"))'
       );
     });
 
