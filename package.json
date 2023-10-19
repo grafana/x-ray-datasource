@@ -1,6 +1,6 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "description": "AWS X-Ray data source",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
