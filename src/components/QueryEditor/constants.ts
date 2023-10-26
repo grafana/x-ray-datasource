@@ -4,6 +4,7 @@ import { CascaderOption } from '@grafana/ui';
 export type QueryTypeOption = CascaderOption & {
   queryType?: XrayQueryType;
   children?: QueryTypeOption[];
+  items?: QueryTypeOption[];
 };
 
 export const traceListOption: QueryTypeOption = { label: 'Trace List', value: 'traceList' };
@@ -24,7 +25,7 @@ export const traceStatisticsOption: QueryTypeOption = {
   queryType: XrayQueryType.getTimeSeriesServiceStatistics,
 };
 
-export const queryTypeOptions: QueryTypeOption[] = [
+export const queryTypeOptionsOld: QueryTypeOption[] = [
   traceListOption,
   traceStatisticsOption,
   insightsOption,
@@ -77,6 +78,98 @@ export const queryTypeOptions: QueryTypeOption[] = [
             value: 'fault',
             label: 'Fault',
             children: [
+              {
+                value: 'rootCauseService',
+                label: 'Root Cause',
+                queryType: XrayQueryType.getAnalyticsRootCauseFaultService,
+              },
+              {
+                value: 'path',
+                label: 'Path',
+                queryType: XrayQueryType.getAnalyticsRootCauseFaultPath,
+              },
+              {
+                value: 'message',
+                label: 'Error Message',
+                queryType: XrayQueryType.getAnalyticsRootCauseFaultMessage,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        value: 'user',
+        label: 'End user impact',
+        queryType: XrayQueryType.getAnalyticsUser,
+      } as QueryTypeOption,
+      {
+        value: 'url',
+        label: 'URL',
+        queryType: XrayQueryType.getAnalyticsUrl,
+      },
+      {
+        value: 'statusCode',
+        label: 'HTTP status code',
+        queryType: XrayQueryType.getAnalyticsStatusCode,
+      },
+    ],
+  },
+  serviceMapOption,
+];
+
+export const queryTypeOptions: QueryTypeOption[] = [
+  traceListOption,
+  traceStatisticsOption,
+  insightsOption,
+  {
+    label: 'Trace Analytics',
+    value: 'traceAnalytics',
+    items: [
+      {
+        value: 'rootCause',
+        label: 'Root Cause',
+        items: [
+          {
+            value: 'responseTime',
+            label: 'Response Time',
+            items: [
+              {
+                value: 'rootCauseService',
+                label: 'Root Cause',
+                queryType: XrayQueryType.getAnalyticsRootCauseResponseTimeService,
+              } as QueryTypeOption,
+              {
+                value: 'path',
+                label: 'Path',
+                queryType: XrayQueryType.getAnalyticsRootCauseResponseTimePath,
+              },
+            ],
+          },
+          {
+            value: 'error',
+            label: 'Error',
+            items: [
+              {
+                value: 'rootCauseService',
+                label: 'Root Cause',
+                queryType: XrayQueryType.getAnalyticsRootCauseErrorService,
+              },
+              {
+                value: 'path',
+                label: 'Path',
+                queryType: XrayQueryType.getAnalyticsRootCauseErrorPath,
+              },
+              {
+                value: 'message',
+                label: 'Error Message',
+                queryType: XrayQueryType.getAnalyticsRootCauseErrorMessage,
+              },
+            ],
+          },
+          {
+            value: 'fault',
+            label: 'Fault',
+            items: [
               {
                 value: 'rootCauseService',
                 label: 'Root Cause',

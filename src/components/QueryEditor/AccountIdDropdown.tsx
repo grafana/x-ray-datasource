@@ -5,10 +5,11 @@ import { TimeRange } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import React from 'react';
 import { InlineFormLabel, MultiSelect } from '@grafana/ui';
-
+import { EditorField } from '@grafana/experimental';
 type Props = {
   datasource: XrayDataSource;
   query: XrayQuery;
+  newFornStylingEnabled?: boolean;
   range?: TimeRange;
   onChange: (items: string[]) => void;
 };
@@ -22,7 +23,20 @@ export const AccountIdDropdown = (props: Props) => {
     return null;
   }
 
-  return (
+  return props.newFornStylingEnabled ? (
+    <EditorField label="AccountId" className="query-keyword" htmlFor="accountId">
+      <MultiSelect
+        id="accountId"
+        options={(accountIds || []).map((accountId: string) => ({
+          value: accountId,
+          label: accountId,
+        }))}
+        value={props.query.accountIds}
+        onChange={(items) => props.onChange(items.map((item) => item.value || ''))}
+        placeholder={'All'}
+      />
+    </EditorField>
+  ) : (
     <div className="gf-form">
       <InlineFormLabel className="query-keyword" width="auto">
         AccountId
