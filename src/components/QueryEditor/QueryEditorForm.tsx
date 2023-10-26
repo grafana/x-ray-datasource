@@ -1,7 +1,7 @@
 import React from 'react';
 import { css } from '@emotion/css';
 import { QueryEditorProps, ScopedVars } from '@grafana/data';
-import { MultiSelect, Select, Cascader } from '@grafana/ui';
+import { MultiSelect, Select, ButtonCascader } from '@grafana/ui';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { useInitQuery } from './useInitQuery';
 import {
@@ -21,19 +21,22 @@ import { EditorRow, EditorFieldGroup, EditorField } from '@grafana/experimental'
 import { QuerySection } from './QuerySection';
 import { XrayLinks } from './XrayLinks';
 
-function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption | null {
+function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
+    const selected: QueryTypeOption[] = [];
     if (option.queryType === queryType) {
-      return option;
+      selected.push(option);
+      return selected;
     }
-    if (option.items) {
-      const found = findOptionForQueryType(queryType, option.items);
-      if (found) {
-        return found;
+    if (option.children) {
+      const found = findOptionForQueryType(queryType, option.children);
+      if (found.length) {
+        selected.push(option, ...found);
+        return selected;
       }
     }
   }
-  return null;
+  return [];
 }
 
 /**
@@ -41,58 +44,33 @@ function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTy
  * between trace list and single trace and we detect that based on query. So trace list option returns single trace
  * if query contains single traceID.
  */
-export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption | null {
+function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
   if (!queryType || queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
-    return traceStatisticsOption;
+    return [traceStatisticsOption];
   }
 
   if (queryType === XrayQueryType.getTrace || queryType === XrayQueryType.getTraceSummaries) {
-    return traceListOption;
+    return [traceListOption];
   }
 
   if (queryType === XrayQueryType.getInsights) {
-    return insightsOption;
+    return [insightsOption];
   }
 
   return findOptionForQueryType(queryType);
 }
-// recursively search for the selected option in cascade option's item or item.items
-export function findQueryTypeOption(options: QueryTypeOption[], selected: string): QueryTypeOption | undefined {
-  for (const option of options) {
-    // Check if the current option's value matches the selected value
-    if (option.value === selected) {
-      return option;
-    }
 
-    // If no match was found at the current level, check items if they exist
-    if (option.items) {
-      const result = findQueryTypeOption(option.items, selected);
-      if (result) {
-        return result;
-      }
-    }
-  }
-
-  // If no match was found in the current array or its items, return undefined
-  return undefined;
-}
-
-export function queryTypeOptionToQueryType(
-  selected: string,
-  query: string,
-  scopedVars?: ScopedVars
-): XrayQueryType | undefined {
-  if (selected === traceListOption.value) {
+export function queryTypeOptionToQueryType(selected: string[], query: string, scopedVars?: ScopedVars): XrayQueryType {
+  if (selected[0] === traceListOption.value) {
     const resolvedQuery = getTemplateSrv().replace(query, scopedVars);
     const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(resolvedQuery.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
   } else {
-    const foundItem = findQueryTypeOption(queryTypeOptions, selected);
-    if (!foundItem) {
-      console.log('item could not be found in the options');
+    let found: any = undefined;
+    for (const path of selected) {
+      found = (found?.children ?? queryTypeOptions).find((option: QueryTypeOption) => option.value === path);
     }
-    console.log(JSON.stringify(foundItem, null, 2));
-    return foundItem?.queryType ?? undefined;
+    return found.queryType;
   }
 }
 
@@ -128,8 +106,9 @@ export function QueryEditorForm({
   const allRegions = [{ label: 'default', value: 'default', text: 'default' }, ...regions];
   useInitQuery(query, onChange, groups, allRegions, datasource);
 
-  const selectedOption = queryTypeToQueryTypeOptions(query.queryType);
-  const allGroups = selectedOption === insightsOption ? [dummyAllGroup, ...groups] : groups;
+  const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
+
+  const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
   const styles = getStyles();
 
   return (
@@ -137,11 +116,11 @@ export function QueryEditorForm({
       <EditorRow>
         <EditorFieldGroup>
           <EditorField label="Query Type" className={`query-keyword ${styles.formFieldStyles}`}>
-            <Cascader
-              initialValue={selectedOption?.value}
+            <ButtonCascader
+              variant="secondary"
+              value={selectedOptions.map((option) => option.value)}
               options={queryTypeOptions}
-              changeOnSelect={false}
-              onSelect={(value: string) => {
+              onChange={(value) => {
                 const newQueryType = queryTypeOptionToQueryType(value, query.query || '', data?.request?.scopedVars);
                 onChange({
                   ...query,
@@ -149,7 +128,9 @@ export function QueryEditorForm({
                   columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
                 } as any);
               }}
-            />
+            >
+              {selectedOptions[selectedOptions.length - 1].label}
+            </ButtonCascader>
           </EditorField>
           <EditorField label="Region" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="region">
             <Select
@@ -185,10 +166,10 @@ export function QueryEditorForm({
               }}
             />
           </EditorField>
-          {serviceMapOption === selectedOption && (
+          {[serviceMapOption].includes(selectedOptions[0]) && (
             <AccountIdDropdown
               datasource={datasource}
-              newFornStylingEnabled={true}
+              newFormStylingEnabled={true}
               query={query}
               range={range}
               onChange={(accountIds) =>
@@ -199,7 +180,7 @@ export function QueryEditorForm({
               }
             />
           )}
-          {selectedOption === insightsOption && (
+          {selectedOptions[0] === insightsOption && (
             <EditorField label="State" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="queryState">
               <Select
                 id="queryState"
@@ -214,7 +195,7 @@ export function QueryEditorForm({
               />
             </EditorField>
           )}
-          {selectedOption === traceStatisticsOption && (
+          {selectedOptions[0] === traceStatisticsOption && (
             <EditorField
               label="Resolution"
               className={`query-keyword ${styles.formFieldStyles}`}
@@ -237,19 +218,19 @@ export function QueryEditorForm({
           <XrayLinks datasource={datasource} query={query} range={range} />
         </EditorFieldGroup>
       </EditorRow>
-      {selectedOption && ![insightsOption, serviceMapOption].includes(selectedOption) && (
+      {![insightsOption, serviceMapOption].includes(selectedOptions[0]) && (
         <EditorRow>
           <QuerySection
             query={query}
             datasource={datasource}
             onChange={onChange}
             onRunQuery={onRunQuery}
-            selectedOption={selectedOption}
+            selectedOptions={selectedOptions}
           />
         </EditorRow>
       )}
 
-      {selectedOption === traceStatisticsOption && (
+      {selectedOptions[0] === traceStatisticsOption && (
         <EditorRow>
           <EditorFieldGroup>
             <EditorField

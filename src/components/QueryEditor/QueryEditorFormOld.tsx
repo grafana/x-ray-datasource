@@ -9,7 +9,7 @@ import {
   dummyAllGroup,
   insightsOption,
   QueryTypeOption,
-  queryTypeOptionsOld,
+  queryTypeOptions,
   serviceMapOption,
   traceListOption,
   traceStatisticsOption,
@@ -20,7 +20,7 @@ import { AccountIdDropdown } from './AccountIdDropdown';
 import { QuerySectionOld } from './QuerySectionOld';
 import { XrayLinksOld } from './XrayLinksOld';
 
-function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptionsOld): QueryTypeOption[] {
+function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
     const selected: QueryTypeOption[] = [];
     if (option.queryType === queryType) {
@@ -67,7 +67,7 @@ export function queryTypeOptionToQueryType(selected: string[], query: string, sc
   } else {
     let found: any = undefined;
     for (const path of selected) {
-      found = (found?.children ?? queryTypeOptionsOld).find((option: QueryTypeOption) => option.value === path);
+      found = (found?.children ?? queryTypeOptions).find((option: QueryTypeOption) => option.value === path);
     }
     return found.queryType;
   }
@@ -146,7 +146,7 @@ export function QueryEditorFormOld({
           </InlineFormLabel>
           <ButtonCascader
             value={selectedOptions.map((option) => option.value)}
-            options={queryTypeOptionsOld}
+            options={queryTypeOptions}
             onChange={(value) => {
               const newQueryType = queryTypeOptionToQueryType(value, query.query || '', data?.request?.scopedVars);
               onChange({

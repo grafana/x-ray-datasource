@@ -22,10 +22,10 @@ type Props = {
   datasource: XrayDataSource;
   onChange: (value: XrayQuery) => void;
   onRunQuery: () => void;
-  selectedOption: QueryTypeOption;
+  selectedOptions: QueryTypeOption[];
 };
 export function QuerySection(props: Props) {
-  const { datasource, query, onRunQuery, onChange, selectedOption } = props;
+  const { datasource, query, onRunQuery, onChange, selectedOptions } = props;
 
   const onRunQueryLocal = () => {
     onChange(query);
@@ -63,7 +63,10 @@ export function QuerySection(props: Props) {
         onChange={(e) => {
           onChange({
             ...query,
-            queryType: queryTypeOptionToQueryType(selectedOption.value, e.query),
+            queryType: queryTypeOptionToQueryType(
+              selectedOptions.map((option) => option.value),
+              e.query
+            ),
             query: e.query,
           });
         }}

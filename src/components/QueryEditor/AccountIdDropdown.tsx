@@ -9,7 +9,7 @@ import { EditorField } from '@grafana/experimental';
 type Props = {
   datasource: XrayDataSource;
   query: XrayQuery;
-  newFornStylingEnabled?: boolean;
+  newFormStylingEnabled?: boolean;
   range?: TimeRange;
   onChange: (items: string[]) => void;
 };
@@ -23,7 +23,7 @@ export const AccountIdDropdown = (props: Props) => {
     return null;
   }
 
-  return props.newFornStylingEnabled ? (
+  return props.newFormStylingEnabled ? (
     <EditorField label="AccountId" className="query-keyword" htmlFor="accountId">
       <MultiSelect
         id="accountId"

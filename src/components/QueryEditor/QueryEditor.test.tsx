@@ -130,7 +130,7 @@ describe('QueryEditor', () => {
           query: 'test query',
           queryType: type as XrayQueryType,
         });
-        expect(screen.getByDisplayValue(expected)).not.toBeNull();
+        expect(screen.getByText(expected)).not.toBeNull();
       });
 
       it('inits the query with query type', async () => {
