@@ -27,6 +27,12 @@ const defaultProps = {
   } as any,
 };
 
+const originalFormFeatureToggleValue = grafanaRuntime.config.featureToggles.awsDatasourcesNewFormStyling;
+
+const cleanupFeatureToggle = () => {
+  grafanaRuntime.config.featureToggles.awsDatasourcesNewFormStyling = originalFormFeatureToggleValue;
+};
+
 jest.mock('./XRayQueryField', () => {
   return {
     __esModule: true,
@@ -106,185 +112,197 @@ async function renderWithQuery(query: Omit<XrayQuery, 'refId'>, rerender?: any) 
 }
 
 describe('QueryEditor', () => {
-  function run(testName: string) {
-    describe(testName, () => {
-      it.each([
-        [XrayQueryType.getTrace, 'Trace List'],
-        [XrayQueryType.getTraceSummaries, 'Trace List'],
-        [XrayQueryType.getTimeSeriesServiceStatistics, 'Trace Statistics'],
-        [XrayQueryType.getAnalyticsRootCauseResponseTimeService, 'Root Cause'],
-        [XrayQueryType.getAnalyticsRootCauseResponseTimePath, 'Path'],
-        [XrayQueryType.getAnalyticsRootCauseErrorService, 'Root Cause'],
-        [XrayQueryType.getAnalyticsRootCauseErrorPath, 'Path'],
-        [XrayQueryType.getAnalyticsRootCauseErrorMessage, 'Error Message'],
-        [XrayQueryType.getAnalyticsRootCauseFaultService, 'Root Cause'],
-        [XrayQueryType.getAnalyticsRootCauseFaultPath, 'Path'],
-        [XrayQueryType.getAnalyticsRootCauseFaultMessage, 'Error Message'],
-        [XrayQueryType.getAnalyticsUser, 'End user impact'],
-        [XrayQueryType.getAnalyticsUrl, 'URL'],
-        [XrayQueryType.getAnalyticsStatusCode, 'HTTP status code'],
-        [XrayQueryType.getInsights, 'Insights'],
-        [XrayQueryType.getServiceMap, 'Service Map'],
-      ])('renders proper query type option when query type is %s', async (type, expected) => {
-        await renderWithQuery({
-          query: 'test query',
-          queryType: type as XrayQueryType,
-        });
-        expect(screen.getByText(expected)).not.toBeNull();
+  function run() {
+    it.each([
+      [XrayQueryType.getTrace, 'Trace List'],
+      [XrayQueryType.getTraceSummaries, 'Trace List'],
+      [XrayQueryType.getTimeSeriesServiceStatistics, 'Trace Statistics'],
+      [XrayQueryType.getAnalyticsRootCauseResponseTimeService, 'Root Cause'],
+      [XrayQueryType.getAnalyticsRootCauseResponseTimePath, 'Path'],
+      [XrayQueryType.getAnalyticsRootCauseErrorService, 'Root Cause'],
+      [XrayQueryType.getAnalyticsRootCauseErrorPath, 'Path'],
+      [XrayQueryType.getAnalyticsRootCauseErrorMessage, 'Error Message'],
+      [XrayQueryType.getAnalyticsRootCauseFaultService, 'Root Cause'],
+      [XrayQueryType.getAnalyticsRootCauseFaultPath, 'Path'],
+      [XrayQueryType.getAnalyticsRootCauseFaultMessage, 'Error Message'],
+      [XrayQueryType.getAnalyticsUser, 'End user impact'],
+      [XrayQueryType.getAnalyticsUrl, 'URL'],
+      [XrayQueryType.getAnalyticsStatusCode, 'HTTP status code'],
+      [XrayQueryType.getInsights, 'Insights'],
+      [XrayQueryType.getServiceMap, 'Service Map'],
+    ])('renders proper query type option when query type is %s', async (type, expected) => {
+      await renderWithQuery({
+        query: 'test query',
+        queryType: type as XrayQueryType,
+      });
+      expect(screen.getByText(expected)).not.toBeNull();
+    });
+
+    it('inits the query with query type', async () => {
+      const { onChange } = await renderWithQuery({ query: '' });
+      expect(onChange).toBeCalledWith({
+        refId: 'A',
+        query: '',
+        queryType: XrayQueryType.getTraceSummaries,
+        region: 'default',
+        group: { GroupName: 'Default', GroupARN: 'DefaultARN' },
+      });
+    });
+
+    it('shows column filter and resolution only if query type is getTimeSeriesServiceStatistics', async () => {
+      const { rerender } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
+      expect(screen.queryByTestId('column-filter')).toBeNull();
+      expect(screen.queryByTestId('resolution')).toBeNull();
+
+      await renderWithQuery({ query: '', queryType: XrayQueryType.getTimeSeriesServiceStatistics }, rerender);
+      expect(screen.queryByTestId('column-filter')).not.toBeNull();
+      expect(screen.queryByTestId('resolution')).not.toBeNull();
+    });
+
+    it('hides query input if query is service map', async () => {
+      await renderWithQuery({ query: '', queryType: XrayQueryType.getServiceMap });
+      expect(screen.queryByText(/^Query$/)).toBeNull();
+    });
+
+    it('correctly changes the query type if user fills in trace id', async () => {
+      const { onChange } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
+
+      const field = screen.getByTestId('query-field-mock');
+
+      fireEvent.change(field, { target: { value: '1-5f160a8b-83190adad07f429219c0e259' } });
+
+      expect(onChange.mock.calls[1][0]).toEqual({
+        refId: 'A',
+        query: '1-5f160a8b-83190adad07f429219c0e259',
+        queryType: XrayQueryType.getTrace,
+      });
+    });
+
+    it('can add and remove column filters', async () => {
+      let { onChange } = await renderWithQuery({
+        query: '',
+        columns: [],
+        queryType: XrayQueryType.getTimeSeriesServiceStatistics,
       });
 
-      it('inits the query with query type', async () => {
-        const { onChange } = await renderWithQuery({ query: '' });
-        expect(onChange).toBeCalledWith({
-          refId: 'A',
-          query: '',
-          queryType: XrayQueryType.getTraceSummaries,
-          region: 'default',
-          group: { GroupName: 'Default', GroupARN: 'DefaultARN' },
-        });
+      let select = screen.getByText('All columns');
+      fireEvent.mouseDown(select);
+      let option = screen.getByText(/Success Count/i);
+      fireEvent.click(option);
+
+      expect(onChange).toBeCalledWith({
+        refId: 'A',
+        query: '',
+        columns: ['OkCount'],
+        queryType: XrayQueryType.getTimeSeriesServiceStatistics,
       });
+    });
 
-      it('shows column filter and resolution only if query type is getTimeSeriesServiceStatistics', async () => {
-        const { rerender } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
-        expect(screen.queryByTestId('column-filter')).toBeNull();
-        expect(screen.queryByTestId('resolution')).toBeNull();
-
-        await renderWithQuery({ query: '', queryType: XrayQueryType.getTimeSeriesServiceStatistics }, rerender);
-        expect(screen.queryByTestId('column-filter')).not.toBeNull();
-        expect(screen.queryByTestId('resolution')).not.toBeNull();
+    it('waits until groups and regions are loaded', async () => {
+      await act(async () => {
+        render(
+          <QueryEditor
+            {...{
+              ...defaultProps,
+              query: {
+                refId: 'A',
+              } as any,
+            }}
+            onChange={() => {}}
+          />
+        );
+        // No ideal selector but spinner does not seem to have any better thing to select by
+        expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+        await waitFor(() => expect(screen.getByText('Query')).toBeDefined());
       });
+    });
 
-      it('hides query input if query is service map', async () => {
-        await renderWithQuery({ query: '', queryType: XrayQueryType.getServiceMap });
-        expect(screen.queryByText(/^Query$/)).toBeNull();
+    it('sets the correct links based on region default', async () => {
+      renderEditorWithRegion('region1', 'default');
+      await checkLinks({
+        console: 'https://region1.console.aws.amazon.com/xray/home?region=region1#/analytics',
+        serviceMap: 'https://region1.console.aws.amazon.com/xray/home?region=region1#/service-map/',
       });
+    });
 
-      it('correctly changes the query type if user fills in trace id', async () => {
-        const { onChange } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
-
-        const field = screen.getByTestId('query-field-mock');
-
-        fireEvent.change(field, { target: { value: '1-5f160a8b-83190adad07f429219c0e259' } });
-
-        expect(onChange.mock.calls[1][0]).toEqual({
-          refId: 'A',
-          query: '1-5f160a8b-83190adad07f429219c0e259',
-          queryType: XrayQueryType.getTrace,
-        });
+    it('sets the correct links based on region in query', async () => {
+      renderEditorWithRegion('region1', 'region2');
+      await checkLinks({
+        console: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/analytics',
+        serviceMap: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/service-map/',
       });
+    });
 
-      it('can add and remove column filters', async () => {
-        let { onChange } = await renderWithQuery({
-          query: '',
-          columns: [],
-          queryType: XrayQueryType.getTimeSeriesServiceStatistics,
-        });
-
-        let select = screen.getByText('All columns');
-        fireEvent.mouseDown(select);
-        let option = screen.getByText(/Success Count/i);
-        fireEvent.click(option);
-
-        expect(onChange).toBeCalledWith({
-          refId: 'A',
-          query: '',
-          columns: ['OkCount'],
-          queryType: XrayQueryType.getTimeSeriesServiceStatistics,
-        });
+    it('shows the accountIds in a dropdown on service map selection', async () => {
+      const mockGetAccountIdsForServiceMap = jest.fn(() => Promise.resolve(['account1', 'account2']));
+      await act(async () => {
+        render(
+          <QueryEditor
+            {...{
+              ...defaultProps,
+              datasource: {
+                ...defaultProps.datasource,
+                getAccountIdsForServiceMap: mockGetAccountIdsForServiceMap,
+              },
+              query: {
+                refId: 'A',
+                queryType: 'getServiceMap',
+                accountIds: ['account1'],
+              } as any,
+            }}
+            onChange={() => {}}
+          />
+        );
+        expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+        await waitFor(() => expect(screen.getByText('account1')).toBeDefined());
+        expect(mockGetAccountIdsForServiceMap).toHaveBeenCalled();
       });
+    });
 
-      it('waits until groups and regions are loaded', async () => {
-        await act(async () => {
-          render(
-            <QueryEditor
-              {...{
-                ...defaultProps,
-                query: {
-                  refId: 'A',
-                } as any,
-              }}
-              onChange={() => {}}
-            />
-          );
-          // No ideal selector but spinner does not seem to have any better thing to select by
-          expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
-          await waitFor(() => expect(screen.getByText('Query')).toBeDefined());
-        });
-      });
-
-      it('sets the correct links based on region default', async () => {
-        renderEditorWithRegion('region1', 'default');
-        await checkLinks({
-          console: 'https://region1.console.aws.amazon.com/xray/home?region=region1#/analytics',
-          serviceMap: 'https://region1.console.aws.amazon.com/xray/home?region=region1#/service-map/',
-        });
-      });
-
-      it('sets the correct links based on region in query', async () => {
-        renderEditorWithRegion('region1', 'region2');
-        await checkLinks({
-          console: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/analytics',
-          serviceMap: 'https://region2.console.aws.amazon.com/xray/home?region=region2#/service-map/',
-        });
-      });
-
-      it('shows the accountIds in a dropdown on service map selection', async () => {
-        const mockGetAccountIdsForServiceMap = jest.fn(() => Promise.resolve(['account1', 'account2']));
-        await act(async () => {
-          render(
-            <QueryEditor
-              {...{
-                ...defaultProps,
-                datasource: {
-                  ...defaultProps.datasource,
-                  getAccountIdsForServiceMap: mockGetAccountIdsForServiceMap,
-                },
-                query: {
-                  refId: 'A',
-                  queryType: 'getServiceMap',
-                  accountIds: ['account1'],
-                } as any,
-              }}
-              onChange={() => {}}
-            />
-          );
-          expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
-          await waitFor(() => expect(screen.getByText('account1')).toBeDefined());
-          expect(mockGetAccountIdsForServiceMap).toHaveBeenCalled();
-        });
-      });
-
-      it('does not fetch account ids if service map is not selected', async () => {
-        const mockGetAccountIdsForServiceMap = jest.fn(() => Promise.resolve(['account1', 'account2']));
-        await act(async () => {
-          render(
-            <QueryEditor
-              {...{
-                ...defaultProps,
-                datasource: {
-                  ...defaultProps.datasource,
-                  getAccountIdsForServiceMap: mockGetAccountIdsForServiceMap,
-                },
-                query: {
-                  refId: 'A',
-                  queryType: XrayQueryType.getTrace,
-                  accountIds: [],
-                } as any,
-              }}
-              onChange={() => {}}
-            />
-          );
-          expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
-          await waitForElementToBeRemoved(() => screen.getByText('', { selector: '.fa-spinner' }));
-          expect(mockGetAccountIdsForServiceMap).not.toHaveBeenCalled();
-        });
+    it('does not fetch account ids if service map is not selected', async () => {
+      const mockGetAccountIdsForServiceMap = jest.fn(() => Promise.resolve(['account1', 'account2']));
+      await act(async () => {
+        render(
+          <QueryEditor
+            {...{
+              ...defaultProps,
+              datasource: {
+                ...defaultProps.datasource,
+                getAccountIdsForServiceMap: mockGetAccountIdsForServiceMap,
+              },
+              query: {
+                refId: 'A',
+                queryType: XrayQueryType.getTrace,
+                accountIds: [],
+              } as any,
+            }}
+            onChange={() => {}}
+          />
+        );
+        expect(screen.getByText('', { selector: '.fa-spinner' })).toBeDefined();
+        await waitForElementToBeRemoved(() => screen.getByText('', { selector: '.fa-spinner' }));
+        expect(mockGetAccountIdsForServiceMap).not.toHaveBeenCalled();
       });
     });
   }
-
-  run('QueryEditorForm with awsDatasourcesNewFormStyling disabled');
-  grafanaRuntime.config.featureToggles.awsDatasourcesNewFormStyling = true;
-  run('QueryEditorForm with awsDatasourcesNewFormStyling enabled');
+  describe('QueryEditor with awsDatasourcesNewFormStyling feature toggle enabled', () => {
+    beforeAll(() => {
+      grafanaRuntime.config.featureToggles.awsDatasourcesNewFormStyling = false;
+    });
+    afterAll(() => {
+      cleanupFeatureToggle();
+    });
+    run();
+    describe('QueryEditor with awsDatasourcesNewFormStyling feature toggle enabled', () => {
+      beforeAll(() => {
+        grafanaRuntime.config.featureToggles.awsDatasourcesNewFormStyling = true;
+      });
+      afterAll(() => {
+        cleanupFeatureToggle();
+      });
+      run();
+    });
+  });
 });
 
 function makeDataSource(settings: DataSourceInstanceSettings<XrayJsonData>) {

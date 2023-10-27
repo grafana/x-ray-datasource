@@ -12,7 +12,6 @@ export function ConfigEditor(props: Props) {
   return (
     <div className="width-30">
       <ConnectionConfig {...props} standardRegions={standardRegions} newFormStylingEnabled={newFormStylingEnabled} />
-      {/* can add x-ray specific things here */}
     </div>
   );
 }
