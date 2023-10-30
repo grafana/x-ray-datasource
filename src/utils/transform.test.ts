@@ -284,9 +284,9 @@ const result = new MutableDataFrame({
       values: [
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
-        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
         '',
+        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+        '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
       ],
     },
     {
@@ -294,32 +294,33 @@ const result = new MutableDataFrame({
       config: {},
       values: [
         'myfrontend-devAWS::EC2::Instance',
-        'DynamoDBAWS::DynamoDB::Table',
         'eebec87ce4dd8225',
-        '3f8b028e1847bc4c',
         '4ab39ad12cff04b5',
+        'DynamoDBAWS::DynamoDB::Table',
+        '3f8b028e1847bc4c',
       ],
     },
     {
       name: 'parentSpanID',
+      type: FieldType.string,
       config: {},
       values: [
         undefined,
-        undefined,
         'myfrontend-devAWS::EC2::Instance',
-        'DynamoDBAWS::DynamoDB::Table',
         'eebec87ce4dd8225',
+        undefined,
+        'DynamoDBAWS::DynamoDB::Table',
       ],
     },
     {
       name: 'operationName',
       config: {},
-      values: ['AWS::EC2::Instance', 'AWS::DynamoDB::Table', 'myfrontend-dev', 'DynamoDB', 'DynamoDB'],
+      values: ['AWS::EC2::Instance', 'myfrontend-dev', 'DynamoDB', 'AWS::DynamoDB::Table', 'DynamoDB'],
     },
     {
       name: 'serviceName',
       config: {},
-      values: ['myfrontend-dev', 'DynamoDB', 'myfrontend-dev', 'DynamoDB', 'myfrontend-dev'],
+      values: ['myfrontend-dev', 'myfrontend-dev', 'myfrontend-dev', 'DynamoDB', 'DynamoDB'],
     },
     {
       name: 'serviceTags',
@@ -334,7 +335,7 @@ const result = new MutableDataFrame({
         [
           {
             key: 'name',
-            value: 'DynamoDB',
+            value: 'myfrontend-dev',
           },
         ],
         [
@@ -352,7 +353,7 @@ const result = new MutableDataFrame({
         [
           {
             key: 'name',
-            value: 'myfrontend-dev',
+            value: 'DynamoDB',
           },
         ],
       ],
@@ -365,7 +366,7 @@ const result = new MutableDataFrame({
     {
       name: 'duration',
       config: {},
-      values: [0, 0, 48, 47, 47],
+      values: [0, 48, 47, 0, 47],
     },
     {
       name: 'logs',
@@ -376,7 +377,6 @@ const result = new MutableDataFrame({
       name: 'tags',
       config: {},
       values: [
-        undefined,
         undefined,
         [
           {
@@ -390,28 +390,6 @@ const result = new MutableDataFrame({
           {
             key: 'origin',
             value: 'AWS::EC2::Instance',
-          },
-        ],
-        [
-          {
-            key: 'metadata.http.dns.addresses[0].IP',
-            value: '4.2.123.160',
-          },
-          {
-            key: 'metadata.http.dns.addresses[1].IP',
-            value: '22.23.14.122',
-          },
-          {
-            key: 'in progress',
-            value: false,
-          },
-          {
-            key: 'origin',
-            value: 'AWS::DynamoDB::Table',
-          },
-          {
-            key: 'error',
-            value: true,
           },
         ],
         [
@@ -436,6 +414,29 @@ const result = new MutableDataFrame({
             value: true,
           },
         ],
+        undefined,
+        [
+          {
+            key: 'metadata.http.dns.addresses[0].IP',
+            value: '4.2.123.160',
+          },
+          {
+            key: 'metadata.http.dns.addresses[1].IP',
+            value: '22.23.14.122',
+          },
+          {
+            key: 'in progress',
+            value: false,
+          },
+          {
+            key: 'origin',
+            value: 'AWS::DynamoDB::Table',
+          },
+          {
+            key: 'error',
+            value: true,
+          },
+        ],
       ],
     },
     {
@@ -449,23 +450,101 @@ const result = new MutableDataFrame({
       values: [
         undefined,
         undefined,
-        undefined,
-        undefined,
         [
           'ConditionalCheckFailedException: The conditional request failed\nat features.constructor.captureAWSRequest [as customRequestHandler] (/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js:66)\nat features.constructor.addAllRequestListeners (/var/app/current/node_modules/aws-sdk/lib/service.js:266)',
           'UndefinedStackException: Undefined stack exception',
         ],
+        undefined,
+        undefined,
       ],
     },
     {
       name: 'errorIconColor',
+      type: FieldType.string,
       config: {},
-      values: [undefined, undefined, undefined, undefined, '#FFC46E'],
+      values: [undefined, undefined, '#FFC46E', undefined, undefined],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: '__log_group',
+      type: FieldType.string,
+      values: ['', '', '', '', ''],
+    },
+    {
+      config: {},
+      labels: undefined,
+      name: '__request_id',
+      type: FieldType.string,
+      values: [undefined, undefined, undefined, undefined, undefined],
     },
   ],
   meta: {
     preferredVisualisationType: 'trace',
   },
+});
+
+describe('transformResponse function', () => {
+  it('should transform aws x-ray response to correct format', () => {
+    expect(transformTraceResponse(awsResponse as any)).toEqual(result);
+  });
+
+  it("should handle response that is in progress (doesn't have an end time)", () => {
+    const aws = {
+      Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
+      Segments: [
+        {
+          Document: {
+            id: '5c6cc52b0685e278',
+            name: 'myfrontend-dev',
+            origin: 'AWS::EC2::Instance',
+            subsegments: [
+              {
+                id: 'e5ea9d95ecda4d8a',
+                name: 'response',
+                start_time: 1595878288.1899369,
+                in_progress: true,
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    const view = new DataFrameView(transformTraceResponse(aws as any));
+    expect(view.get(1).duration).toBe(0);
+  });
+
+  it('should handle response without full url', () => {
+    const aws = {
+      Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
+      Segments: [
+        {
+          Document: {
+            id: '5c6cc52b0685e278',
+            name: 'myfrontend-dev',
+            origin: 'AWS::EC2::Instance',
+            http: {
+              request: {
+                url: '/path/something',
+              },
+            },
+            subsegments: [
+              {
+                id: 'e5ea9d95ecda4d8a',
+                name: 'response',
+                start_time: 1595878288.1899369,
+                in_progress: true,
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    const view = new DataFrameView(transformTraceResponse(aws as any));
+    expect(view.get(1).duration).toBe(0);
+  });
 });
 
 const resultWithSql = new MutableDataFrame({
@@ -1021,62 +1100,5 @@ describe('transformTraceResponse function', () => {
 
   it('should transform an aws x-ray response with sql to jaeger span', () => {
     expect(transformTraceResponse(awsResponseWithSql)).toEqual(resultWithSql);
-  });
-
-  it("should handle response that is in progress (doesn't have an end time)", () => {
-    const aws = {
-      Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
-      Segments: [
-        {
-          Document: {
-            id: '5c6cc52b0685e278',
-            name: 'myfrontend-dev',
-            origin: 'AWS::EC2::Instance',
-            subsegments: [
-              {
-                id: 'e5ea9d95ecda4d8a',
-                name: 'response',
-                start_time: 1595878288.1899369,
-                in_progress: true,
-              },
-            ],
-          },
-        },
-      ],
-    };
-
-    const view = new DataFrameView(transformTraceResponse(aws as any));
-    expect(view.get(1).duration).toBe(0);
-  });
-
-  it('should handle response without full url', () => {
-    const aws = {
-      Id: '1-5efdaeaa-f2a07d044bad19595ac13935',
-      Segments: [
-        {
-          Document: {
-            id: '5c6cc52b0685e278',
-            name: 'myfrontend-dev',
-            origin: 'AWS::EC2::Instance',
-            http: {
-              request: {
-                url: '/path/something',
-              },
-            },
-            subsegments: [
-              {
-                id: 'e5ea9d95ecda4d8a',
-                name: 'response',
-                start_time: 1595878288.1899369,
-                in_progress: true,
-              },
-            ],
-          },
-        },
-      ],
-    };
-
-    const view = new DataFrameView(transformTraceResponse(aws as any));
-    expect(view.get(1).duration).toBe(0);
   });
 });
