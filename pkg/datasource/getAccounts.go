@@ -27,7 +27,7 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 	region := urlQuery.Get("region")
 
 	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
-	xrayClient, err := ds.xrayClientFactory(&pluginConfig, RequestSettings{Region: region})
+	xrayClient, err := ds.xrayClientFactory(req.Context(), &pluginConfig, RequestSettings{Region: region})
 
 	if err != nil {
 		sendError(rw, err)

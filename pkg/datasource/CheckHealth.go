@@ -15,7 +15,7 @@ func (ds *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthR
 		return nil, err
 	}
 
-	xrayClient, err := client.CreateXrayClient(dsInfo, req.PluginContext.DataSourceInstanceSettings)
+	xrayClient, err := client.CreateXrayClient(ctx, dsInfo, req.PluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
