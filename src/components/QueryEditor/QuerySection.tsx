@@ -1,21 +1,21 @@
-import { Icon, InlineFormLabel, stylesFactory, Tooltip } from '@grafana/ui';
 import { XRayQueryField } from './XRayQueryField';
 import React from 'react';
-import { queryTypeOptionToQueryType } from './QueryEditorForm';
 import { XrayDataSource } from '../../DataSource';
 import { css } from '@emotion/css';
 import { XrayQuery } from '../../types';
 import { QueryTypeOption } from './constants';
+import { EditorField } from '@grafana/experimental';
+import { queryTypeOptionToQueryType } from './QueryEditorForm';
 
-const getStyles = stylesFactory(() => ({
-  tooltipLink: css`
-    color: #33a2e5;
-    &:hover {
-      color: #33a2e5;
-      filter: brightness(120%);
-    }
-  `,
-}));
+const styles = {
+  tooltipLink: css({
+    color: '#33a2e5',
+    '&:hover': {
+      color: ' #33a2e5',
+      filter: 'brightness(120%)',
+    },
+  }),
+};
 
 type Props = {
   query: XrayQuery;
@@ -26,7 +26,6 @@ type Props = {
 };
 export function QuerySection(props: Props) {
   const { datasource, query, onRunQuery, onChange, selectedOptions } = props;
-  const styles = getStyles();
 
   const onRunQueryLocal = () => {
     onChange(query);
@@ -37,30 +36,25 @@ export function QuerySection(props: Props) {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex' }}>
-      <InlineFormLabel className="query-keyword" width="auto">
-        Query&nbsp;
-        <Tooltip
-          placement="top"
-          content={
-            <span>
-              See{' '}
-              <a
-                href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html?icmpid=docs_xray_console"
-                target="_blank"
-                rel="noreferrer"
-                className={styles.tooltipLink}
-              >
-                X-Ray documentation
-              </a>{' '}
-              for filter expression help.
-            </span>
-          }
-          theme="info"
-        >
-          <Icon className="gf-form-help-icon gf-form-help-icon--right-normal" name="info-circle" size="sm" />
-        </Tooltip>
-      </InlineFormLabel>
+    <EditorField
+      label="Query"
+      tooltipInteractive
+      width="100%"
+      tooltip={
+        <span>
+          See{' '}
+          <a
+            href="https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html?icmpid=docs_xray_console"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.tooltipLink}
+          >
+            X-Ray documentation
+          </a>{' '}
+          for filter expression help.
+        </span>
+      }
+    >
       <XRayQueryField
         query={query}
         history={[]}
@@ -77,6 +71,6 @@ export function QuerySection(props: Props) {
           });
         }}
       />
-    </div>
+    </EditorField>
   );
 }

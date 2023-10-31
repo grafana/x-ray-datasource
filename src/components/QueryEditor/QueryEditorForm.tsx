@@ -1,24 +1,25 @@
 import React from 'react';
 import { css } from '@emotion/css';
 import { QueryEditorProps, ScopedVars } from '@grafana/data';
-import { ButtonCascader, InlineFormLabel, MultiSelect, Segment, stylesFactory, Select } from '@grafana/ui';
+import { MultiSelect, Select, ButtonCascader } from '@grafana/ui';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import { useInitQuery } from './useInitQuery';
 import {
+  QueryTypeOption,
   columnNames,
   dummyAllGroup,
   insightsOption,
-  QueryTypeOption,
   queryTypeOptions,
   serviceMapOption,
   traceListOption,
   traceStatisticsOption,
 } from './constants';
 import { XrayDataSource } from '../../DataSource';
-import { QuerySection } from './QuerySection';
-import { XrayLinks } from './XrayLinks';
 import { getTemplateSrv } from '@grafana/runtime';
 import { AccountIdDropdown } from './AccountIdDropdown';
+import { EditorRow, EditorFieldGroup, EditorField } from '@grafana/experimental';
+import { QuerySection } from './QuerySection';
+import { XrayLinks } from './XrayLinks';
 
 function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTypeOptions): QueryTypeOption[] {
   for (const option of options) {
@@ -43,7 +44,7 @@ function findOptionForQueryType(queryType: XrayQueryType, options: any = queryTy
  * between trace list and single trace and we detect that based on query. So trace list option returns single trace
  * if query contains single traceID.
  */
-export function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
+function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption[] {
   if (!queryType || queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
     return [traceStatisticsOption];
   }
@@ -73,7 +74,7 @@ export function queryTypeOptionToQueryType(selected: string[], query: string, sc
   }
 }
 
-const getStyles = stylesFactory(() => ({
+const getStyles = () => ({
   queryParamsRow: css`
     flex-wrap: wrap;
   `,
@@ -83,7 +84,10 @@ const getStyles = stylesFactory(() => ({
   regionSelect: css`
     margin-right: 4px;
   `,
-}));
+  formFieldStyles: css({
+    marginBottom: 0,
+  }),
+});
 
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {
   groups: Group[];
@@ -103,103 +107,83 @@ export function QueryEditorForm({
   useInitQuery(query, onChange, groups, allRegions, datasource);
 
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
+
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
   const styles = getStyles();
 
   return (
-    <div>
-      {![insightsOption, serviceMapOption].includes(selectedOptions[0]) && (
-        <div className="gf-form">
-          <QuerySection
-            query={query}
-            datasource={datasource}
-            onChange={onChange}
-            onRunQuery={onRunQuery}
-            selectedOptions={selectedOptions}
-          />
-        </div>
-      )}
-      <div className={`gf-form ${styles.queryParamsRow}`}>
-        <div className="gf-form">
-          <InlineFormLabel className="query-keyword" width="auto">
-            Region
-          </InlineFormLabel>
-          <Select
-            className={styles.regionSelect}
-            options={allRegions}
-            value={query.region}
-            onChange={(v) =>
-              onChange({
-                ...query,
-                region: v.value,
-              })
-            }
-            width={18}
-            placeholder="Choose Region"
-            menuPlacement="bottom"
-            maxMenuHeight={500}
-          />
-        </div>
-        <div className="gf-form">
-          <InlineFormLabel className="query-keyword" width="auto">
-            Query Type
-          </InlineFormLabel>
-          <ButtonCascader
-            value={selectedOptions.map((option) => option.value)}
-            options={queryTypeOptions}
-            onChange={(value) => {
-              const newQueryType = queryTypeOptionToQueryType(value, query.query || '', data?.request?.scopedVars);
-              onChange({
-                ...query,
-                queryType: newQueryType,
-                columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
-              } as any);
-            }}
-          >
-            {selectedOptions[selectedOptions.length - 1].label}
-          </ButtonCascader>
-        </div>
-
-        <div className="gf-form">
-          <InlineFormLabel className="query-keyword" width="auto">
-            Group
-          </InlineFormLabel>
-          <Segment
-            value={query.group?.GroupName}
-            options={allGroups.map((group: Group) => ({
-              value: group.GroupARN,
-              label: group.GroupName,
-            }))}
-            onChange={(value) => {
-              onChange({
-                ...query,
-                group: allGroups.find((g: Group) => g.GroupARN === value.value),
-              } as any);
-            }}
-          />
-        </div>
-
-        {[serviceMapOption].includes(selectedOptions[0]) && (
-          <AccountIdDropdown
-            datasource={datasource}
-            query={query}
-            range={range}
-            onChange={(accountIds) =>
-              onChange({
-                ...query,
-                accountIds,
-              })
-            }
-          />
-        )}
-
-        <div className="gf-form">
+    <>
+      <EditorRow>
+        <EditorFieldGroup>
+          <EditorField label="Query Type" className={`query-keyword ${styles.formFieldStyles}`}>
+            <ButtonCascader
+              variant="secondary"
+              value={selectedOptions.map((option) => option.value)}
+              options={queryTypeOptions}
+              onChange={(value) => {
+                const newQueryType = queryTypeOptionToQueryType(value, query.query || '', data?.request?.scopedVars);
+                onChange({
+                  ...query,
+                  queryType: newQueryType,
+                  columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
+                } as any);
+              }}
+            >
+              {selectedOptions[selectedOptions.length - 1].label}
+            </ButtonCascader>
+          </EditorField>
+          <EditorField label="Region" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="region">
+            <Select
+              id="region"
+              className={styles.regionSelect}
+              options={allRegions}
+              value={query.region}
+              onChange={(v) =>
+                onChange({
+                  ...query,
+                  region: v.value,
+                })
+              }
+              width={18}
+              placeholder="Choose Region"
+              menuPlacement="bottom"
+              maxMenuHeight={500}
+            />
+          </EditorField>
+          <EditorField label="Group" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="groupName">
+            <Select
+              id="groupName"
+              value={query.group?.GroupName}
+              options={allGroups.map((group: Group) => ({
+                value: group.GroupARN,
+                label: group.GroupName,
+              }))}
+              onChange={(value) => {
+                onChange({
+                  ...query,
+                  group: allGroups.find((g: Group) => g.GroupARN === value.value),
+                } as any);
+              }}
+            />
+          </EditorField>
+          {[serviceMapOption].includes(selectedOptions[0]) && (
+            <AccountIdDropdown
+              datasource={datasource}
+              newFormStylingEnabled={true}
+              query={query}
+              range={range}
+              onChange={(accountIds) =>
+                onChange({
+                  ...query,
+                  accountIds,
+                })
+              }
+            />
+          )}
           {selectedOptions[0] === insightsOption && (
-            <div className="gf-form">
-              <InlineFormLabel className="query-keyword" width="auto">
-                State
-              </InlineFormLabel>
-              <Segment
+            <EditorField label="State" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="queryState">
+              <Select
+                id="queryState"
                 value={query.state ?? 'All'}
                 options={['All', 'Active', 'Closed'].map((val) => ({ value: val, label: val }))}
                 onChange={(value) => {
@@ -209,17 +193,17 @@ export function QueryEditorForm({
                   });
                 }}
               />
-            </div>
+            </EditorField>
           )}
-        </div>
-
-        <div className="gf-form">
           {selectedOptions[0] === traceStatisticsOption && (
-            <div className="gf-form" data-testid="resolution" style={{ flexWrap: 'wrap' }}>
-              <InlineFormLabel className="query-keyword" width="auto">
-                Resolution
-              </InlineFormLabel>
-              <Segment
+            <EditorField
+              label="Resolution"
+              className={`query-keyword ${styles.formFieldStyles}`}
+              htmlFor="resolution"
+              data-testid="resolution"
+            >
+              <Select
+                id="resolution"
                 value={query.resolution ? query.resolution.toString() + 's' : 'auto'}
                 options={['auto', '60s', '300s'].map((val) => ({ value: val, label: val }))}
                 onChange={({ value }) => {
@@ -229,39 +213,53 @@ export function QueryEditorForm({
                   } as any);
                 }}
               />
-            </div>
+            </EditorField>
           )}
-        </div>
-
-        {/* spring to push the sections apart */}
-        <div className={styles.spring} />
-        <XrayLinks datasource={datasource} query={query} range={range} />
-      </div>
-      {selectedOptions[0] === traceStatisticsOption && (
-        <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
-          <InlineFormLabel className="query-keyword" width="auto">
-            Columns
-          </InlineFormLabel>
-          <div style={{ flex: 1 }}>
-            <MultiSelect
-              allowCustomValue={false}
-              options={Object.keys(columnNames).map((c) => ({
-                label: columnNames[c],
-                value: c,
-              }))}
-              value={(query.columns || []).map((c) => ({
-                label: columnNames[c],
-                value: c,
-              }))}
-              onChange={(values) => onChange({ ...query, columns: values.map((v) => v.value!) })}
-              closeMenuOnSelect={false}
-              isClearable={true}
-              placeholder="All columns"
-              menuPlacement="bottom"
-            />
-          </div>
-        </div>
+          <XrayLinks datasource={datasource} query={query} range={range} />
+        </EditorFieldGroup>
+      </EditorRow>
+      {![insightsOption, serviceMapOption].includes(selectedOptions[0]) && (
+        <EditorRow>
+          <QuerySection
+            query={query}
+            datasource={datasource}
+            onChange={onChange}
+            onRunQuery={onRunQuery}
+            selectedOptions={selectedOptions}
+          />
+        </EditorRow>
       )}
-    </div>
+
+      {selectedOptions[0] === traceStatisticsOption && (
+        <EditorRow>
+          <EditorFieldGroup>
+            <EditorField
+              label="Columns"
+              className={`query-keyword ${styles.formFieldStyles}`}
+              htmlFor="columns"
+              data-testid="column-filter"
+            >
+              <MultiSelect
+                id="columns"
+                allowCustomValue={false}
+                options={Object.keys(columnNames).map((c) => ({
+                  label: columnNames[c],
+                  value: c,
+                }))}
+                value={(query.columns || []).map((c) => ({
+                  label: columnNames[c],
+                  value: c,
+                }))}
+                onChange={(values) => onChange({ ...query, columns: values.map((v) => v.value!) })}
+                closeMenuOnSelect={false}
+                isClearable={true}
+                placeholder="All columns"
+                menuPlacement="bottom"
+              />
+            </EditorField>
+          </EditorFieldGroup>
+        </EditorRow>
+      )}
+    </>
   );
 }

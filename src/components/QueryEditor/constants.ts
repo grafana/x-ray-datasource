@@ -4,6 +4,7 @@ import { CascaderOption } from '@grafana/ui';
 export type QueryTypeOption = CascaderOption & {
   queryType?: XrayQueryType;
   children?: QueryTypeOption[];
+  items?: QueryTypeOption[];
 };
 
 export const traceListOption: QueryTypeOption = { label: 'Trace List', value: 'traceList' };
