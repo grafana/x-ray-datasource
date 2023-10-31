@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.8.0
+
+- Migrate ConfigEditor and QueryEditor to the new form styling [#211](https://github.com/grafana/x-ray-datasource/pull/211)
+
+- Bump google.golang.org/grpc from 1.54.0 to 1.56.3 in [#210](https://github.com/grafana/x-ray-datasource/pull/210)
+
+- Support Node 18 in [201](https://github.com/grafana/x-ray-datasource/pull/201)
+
+## 2.7.2
+
+- Fix X-Ray Service Map filter trace list query by @jamesrwhite in https://github.com/grafana/x-ray-datasource/pull/203
+
 ## 2.7.1
 
 - Update @grafana/aws-sdk to fix a bug in temporary credentials

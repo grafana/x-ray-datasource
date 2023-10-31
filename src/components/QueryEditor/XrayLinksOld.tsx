@@ -1,27 +1,25 @@
-import { useTheme2 } from '@grafana/ui';
+import { stylesFactory } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { XrayDataSource } from '../../DataSource';
 import { XrayQuery } from '../../types';
-import { GrafanaTheme2, TimeRange } from '@grafana/data';
+import { TimeRange } from '@grafana/data';
 import React from 'react';
 
-const getStyles = (theme: GrafanaTheme2) => ({
-  container: css({ display: 'flex', paddingTop: theme.spacing(3) }),
-  link: css({
-    whiteSpace: 'nowrap',
-    backgroundColor: theme.colors.background.primary,
-    color: theme.colors.text.primary,
-  }),
-});
+const getStyles = stylesFactory(() => ({
+  container: css`
+    display: flex;
+  `,
+  link: css`
+    white-space: nowrap;
+  `,
+}));
 type XrayLinksProps = {
   datasource: XrayDataSource;
   query: XrayQuery;
   range?: TimeRange;
 };
-export function XrayLinks({ datasource, query, range }: XrayLinksProps) {
-  const theme = useTheme2();
-  const styles = getStyles(theme);
-
+export function XrayLinksOld({ datasource, query, range }: XrayLinksProps) {
+  const styles = getStyles();
   return (
     <div className={styles.container}>
       {[

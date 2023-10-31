@@ -1,8 +1,10 @@
 import React from 'react';
 import { Spinner } from '@grafana/ui';
 import { useGroups } from './useGroups';
-import { QueryEditorForm, XrayQueryEditorFormProps } from './QueryEditorForm';
 import { useRegions } from './useRegions';
+import { QueryEditorFormOld, XrayQueryEditorFormProps } from './QueryEditorFormOld';
+import { config } from '@grafana/runtime';
+import { QueryEditorForm } from './QueryEditorForm';
 /**
  * Simple wrapper that is only responsible to load groups and delay actual render of the QueryEditorForm. Main reason
  * for that is that there is queryInit code that requires groups to be already loaded and is separate hook and it
@@ -10,6 +12,8 @@ import { useRegions } from './useRegions';
  * alternatives.
  */
 export function QueryEditor(props: Omit<XrayQueryEditorFormProps, 'groups' | 'regions'>) {
+  const newFormStylingEnabled = config.featureToggles.awsDatasourcesNewFormStyling;
+
   const regions = useRegions(props.datasource);
   // Use groups will return old groups after region change so it does not flash loading state. in case datasource
   // changes regions will return undefined so that will do the loading state.
@@ -20,6 +24,10 @@ export function QueryEditor(props: Omit<XrayQueryEditorFormProps, 'groups' | 're
   if (!(groups && regions)) {
     return <Spinner />;
   } else {
-    return <QueryEditorForm {...{ ...props, groups, regions }} />;
+    return newFormStylingEnabled ? (
+      <QueryEditorForm {...{ ...props, groups, regions }} />
+    ) : (
+      <QueryEditorFormOld {...{ ...props, groups, regions }} />
+    );
   }
 }
