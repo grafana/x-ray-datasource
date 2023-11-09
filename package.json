@@ -77,7 +77,8 @@
   },
   "resolutions": {
     "cosmiconfig": "8.3.6",
-    "debug": "2.6.9"
+    "debug": "2.6.9",
+    "d3-color": "3.1.0"
   },
   "dependencies": {
     "@grafana/experimental": "1.7.3",
