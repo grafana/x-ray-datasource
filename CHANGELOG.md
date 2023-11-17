@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.8.1
+
+- Bump go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace from 0.37.0 to 0.44.0 by @dependabot in https://github.com/grafana/x-ray-datasource/pull/208
+- Bump google.golang.org/grpc from 1.58.2 to 1.58.3 by @dependabot in https://github.com/grafana/x-ray-datasource/pull/212
+- Bump go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc from 0.45.0 to 0.46.0 by @dependabot in https://github.com/grafana/x-ray-datasource/pull/218
+- Upgrade underscore, d3-color, debug, cosmiconfig, yaml dependencies by @fridgepoet in https://github.com/grafana/x-ray-datasource/pull/217
+
+**Full Changelog**: https://github.com/grafana/x-ray-datasource/compare/v2.8.0...v2.8.1
+
 ## 2.8.0
 
 - Migrate ConfigEditor and QueryEditor to the new form styling [#211](https://github.com/grafana/x-ray-datasource/pull/211)
