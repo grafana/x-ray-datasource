@@ -1,0 +1,40 @@
+{
+  "type": "datasource",
+  "name": "X-Ray",
+  "id": "grafana-x-ray-datasource",
+  "category": "tracing",
+  "metrics": true,
+  "tracing": true,
+  "backend": true,
+  "alerting": true,
+  "executable": "gpx_x-ray-datasource",
+  "info": {
+    "description": "Data source for Amazon AWS X-Ray",
+    "author": {
+      "name": "Grafana",
+      "url": "grafana.com"
+    },
+    "keywords": ["aws", "x-ray", "tracing"],
+    "logos": {
+      "small": "img/AWS-X-Ray.svg",
+      "large": "img/AWS-X-Ray.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/grafana/x-ray-datasource"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/grafana/x-ray-datasource/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "2.8.2",
+    "updated": "2024-02-09"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=8.0.0",
+    "plugins": []
+  }
+}
