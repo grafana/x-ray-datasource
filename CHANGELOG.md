@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.8.2
+
+- Update grafana/aws-sdk-go to 0.20.0 in https://github.com/grafana/x-ray-datasource/pull/220
+
 ## 2.8.1
 
 - Bump go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace from 0.37.0 to 0.44.0 by @dependabot in https://github.com/grafana/x-ray-datasource/pull/208
