@@ -3,10 +3,26 @@ version: '3.0'
 services:
   grafana:
     container_name: 'grafana-x-ray-datasource'
+    platform: 'linux/amd64'
     build:
       context: ./.config
       args:
-        grafana_version: ${GRAFANA_VERSION:-9.3.2}
+        grafana_image: ${GRAFANA_IMAGE:-grafana-enterprise}
+        grafana_version: ${GRAFANA_VERSION:-latest}
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    healthcheck:
+      test: curl -f http://localhost:3000 || exit 1
+      # TODO: Uncomment start_period and start_interval when the ubuntu-latest
+      #       image in gh actions uses docker engine version >25 and remove
+      #       interval, timeout, and retries. Version >25 is required for
+      #       start_period and start_interval to work properly https://github.com/moby/moby/pull/46764
+      # start_period: 30s
+      # start_interval: 500ms
+      interval: 500ms
+      timeout: 30s
+      retries: 60
     ports:
       - 3000:3000/tcp
     volumes:

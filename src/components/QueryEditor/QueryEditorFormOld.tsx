@@ -239,11 +239,12 @@ export function QueryEditorFormOld({
       </div>
       {selectedOptions[0] === traceStatisticsOption && (
         <div className="gf-form" data-testid="column-filter" style={{ flexWrap: 'wrap' }}>
-          <InlineFormLabel className="query-keyword" width="auto">
+          <InlineFormLabel htmlFor="columns" className="query-keyword" width="auto">
             Columns
           </InlineFormLabel>
           <div style={{ flex: 1 }}>
             <MultiSelect
+              inputId="columns"
               allowCustomValue={false}
               options={Object.keys(columnNames).map((c) => ({
                 label: columnNames[c],
