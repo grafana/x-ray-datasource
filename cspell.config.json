@@ -99,6 +99,9 @@
     "opentelemetry",
     "httptrace",
     "otelhttptrace",
-    "otelgrpc"
+    "otelgrpc",
+    "healthcheck",
+    "combobox",
+    "menuitemcheckbox"
   ]
 }

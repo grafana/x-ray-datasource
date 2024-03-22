@@ -240,7 +240,7 @@ export function QueryEditorForm({
               data-testid="column-filter"
             >
               <MultiSelect
-                id="columns"
+                inputId="columns"
                 allowCustomValue={false}
                 options={Object.keys(columnNames).map((c) => ({
                   label: columnNames[c],
