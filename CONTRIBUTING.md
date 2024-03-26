@@ -58,22 +58,15 @@ bra run
 
 ### E2E Tests
 
-1. Add a `.env` file to the project root with `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` defined
+1. Ensure you have the `AWS X-Ray E2E` data source provisioned in the `provisioning/datasources` directory
 
-```
-AWS_ACCESS_KEY_ID="REPLACE_WITH_AWS_ACCESS_KEY_ID"
-AWS_SECRET_ACCESS_KEY="REPLACE_WITH_AWS_SECRET_KEY"
-```
-
-2. Ensure you have the `AWS X-Ray E2E` data source provisioned in the `provisioning/datasources` directory
-
-3. Start the server
+2. Start the server
 
 ```sh
 yarn server
 ```
 
-4. Run the tests
+3. Run the tests
 
 ```sh
 yarn playwright:test

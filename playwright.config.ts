@@ -1,8 +1,5 @@
 import { dirname } from 'path';
 import { defineConfig, devices } from '@playwright/test';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const pluginE2EAuth = `${dirname(require.resolve('@grafana/plugin-e2e'))}/auth`;
 
