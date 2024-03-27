@@ -14,7 +14,7 @@
       "name": "Grafana",
       "url": "grafana.com"
     },
-    "keywords": ["aws", "x-ray", "tracing"],
+    "keywords": ["aws", "x-ray", "tracing", "cloud provider", "traces"],
     "logos": {
       "small": "img/AWS-X-Ray.svg",
       "large": "img/AWS-X-Ray.svg"
