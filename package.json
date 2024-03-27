@@ -46,7 +46,6 @@
     "copy-webpack-plugin": "^10.0.0",
     "cspell": "8.0.0",
     "css-loader": "6.7.1",
-    "dotenv": "^16.4.5",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jsdoc": "^46.7.0",
