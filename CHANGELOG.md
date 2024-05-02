@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.8.3
+
+- Update CONTRIBUTING.md to include release instructions
+- Bring in [security fixes in go 1.21.8](https://groups.google.com/g/golang-announce/c/5pwGVUPoMbg)
+
 ## 2.8.2
 
 - Update grafana/aws-sdk-go to 0.20.0 in https://github.com/grafana/x-ray-datasource/pull/220
