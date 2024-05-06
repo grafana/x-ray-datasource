@@ -1063,10 +1063,10 @@
     ua-parser-js "^1.0.32"
     web-vitals "^3.0.4"
 
-"@grafana/plugin-e2e@^0.21.0":
-  version "0.21.1"
-  resolved "https://registry.yarnpkg.com/@grafana/plugin-e2e/-/plugin-e2e-0.21.1.tgz#58d638ee84c2cf22ed59f7767a4b9efa99d42655"
-  integrity sha512-jGhEmRmwYG9Twxp1s4xG/yDgpWjduOou/HzW5ASiXz4GMCZoyBtq76sgmBbnpGgkEsClfM7xQyUR6iAz+WYT6A==
+"@grafana/plugin-e2e@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@grafana/plugin-e2e/-/plugin-e2e-1.2.0.tgz#c6b711682f131d50a32539be7c3de5db882552d8"
+  integrity sha512-SARl9KBXY15rzM9k+4OzenpU+OZoppPdwB3rTEAId8cPIx8IFWxOQBfubgYYYRfO6yPvACpNLYPtLw7mp16vXg==
   dependencies:
     semver "^7.5.4"
     uuid "^9.0.1"
