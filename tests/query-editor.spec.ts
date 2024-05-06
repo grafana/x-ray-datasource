@@ -4,7 +4,7 @@ test('data query is successful when `Trace List` query is valid', async ({ page,
   await panelEditPage.datasource.set('AWS X-Ray E2E');
   await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByTestIdOrAriaLabel(selectors.components.QueryField.container).click();
+  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
   await page.keyboard.insertText('service("PetSite")');
   await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
 
@@ -26,7 +26,7 @@ test('data query is successful when `Trace Statistics` query is valid', async ({
   await panelEditPage.datasource.set('AWS X-Ray E2E');
   await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByTestIdOrAriaLabel(selectors.components.QueryField.container).click();
+  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
   await page.keyboard.insertText('service("PetSite")');
   await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
   await page.getByRole('button', { name: 'Trace List' }).click();
@@ -44,7 +44,7 @@ test('data query is successful when `Trace Analytics` query is valid', async ({ 
   await panelEditPage.datasource.set('AWS X-Ray E2E');
   await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByTestIdOrAriaLabel(selectors.components.QueryField.container).click();
+  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
   await page.keyboard.insertText('service("PetSite")');
   await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
   await page.getByRole('button', { name: 'Trace List' }).click();
@@ -60,7 +60,7 @@ test('data query is successful when `Service Map` query is valid', async ({ page
   await panelEditPage.datasource.set('AWS X-Ray E2E');
   await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByTestIdOrAriaLabel(selectors.components.QueryField.container).click();
+  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
   await page.keyboard.insertText('service("PetSite")');
   await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
   await page.getByRole('button', { name: 'Trace List' }).click();
@@ -85,7 +85,7 @@ test('data query fails when query is invalid', async ({ page, panelEditPage, sel
   await panelEditPage.datasource.set('AWS X-Ray E2E');
   await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByTestIdOrAriaLabel(selectors.components.QueryField.container).click();
+  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
   await page.keyboard.insertText('PetSite');
   await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
 
