@@ -125,7 +125,7 @@ export function QueryEditorForm({
                 onChange({
                   ...query,
                   queryType: newQueryType,
-                  columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? ['all'] : undefined,
+                  columns: newQueryType === XrayQueryType.getTimeSeriesServiceStatistics ? [] : undefined,
                 } as any);
               }}
             >
