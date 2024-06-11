@@ -23,19 +23,6 @@ type GetAnalyticsQueryData struct {
 	Region string      `json:"region"`
 }
 
-func (ds *Datasource) getAnalytics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	response := &backend.QueryDataResponse{
-		Responses: make(map[string]backend.DataResponse),
-	}
-
-	// TODO this could be parallelized
-	for _, query := range req.Queries {
-		response.Responses[query.RefID] = ds.getSingleAnalyticsQueryResult(ctx, query, &req.PluginContext)
-	}
-
-	return response, nil
-}
-
 func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "type", query.QueryType, "RefID", query.RefID)
 
@@ -65,7 +52,7 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
 		return nil, err
 	}
 
-	xrayClient, err := ds.xrayClientFactory(ctx, pluginContext, RequestSettings{Region: queryData.Region})
+	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return nil, err
 	}

@@ -27,7 +27,7 @@ func (ds *Datasource) getGroups(rw http.ResponseWriter, req *http.Request) {
 	log.DefaultLogger.Debug("getGroups", "region", region)
 
 	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
-	xrayClient, err := ds.xrayClientFactory(req.Context(), &pluginConfig, RequestSettings{})
+	xrayClient, err := ds.getClient(req.Context(), &pluginConfig, RequestSettings{})
 
 	if err != nil {
 		sendError(rw, err)

@@ -16,18 +16,6 @@ type GetTraceSummariesQueryData struct {
 	Region string `json:"region"`
 }
 
-func (ds *Datasource) getTraceSummaries(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	response := &backend.QueryDataResponse{
-		Responses: make(map[string]backend.DataResponse),
-	}
-
-	for _, query := range req.Queries {
-		response.Responses[query.RefID] = ds.getTraceSummariesForSingleQuery(ctx, query, &req.PluginContext)
-	}
-
-	return response, nil
-}
-
 func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
 	queryData := &GetTraceSummariesQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
@@ -38,7 +26,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(ctx, pluginContext, RequestSettings{Region: queryData.Region})
+	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

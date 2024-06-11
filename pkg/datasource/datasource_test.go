@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/x-ray-datasource/pkg/datasource"
 	"github.com/stretchr/testify/require"
@@ -318,7 +319,7 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func xrayClientFactory(ctx context.Context, pluginContext *backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.XrayClient, error) {
+func xrayClientFactory(ctx context.Context, pluginContext *backend.PluginContext, requestSettings datasource.RequestSettings, authSettings *awsds.AuthSettings, sessions *awsds.SessionCache) (datasource.XrayClient, error) {
 	return &XrayClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil
@@ -327,7 +328,7 @@ func xrayClientFactory(ctx context.Context, pluginContext *backend.PluginContext
 func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
 	jsonData, _ := json.Marshal(query)
 
-	return ds.QueryMux.QueryData(
+	return ds.QueryData(
 		context.Background(),
 		&backend.QueryDataRequest{Queries: []backend.DataQuery{{RefID: "A", QueryType: queryType, JSON: jsonData}}},
 	)
@@ -355,7 +356,8 @@ func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourc
 }
 
 func TestDatasource(t *testing.T) {
-	ds := datasource.NewDatasource(xrayClientFactory)
+	settings := awsds.AWSDatasourceSettings{}
+	ds := datasource.NewDatasource(context.Background(), xrayClientFactory, &settings)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
 		// Insight with nil EndTime should not throw error

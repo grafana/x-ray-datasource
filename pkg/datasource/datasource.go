@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -9,112 +10,99 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 
+	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/x-ray-datasource/pkg/client"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
-// GetServeOpts returns datasource.ServeOpts.
-func GetServeOpts() datasource.ServeOpts {
-	// creates a instance manager for your plugin. The function passed
-	// into `NewInstanceManger` is called when the instance is created
-	// for the first time or when a datasource configuration changed.
-	ds := NewDatasource(getXrayClient)
-	ds.im = datasource.NewInstanceManager(newDataSourceInstanceSettings)
-	return datasource.ServeOpts{
-		QueryDataHandler:    ds.QueryMux,
-		CallResourceHandler: ds.ResourceMux,
-		CheckHealthHandler:  ds,
-	}
-}
-
-type instanceSettings struct {
-	httpClient *http.Client
-}
-
-func newDataSourceInstanceSettings(ctx context.Context, setting backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
-	return &instanceSettings{
-		httpClient: &http.Client{},
-	}, nil
-}
-
-func (s *instanceSettings) Dispose() {
-	// Called before creating a new instance to allow plugin authors
-	// to cleanup.
-}
-
-type XrayClientFactory = func(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
+type XrayClientFactory = func(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings, authSettings *awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error)
 
 type Datasource struct {
-	// The instance manager can help with lifecycle management
-	// of datasource instances in plugins. It's not a requirements
-	// but a best practice that we recommend that you follow.
-	im                instancemgmt.InstanceManager
-	QueryMux          *datasource.QueryTypeMux
+	Settings          awsds.AWSDatasourceSettings
 	ResourceMux       backend.CallResourceHandler
 	xrayClientFactory XrayClientFactory
+
+	sessions     *awsds.SessionCache
+	authSettings *awsds.AuthSettings
 }
 
-// Needs to match XrayQueryType in frontend code
-const (
-	QueryGetTrace                                 = "getTrace"
-	QueryGetTraceSummaries                        = "getTraceSummaries"
-	QueryGetTimeSeriesServiceStatistics           = "getTimeSeriesServiceStatistics"
-	QueryGetAnalyticsRootCauseResponseTimeService = "getAnalyticsRootCauseResponseTimeService"
-	QueryGetAnalyticsRootCauseResponseTimePath    = "getAnalyticsRootCauseResponseTimePath"
-	QueryGetAnalyticsRootCauseErrorService        = "getAnalyticsRootCauseErrorService"
-	QueryGetAnalyticsRootCauseErrorPath           = "getAnalyticsRootCauseErrorPath"
-	QueryGetAnalyticsRootCauseErrorMessage        = "getAnalyticsRootCauseErrorMessage"
-	QueryGetAnalyticsRootCauseFaultService        = "getAnalyticsRootCauseFaultService"
-	QueryGetAnalyticsRootCauseFaultPath           = "getAnalyticsRootCauseFaultPath"
-	QueryGetAnalyticsRootCauseFaultMessage        = "getAnalyticsRootCauseFaultMessage"
-	QueryGetAnalyticsUrl                          = "getAnalyticsUrl"
-	QueryGetAnalyticsUser                         = "getAnalyticsUser"
-	QueryGetAnalyticsStatusCode                   = "getAnalyticsStatusCode"
-	QueryGetInsights                              = "getInsights"
-	QueryGetServiceMap                            = "getServiceMap"
-)
+func NewServerInstance(ctx context.Context, s backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
+	settings, err := getDsSettings(&s)
+	if err != nil {
+		return nil, err
+	}
+	return NewDatasource(ctx, getXrayClient, settings), nil
+}
 
-func NewDatasource(xrayClientFactory XrayClientFactory) *Datasource {
-	ds := &Datasource{xrayClientFactory: xrayClientFactory}
+func NewDatasource(ctx context.Context, xrayClientFactory XrayClientFactory, settings *awsds.AWSDatasourceSettings) *Datasource {
+	ds := &Datasource{xrayClientFactory: xrayClientFactory, Settings: *settings}
 
-	mux := datasource.NewQueryTypeMux()
-	mux.HandleFunc(QueryGetTrace, ds.getTrace)
-	mux.HandleFunc(QueryGetTraceSummaries, ds.getTraceSummaries)
-	mux.HandleFunc(QueryGetTimeSeriesServiceStatistics, ds.getTimeSeriesServiceStatistics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimeService, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseResponseTimePath, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseErrorService, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseErrorPath, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseErrorMessage, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseFaultService, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseFaultPath, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsRootCauseFaultMessage, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsUser, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsUrl, ds.getAnalytics)
-	mux.HandleFunc(QueryGetAnalyticsStatusCode, ds.getAnalytics)
-	mux.HandleFunc(QueryGetInsights, ds.getInsights)
-	mux.HandleFunc(QueryGetServiceMap, ds.getServiceMap)
-
-	ds.QueryMux = mux
-
+	// resource handler
 	resMux := http.NewServeMux()
 	resMux.HandleFunc("/groups", ds.getGroups)
 	resMux.HandleFunc("/regions", ds.GetRegions)
 	resMux.HandleFunc("/accounts", ds.GetAccounts)
-
 	ds.ResourceMux = httpadapter.New(resMux)
+
+	ds.authSettings, _ = awsds.ReadAuthSettingsFromContext(ctx)
+	ds.sessions = awsds.NewSessionCache()
 	return ds
+}
+
+func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+	res := backend.NewQueryDataResponse()
+	for _, query := range req.Queries {
+		var curr backend.DataResponse
+		switch query.QueryType {
+		case QueryGetTrace:
+			curr = ds.getSingleTrace(ctx, query, &req.PluginContext)
+		case QueryGetTraceSummaries:
+			curr = ds.getTraceSummariesForSingleQuery(ctx, query, &req.PluginContext)
+		case QueryGetTimeSeriesServiceStatistics:
+			curr = ds.getTimeSeriesServiceStatisticsForSingleQuery(ctx, query, &req.PluginContext)
+		case QueryGetAnalyticsRootCauseResponseTimeService,
+			QueryGetAnalyticsRootCauseResponseTimePath,
+			QueryGetAnalyticsRootCauseErrorService,
+			QueryGetAnalyticsRootCauseErrorPath,
+			QueryGetAnalyticsRootCauseErrorMessage,
+			QueryGetAnalyticsRootCauseFaultService,
+			QueryGetAnalyticsRootCauseFaultPath,
+			QueryGetAnalyticsRootCauseFaultMessage,
+			QueryGetAnalyticsUser,
+			QueryGetAnalyticsUrl,
+			QueryGetAnalyticsStatusCode:
+			curr = ds.getSingleAnalyticsQueryResult(ctx, query, &req.PluginContext)
+		case QueryGetInsights:
+			curr = ds.getSingleInsight(ctx, query, &req.PluginContext)
+		case QueryGetServiceMap:
+			curr = ds.getSingleServiceMap(ctx, query, &req.PluginContext)
+		default:
+			res.Responses[query.RefID] = backend.DataResponse{
+				Error: fmt.Errorf("unknown query type: %s", query.QueryType),
+			}
+			continue
+		}
+		res.Responses[query.RefID] = curr
+	}
+	return res, nil
+}
+
+func (ds Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	return ds.ResourceMux.CallResource(ctx, req, sender)
 }
 
 type RequestSettings struct {
 	Region string
 }
 
-func getXrayClient(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
+func (ds Datasource) getClient(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
+	return ds.xrayClientFactory(ctx, pluginContext, requestSettings, ds.authSettings, ds.sessions)
+}
+
+func getXrayClient(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings, authSettings *awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error) {
 	awsSettings, err := getDsSettings(pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
@@ -125,7 +113,7 @@ func getXrayClient(ctx context.Context, pluginContext *backend.PluginContext, re
 		awsSettings.Region = requestSettings.Region
 	}
 
-	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, pluginContext.DataSourceInstanceSettings)
+	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, pluginContext.DataSourceInstanceSettings, *authSettings, sessions)
 	if err != nil {
 		return nil, err
 	}
