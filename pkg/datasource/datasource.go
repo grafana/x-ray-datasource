@@ -55,14 +55,14 @@ func NewDatasource(ctx context.Context, xrayClientFactory XrayClientFactory, set
 func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
 	res := backend.NewQueryDataResponse()
 	for _, query := range req.Queries {
-		var curr backend.DataResponse
+		var currentRes backend.DataResponse
 		switch query.QueryType {
 		case QueryGetTrace:
-			curr = ds.getSingleTrace(ctx, query, &req.PluginContext)
+			currentRes = ds.getSingleTrace(ctx, query, &req.PluginContext)
 		case QueryGetTraceSummaries:
-			curr = ds.getTraceSummariesForSingleQuery(ctx, query, &req.PluginContext)
+			currentRes = ds.getTraceSummariesForSingleQuery(ctx, query, &req.PluginContext)
 		case QueryGetTimeSeriesServiceStatistics:
-			curr = ds.getTimeSeriesServiceStatisticsForSingleQuery(ctx, query, &req.PluginContext)
+			currentRes = ds.getTimeSeriesServiceStatisticsForSingleQuery(ctx, query, &req.PluginContext)
 		case QueryGetAnalyticsRootCauseResponseTimeService,
 			QueryGetAnalyticsRootCauseResponseTimePath,
 			QueryGetAnalyticsRootCauseErrorService,
@@ -74,18 +74,18 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			QueryGetAnalyticsUser,
 			QueryGetAnalyticsUrl,
 			QueryGetAnalyticsStatusCode:
-			curr = ds.getSingleAnalyticsQueryResult(ctx, query, &req.PluginContext)
+			currentRes = ds.getSingleAnalyticsQueryResult(ctx, query, &req.PluginContext)
 		case QueryGetInsights:
-			curr = ds.getSingleInsight(ctx, query, &req.PluginContext)
+			currentRes = ds.getSingleInsight(ctx, query, &req.PluginContext)
 		case QueryGetServiceMap:
-			curr = ds.getSingleServiceMap(ctx, query, &req.PluginContext)
+			currentRes = ds.getSingleServiceMap(ctx, query, &req.PluginContext)
 		default:
 			res.Responses[query.RefID] = backend.DataResponse{
 				Error: fmt.Errorf("unknown query type: %s", query.QueryType),
 			}
 			continue
 		}
-		res.Responses[query.RefID] = curr
+		res.Responses[query.RefID] = currentRes
 	}
 	return res, nil
 }
