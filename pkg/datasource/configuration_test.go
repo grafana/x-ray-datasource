@@ -10,7 +10,7 @@ import (
 )
 
 func Test_getDsSettings(t *testing.T) {
-	awsSettings, err := getDsSettings(&backend.DataSourceInstanceSettings{
+	awsSettings, err := getDsSettings(backend.DataSourceInstanceSettings{
 		ID:               33,
 		BasicAuthEnabled: false,
 		JSONData: []byte(`{
@@ -33,7 +33,7 @@ func Test_getDsSettings(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, &awsds.AWSDatasourceSettings{
+	assert.Equal(t, awsds.AWSDatasourceSettings{
 		Profile:       "some-profile",
 		Region:        "some-region",
 		AuthType:      2,

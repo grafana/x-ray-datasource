@@ -23,7 +23,7 @@ type GetAnalyticsQueryData struct {
 	Region string      `json:"region"`
 }
 
-func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "type", query.QueryType, "RefID", query.RefID)
 
 	const maxTraces = 10000
@@ -45,7 +45,7 @@ func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query b
 	}
 }
 
-func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.DataQuery, maxTraces int, pluginContext *backend.PluginContext) ([]*xray.TraceSummary, error) {
+func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.DataQuery, maxTraces int, pluginContext backend.PluginContext) ([]*xray.TraceSummary, error) {
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {

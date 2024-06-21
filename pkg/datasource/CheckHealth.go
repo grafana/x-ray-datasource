@@ -9,7 +9,7 @@ import (
 )
 
 func (ds *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	xrayClient, err := client.CreateXrayClient(ctx, &ds.Settings, req.PluginContext.DataSourceInstanceSettings, *ds.authSettings, ds.sessions)
+	xrayClient, err := client.CreateXrayClient(ctx, ds.Settings, *req.PluginContext.DataSourceInstanceSettings, ds.authSettings, ds.sessions)
 	if err != nil {
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,

@@ -5,11 +5,11 @@ import (
   "github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
-func getDsSettings(settings *backend.DataSourceInstanceSettings) (*awsds.AWSDatasourceSettings, error) {
-  dsInfo := &awsds.AWSDatasourceSettings{}
-  err := dsInfo.Load(*settings)
+func getDsSettings(settings backend.DataSourceInstanceSettings) (awsds.AWSDatasourceSettings, error) {
+  dsInfo := awsds.AWSDatasourceSettings{}
+  err := dsInfo.Load(settings)
   if err != nil {
-    return nil, err
+    return awsds.AWSDatasourceSettings{}, err
   }
 
   // This is here for backward compatibility as we reused the Database field before for profile

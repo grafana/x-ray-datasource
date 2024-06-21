@@ -16,7 +16,7 @@ type GetTraceSummariesQueryData struct {
 	Region string `json:"region"`
 }
 
-func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetTraceSummariesQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
