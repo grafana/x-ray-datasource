@@ -14,8 +14,7 @@ import (
 
 func TestGetRegions(t *testing.T) {
 	t.Run("when passed a get request it returns a list of regions from aws from all supported clouds", func(t *testing.T) {
-		settings := awsds.AWSDatasourceSettings{}
-		ds := datasource.NewDatasource(context.Background(), xrayClientFactory, &settings)
+		ds := datasource.NewDatasource(context.Background(), xrayClientFactory, awsds.AWSDatasourceSettings{})
 		req := httptest.NewRequest("GET", "http://example.com/regions", nil)
 		w := httptest.NewRecorder()
 		ds.GetRegions(w, req)

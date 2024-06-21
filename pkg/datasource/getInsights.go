@@ -22,7 +22,7 @@ type GetInsightsQueryData struct {
 	Region string      `json:"region"`
 }
 
-func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetInsightsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {

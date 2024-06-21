@@ -18,7 +18,7 @@ type GetTraceQueryData struct {
 }
 
 // getSingleTrace returns single trace from BatchGetTraces API and unmarshals it.
-func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetTraceQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 

@@ -63,7 +63,7 @@ var valueDefs = []ValueDef{
 	},
 }
 
-func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetTimeSeriesServiceStatisticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 

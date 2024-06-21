@@ -12,7 +12,7 @@ import (
 )
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
-func CreateXrayClient(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (*xray.XRay, error) {
+func CreateXrayClient(ctx context.Context, datasourceInfo awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (*xray.XRay, error) {
 	sess, err := getXRaySession(ctx, datasourceInfo, backendSettings, authSettings, sessions)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func CreateXrayClient(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSe
 	return xray.New(sess, config), nil
 }
 
-func getXRaySession(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (*session.Session, error) {
+func getXRaySession(ctx context.Context, datasourceInfo awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (*session.Session, error) {
 	httpClientProvider := httpclient.NewProvider()
 	httpClientOptions, err := backendSettings.HTTPClientOptions(ctx)
 	if err != nil {
@@ -42,7 +42,7 @@ func getXRaySession(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSett
 	}
 
 	return sessions.GetSessionWithAuthSettings(awsds.GetSessionConfig{
-		Settings:      *datasourceInfo,
+		Settings:      datasourceInfo,
 		HTTPClient:    httpClient,
 		UserAgentName: aws.String("X-ray"),
 	}, authSettings)

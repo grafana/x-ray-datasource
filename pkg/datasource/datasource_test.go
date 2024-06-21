@@ -319,7 +319,7 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func xrayClientFactory(ctx context.Context, pluginContext *backend.PluginContext, requestSettings datasource.RequestSettings, authSettings *awsds.AuthSettings, sessions *awsds.SessionCache) (datasource.XrayClient, error) {
+func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ awsds.AuthSettings, _ *awsds.SessionCache) (datasource.XrayClient, error) {
 	return &XrayClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil
@@ -357,7 +357,7 @@ func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourc
 
 func TestDatasource(t *testing.T) {
 	settings := awsds.AWSDatasourceSettings{}
-	ds := datasource.NewDatasource(context.Background(), xrayClientFactory, &settings)
+	ds := datasource.NewDatasource(context.Background(), xrayClientFactory, settings)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
 		// Insight with nil EndTime should not throw error

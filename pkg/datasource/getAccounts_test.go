@@ -18,8 +18,7 @@ type Account struct {
 
 func TestAccounts(t *testing.T) {
 	t.Run("when passed a get request it returns a list of all accountIds in the traces in the selected time frame", func(t *testing.T) {
-		settings := awsds.AWSDatasourceSettings{}
-		ds := datasource.NewDatasource(context.Background(), xrayClientFactory, &settings)
+		ds := datasource.NewDatasource(context.Background(), xrayClientFactory, awsds.AWSDatasourceSettings{})
 		req := httptest.NewRequest("GET", "http://example.com/accounts?startTime=2022-09-23T00:15:14.365Z&endTime=2022-09-23T01:15:14.365Z&group=somegroup", nil)
 		w := httptest.NewRecorder()
 		ds.GetAccounts(w, req)
