@@ -81,10 +81,7 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 		case QueryGetServiceMap:
 			currentRes = ds.getSingleServiceMap(ctx, query, req.PluginContext)
 		default:
-			res.Responses[query.RefID] = backend.DataResponse{
-				Error: fmt.Errorf("unknown query type: %s", query.QueryType),
-			}
-			continue
+			currentRes.Error = fmt.Errorf("unknown query type: %s", query.QueryType)
 		}
 		res.Responses[query.RefID] = currentRes
 	}
