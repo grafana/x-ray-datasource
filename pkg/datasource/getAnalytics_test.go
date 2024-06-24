@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/stretchr/testify/require"
 )
@@ -124,7 +125,7 @@ func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func
 }
 
 func getXrayClientFactory(client XrayClient) XrayClientFactory {
-	return func(ctx context.Context, pluginContext *backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
+	return func(context.Context, backend.PluginContext, RequestSettings, awsds.AuthSettings, *awsds.SessionCache) (XrayClient, error) {
 		return client, nil
 	}
 }
@@ -138,13 +139,14 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:03Z", "0", 100),
 			makeTrace("2020-09-16T00:00:04Z", "0", 100),
 		)
-		ds := NewDatasource(getXrayClientFactory(xrayMock))
+		settings := awsds.AWSDatasourceSettings{}
+		ds := NewDatasource(context.Background(), getXrayClientFactory(xrayMock), settings)
 		// This should go happy path use 0.5 sampling and return half of the traces
 		traces, err := ds.getTraceSummariesData(
 			context.Background(),
 			*makeQuery("", "2020-09-16T00:00:00Z", "2020-09-16T00:00:10Z"),
 			200,
-			&backend.PluginContext{},
+			backend.PluginContext{},
 		)
 		require.NoError(t, err)
 		require.Equal(t, 200, len(traces))
@@ -162,7 +164,8 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:06Z", "0", 200),
 			makeTrace("2020-09-16T00:00:06Z", "1", 100),
 		)
-		ds := NewDatasource(getXrayClientFactory(xrayMock))
+		settings := awsds.AWSDatasourceSettings{}
+		ds := NewDatasource(context.Background(), getXrayClientFactory(xrayMock), settings)
 		// first loop should return 600 traces which is more than 400
 		// sample those 600 to 300 (actual 299 due to probability)
 		// second loop returns 150 traces (using 0.5 sampling in the request)
@@ -172,7 +175,7 @@ func TestGetAnalytics(t *testing.T) {
 			context.Background(),
 			*makeQuery("some expression", "2020-09-16T00:00:00Z", "2020-09-16T00:00:10Z"),
 			400,
-			&backend.PluginContext{},
+			backend.PluginContext{},
 		)
 		require.NoError(t, err)
 		require.Equal(t, 226, len(traces))

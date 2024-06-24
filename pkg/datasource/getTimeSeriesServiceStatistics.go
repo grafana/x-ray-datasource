@@ -22,18 +22,6 @@ type GetTimeSeriesServiceStatisticsQueryData struct {
 	Region     string   `json:"region"`
 }
 
-func (ds *Datasource) getTimeSeriesServiceStatistics(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	response := &backend.QueryDataResponse{
-		Responses: make(map[string]backend.DataResponse),
-	}
-
-	for _, query := range req.Queries {
-		response.Responses[query.RefID] = ds.getTimeSeriesServiceStatisticsForSingleQuery(ctx, query, &req.PluginContext)
-	}
-
-	return response, nil
-}
-
 type ValueDef struct {
 	name      string
 	label     string
@@ -75,7 +63,7 @@ var valueDefs = []ValueDef{
 	},
 }
 
-func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetTimeSeriesServiceStatisticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
@@ -85,7 +73,7 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(ctx, pluginContext, RequestSettings{Region: queryData.Region})
+	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

@@ -11,12 +11,9 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 )
 
-// Global session cache
-var sessions = awsds.NewSessionCache()
-
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
-func CreateXrayClient(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*xray.XRay, error) {
-	sess, err := getXRaySession(ctx, datasourceInfo, backendSettings)
+func CreateXrayClient(ctx context.Context, datasourceInfo awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (*xray.XRay, error) {
+	sess, err := getXRaySession(ctx, datasourceInfo, backendSettings, authSettings, sessions)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +28,7 @@ func CreateXrayClient(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSe
 	return xray.New(sess, config), nil
 }
 
-func getXRaySession(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSettings, backendSettings *backend.DataSourceInstanceSettings) (*session.Session, error) {
+func getXRaySession(ctx context.Context, datasourceInfo awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (*session.Session, error) {
 	httpClientProvider := httpclient.NewProvider()
 	httpClientOptions, err := backendSettings.HTTPClientOptions(ctx)
 	if err != nil {
@@ -44,9 +41,9 @@ func getXRaySession(ctx context.Context, datasourceInfo *awsds.AWSDatasourceSett
 		return nil, err
 	}
 
-	return sessions.GetSession(awsds.SessionConfig{
-		Settings:      *datasourceInfo,
+	return sessions.GetSessionWithAuthSettings(awsds.GetSessionConfig{
+		Settings:      datasourceInfo,
 		HTTPClient:    httpClient,
 		UserAgentName: aws.String("X-ray"),
-	})
+	}, authSettings)
 }

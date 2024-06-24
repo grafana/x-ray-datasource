@@ -22,19 +22,7 @@ type GetInsightsQueryData struct {
 	Region string      `json:"region"`
 }
 
-func (ds *Datasource) getInsights(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	response := &backend.QueryDataResponse{
-		Responses: make(map[string]backend.DataResponse),
-	}
-
-	for _, query := range req.Queries {
-		response.Responses[query.RefID] = ds.getSingleInsight(ctx, query, &req.PluginContext)
-	}
-
-	return response, nil
-}
-
-func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQuery, pluginContext *backend.PluginContext) backend.DataResponse {
+func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetInsightsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {
@@ -43,7 +31,7 @@ func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQu
 		}
 	}
 
-	xrayClient, err := ds.xrayClientFactory(ctx, pluginContext, RequestSettings{Region: queryData.Region})
+	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.DataResponse{
 			Error: err,

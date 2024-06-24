@@ -1,18 +1,20 @@
 package datasource_test
 
 import (
+	"context"
 	"io"
 	"testing"
 
 	"net/http/httptest"
 
+	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/x-ray-datasource/pkg/datasource"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetRegions(t *testing.T) {
 	t.Run("when passed a get request it returns a list of regions from aws from all supported clouds", func(t *testing.T) {
-		ds := datasource.NewDatasource(xrayClientFactory)
+		ds := datasource.NewDatasource(context.Background(), xrayClientFactory, awsds.AWSDatasourceSettings{})
 		req := httptest.NewRequest("GET", "http://example.com/regions", nil)
 		w := httptest.NewRecorder()
 		ds.GetRegions(w, req)
