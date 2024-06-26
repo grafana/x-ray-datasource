@@ -47,7 +47,7 @@ func NewDatasource(ctx context.Context, xrayClientFactory XrayClientFactory, set
 	resMux.HandleFunc("/accounts", ds.GetAccounts)
 	ds.ResourceMux = httpadapter.New(resMux)
 
-	authSettings, _ := awsds.ReadAuthSettingsFromContext(ctx)
+	authSettings := awsds.ReadAuthSettings(ctx)
 	ds.authSettings = *authSettings
 	ds.sessions = awsds.NewSessionCache()
 	return ds
