@@ -169,7 +169,6 @@ export function QueryEditorForm({
           {[serviceMapOption].includes(selectedOptions[0]) && (
             <AccountIdDropdown
               datasource={datasource}
-              newFormStylingEnabled={true}
               query={query}
               range={range}
               onChange={(accountIds) =>
