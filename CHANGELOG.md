@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.9.0
+- Fix: pass empty array to query all columns by @kevinwcyu in [#228](https://github.com/grafana/x-ray-datasource/pull/228)
+- add stalebot for issues by @katebrenner in [#226](https://github.com/grafana/x-ray-datasource/pull/226)
+- Update to use datasource.Manage and sessions.GetSessionWithAuthSettings by @iwysiu in [#232](https://github.com/grafana/x-ray-datasource/pull/232)
+- Fix: use ReadAuthSettings to get authSettings in [#236 ](https://github.com/grafana/x-ray-datasource/pull/236)
+
 ## 2.8.3
 
 - Update CONTRIBUTING.md to include release instructions
