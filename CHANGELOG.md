@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.9.1
+- Migrate to new form styling in config and query editors by @idastambuk in [#235](https://github.com/grafana/x-ray-datasource/pull/235)
+
 ## 2.9.0
 - Fix: pass empty array to query all columns by @kevinwcyu in [#228](https://github.com/grafana/x-ray-datasource/pull/228)
 - add stalebot for issues by @katebrenner in [#226](https://github.com/grafana/x-ray-datasource/pull/226)
