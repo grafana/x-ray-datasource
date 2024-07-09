@@ -472,7 +472,6 @@ const resultWithSql = new MutableDataFrame({
   fields: [
     {
       config: {},
-      labels: undefined,
       name: 'traceID',
       type: FieldType.string,
       values: [
@@ -491,7 +490,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'spanID',
       type: FieldType.string,
       values: [
@@ -510,7 +508,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'parentSpanID',
       type: FieldType.string,
       values: [
@@ -529,7 +526,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'operationName',
       type: FieldType.string,
       values: [
@@ -548,7 +544,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'serviceName',
       type: FieldType.string,
       values: [
@@ -567,7 +562,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'serviceTags',
       type: FieldType.other,
       values: [
@@ -689,7 +683,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'startTime',
       type: FieldType.number,
       values: [
@@ -700,7 +693,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'duration',
       type: FieldType.number,
       values: [
@@ -710,14 +702,12 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'logs',
       type: FieldType.other,
       values: [[], [], [], [], [], [], [], [], [], [], []],
     },
     {
       config: {},
-      labels: undefined,
       name: 'tags',
       type: FieldType.other,
       values: [
@@ -953,7 +943,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'warnings',
       type: FieldType.other,
       values: [
@@ -972,7 +961,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'stackTraces',
       type: FieldType.other,
       values: [
@@ -991,7 +979,6 @@ const resultWithSql = new MutableDataFrame({
     },
     {
       config: {},
-      labels: undefined,
       name: 'errorIconColor',
       type: FieldType.string,
       values: [
@@ -1016,11 +1003,11 @@ const resultWithSql = new MutableDataFrame({
 
 describe('transformTraceResponse function', () => {
   it('should transform aws x-ray response to jaeger span', () => {
-    expect(transformTraceResponse(awsResponse)).toEqual(result);
+    expect(JSON.stringify(transformTraceResponse(awsResponse))).toEqual(JSON.stringify(result));
   });
 
   it('should transform an aws x-ray response with sql to jaeger span', () => {
-    expect(transformTraceResponse(awsResponseWithSql)).toEqual(resultWithSql);
+    expect(JSON.stringify(transformTraceResponse(awsResponseWithSql))).toEqual(JSON.stringify(resultWithSql));
   });
 
   it("should handle response that is in progress (doesn't have an end time)", () => {

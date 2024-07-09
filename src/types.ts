@@ -1,5 +1,5 @@
 import { AwsAuthDataSourceJsonData } from '@grafana/aws-sdk';
-import { DataQuery } from '@grafana/data';
+import { DataQuery } from '@grafana/schema';
 
 export type Group = {
   FilterExpression?: string;
