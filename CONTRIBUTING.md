@@ -69,10 +69,10 @@ yarn server
 3. Run the tests
 
 ```sh
-yarn playwright:test
+yarn e2e
 
 # Optionally show the report, the report automatically shows if any tests fail
-yarn playwright:report
+yarn e2e:report
 
 ```
 

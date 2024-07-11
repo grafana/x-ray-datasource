@@ -10,6 +10,7 @@ import {
   TimeRange,
   toDuration,
   NodeGraphDataFrameFieldNames,
+  anyToNumber,
 } from '@grafana/data';
 import { DataSourceWithBackend, getTemplateSrv, TemplateSrv, config } from '@grafana/runtime';
 import { Observable } from 'rxjs';
@@ -187,7 +188,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
     if (duration) {
       duration.type = FieldType.string;
-      duration.display = (val) => {
+      duration.display = (rawVal) => {
+        const val = anyToNumber(rawVal);
         const momentDuration = toDuration(val);
         return {
           numeric: val,
