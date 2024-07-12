@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.10.0
+- Chore: update dependencies in [#240](https://github.com/grafana/x-ray-datasource/pull/240)
+
 ## 2.9.1
 - Migrate to new form styling in config and query editors by @idastambuk in [#235](https://github.com/grafana/x-ray-datasource/pull/235)
 
