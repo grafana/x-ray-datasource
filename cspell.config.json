@@ -104,6 +104,9 @@
     "otelgrpc",
     "healthcheck",
     "combobox",
-    "menuitemcheckbox"
+    "menuitemcheckbox",
+    "lefthook",
+    "gofmt",
+    "jackspeak"
   ]
 }
