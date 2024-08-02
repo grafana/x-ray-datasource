@@ -106,6 +106,7 @@
     "combobox",
     "menuitemcheckbox",
     "lefthook",
-    "gofmt"
+    "gofmt",
+    "jackspeak"
   ]
 }
