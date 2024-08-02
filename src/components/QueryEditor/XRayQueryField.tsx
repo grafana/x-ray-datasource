@@ -3,7 +3,7 @@ import Prism from 'prismjs';
 import { Node } from 'slate';
 import { QueryField, TypeaheadInput, TypeaheadOutput, BracesPlugin, SlatePrism } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
-import { XrayDataSource } from 'DataSource';
+import { XrayDataSource } from 'XRayDataSource';
 import { XrayQuery, XrayJsonData, XrayQueryType } from 'types';
 import { XRayLanguageProvider } from 'language_provider';
 import { tokenizer } from 'syntax';

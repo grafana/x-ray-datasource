@@ -14,7 +14,7 @@ import {
   traceListOption,
   traceStatisticsOption,
 } from './constants';
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { getTemplateSrv } from '@grafana/runtime';
 import { AccountIdDropdown } from './AccountIdDropdown';
 import { EditorRow, EditorFieldGroup, EditorField } from '@grafana/experimental';

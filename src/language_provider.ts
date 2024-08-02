@@ -1,5 +1,5 @@
 import { LanguageProvider } from '@grafana/data';
-import { XrayDataSource } from 'DataSource';
+import { XrayDataSource } from 'XRayDataSource';
 import { TypeaheadInput, TypeaheadOutput } from '@grafana/ui';
 import { BOOLEAN_KEYWORDS, NUMBER_KEYWORDS, STRING_KEYWORDS, COMPLEX_KEYWORDS } from 'syntax';
 

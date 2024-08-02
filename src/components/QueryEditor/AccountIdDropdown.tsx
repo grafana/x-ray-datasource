@@ -1,4 +1,4 @@
-import { XrayDataSource } from 'DataSource';
+import { XrayDataSource } from 'XRayDataSource';
 import { useAccountIds } from './useAccountIds';
 import { XrayQuery } from '../../types';
 import { TimeRange } from '@grafana/data';

@@ -1,6 +1,6 @@
 import { stylesFactory } from '@grafana/ui';
 import { css } from '@emotion/css';
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { XrayQuery } from '../../types';
 import { TimeRange } from '@grafana/data';
 import React from 'react';

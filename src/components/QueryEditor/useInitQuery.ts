@@ -1,5 +1,5 @@
 import { Group, Region, XrayQuery, XrayQueryType } from '../../types';
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { useEffect } from 'react';
 import { dummyAllGroup } from './constants';
 
