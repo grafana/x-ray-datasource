@@ -1,4 +1,4 @@
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { Group } from '../../types';
 import useAsync from 'react-use/lib/useAsync';
 import { useError } from './useError';

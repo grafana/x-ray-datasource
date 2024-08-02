@@ -1,5 +1,5 @@
 import useAsync from 'react-use/lib/useAsync';
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { Region } from '../../types';
 import { useError } from './useError';
 

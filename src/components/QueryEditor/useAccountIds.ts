@@ -1,4 +1,4 @@
-import { XrayDataSource } from 'DataSource';
+import { XrayDataSource } from 'XRayDataSource';
 import { useAsync } from 'react-use';
 import { XrayQuery } from 'types';
 import { useError } from './useError';

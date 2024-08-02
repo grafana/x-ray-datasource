@@ -1,6 +1,6 @@
 import { XRayQueryField } from './XRayQueryField';
 import React from 'react';
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { css } from '@emotion/css';
 import { XrayQuery } from '../../types';
 import { QueryTypeOption } from './constants';

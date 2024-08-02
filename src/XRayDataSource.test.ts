@@ -1,4 +1,4 @@
-import { XrayDataSource } from './DataSource';
+import { XrayDataSource } from './XRayDataSource';
 import {
   ArrayVector,
   DataFrame,
