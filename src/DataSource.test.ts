@@ -73,7 +73,7 @@ jest.mock('@grafana/data', () => {
   };
 });
 
-describe('XrayDataSources', () => {
+describe('XrayDataSource', () => {
   describe('.query()', () => {
     it('returns parsed data when querying single trace', async () => {
       const ds = makeDatasourceWithResponse(makeTraceResponse(makeTrace()));
