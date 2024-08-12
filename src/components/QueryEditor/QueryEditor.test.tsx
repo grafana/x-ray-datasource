@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { QueryEditor } from './QueryEditor';
 import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
-import { XrayDataSource } from '../../DataSource';
+import { XrayDataSource } from '../../XRayDataSource';
 import { DataSourceInstanceSettings, ScopedVars, TypedVariableModel } from '@grafana/data';
 
 const defaultProps = {
