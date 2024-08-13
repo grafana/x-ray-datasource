@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.10.1
+- chore: add errorsource in [#245](https://github.com/grafana/x-ray-datasource/pull/243)
+- Chore: Rename datasource file in [#243](https://github.com/grafana/x-ray-datasource/pull/243)
+- Add pre-commit hook with lint and spellcheck [#242](https://github.com/grafana/x-ray-datasource/pull/242)
+
 ## 2.10.0
 - Chore: update dependencies in [#240](https://github.com/grafana/x-ray-datasource/pull/240)
 
