@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error)
@@ -81,7 +82,7 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 		case QueryGetServiceMap:
 			currentRes = ds.getSingleServiceMap(ctx, query, req.PluginContext)
 		default:
-			currentRes.Error = fmt.Errorf("unknown query type: %s", query.QueryType)
+			currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown query type: %s", query.QueryType), false)
 		}
 		res.Responses[query.RefID] = currentRes
 	}

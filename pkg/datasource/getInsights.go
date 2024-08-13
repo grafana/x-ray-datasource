@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -26,16 +27,12 @@ func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQu
 	queryData := &GetInsightsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	var states = []string{strings.ToUpper(queryData.State)}
@@ -63,28 +60,21 @@ func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQu
 		groups, err := getGroupsFromXray(xrayClient)
 
 		if err != nil {
-			return backend.DataResponse{
-				Error: err,
-			}
+			return errorsource.Response(err)
 		}
 
 		for _, group := range groups {
 			err = getInsightSummary(xrayClient, query, states, group.GroupName, responseDataFrame)
 
 			if err != nil {
-				return backend.DataResponse{
-					Error: err,
-				}
+				return errorsource.Response(err)
 			}
 		}
 
 	} else {
 		err = getInsightSummary(xrayClient, query, states, queryData.Group.GroupName, responseDataFrame)
-	}
-
-	if err != nil {
-		return backend.DataResponse{
-			Error: err,
+		if err != nil {
+			return errorsource.Response(err)
 		}
 	}
 
@@ -103,7 +93,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 
 	if err != nil {
 		log.DefaultLogger.Debug("GetInsightSummaries", "error", err)
-		return err
+		return errorsource.DownstreamError(err, false)
 	}
 
 	for _, insight := range insightsResponse.InsightSummaries {
@@ -122,7 +112,7 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 			insight.StartTime,
 		)
 	}
-	return err
+	return nil
 }
 
 func getCategories(categories []string) string {

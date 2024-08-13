@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetTraceQueryData struct {
@@ -23,16 +24,12 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(err)
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(err)
 	}
 
 	log.DefaultLogger.Debug("getSingleTrace", "RefID", query.RefID, "query", queryData.Query, "region", queryData.Region)
@@ -59,7 +56,7 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 		defer wg.Done()
 		traceGraphError = xrayClient.GetTraceGraphPages(
 			&xray.GetTraceGraphInput{TraceIds: []*string{&queryData.Query}},
-			func(page *xray.GetTraceGraphOutput, hasMore bool) bool {
+			func(page *xray.GetTraceGraphOutput, _ bool) bool {
 				for _, service := range page.Services {
 					bytes, err := json.Marshal(service)
 					if err != nil {
@@ -81,24 +78,20 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	wg.Wait()
 
 	if tracesError != nil {
-		return backend.DataResponse{
-			Error: tracesError,
-		}
+		return errorsource.Response(errorsource.DownstreamError(tracesError, false))
 	}
 
 	if len(tracesResponse.Traces) == 0 {
-		return backend.DataResponse{
-			Error: fmt.Errorf("trace not found"),
-		}
+		return errorsource.Response(errorsource.DownstreamError(fmt.Errorf("trace not found"), false))
 	}
 
 	// We assume only single trace at this moment is returned from the API call
 	trace := tracesResponse.Traces[0]
 	traceBytes, err := json.Marshal(trace)
 	if err != nil {
-		return backend.DataResponse{
-			Error: fmt.Errorf("failed to json.Marshal trace \"%s\" :%w", *trace.Id, err),
-		}
+		return errorsource.Response(
+			errorsource.DownstreamError(fmt.Errorf("failed to json.Marshal trace \"%s\" :%w", *trace.Id, err), false),
+		)
 	}
 
 	frames := []*data.Frame{
@@ -107,13 +100,13 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 		),
 	}
 
+	response := backend.DataResponse{}
 	if traceGraphError == nil {
 		frames = append(frames, traceGraphFrame)
+	} else {
+		response = errorsource.Response(errorsource.DownstreamError(traceGraphError, false))
 	}
-
-	return backend.DataResponse{
-		Frames: frames,
-		// TODO not sure what will this show if we have both data and error
-		Error: traceGraphError,
-	}
+	// TODO not sure what will this show if we have both data and error
+	response.Frames = frames
+	return response
 }

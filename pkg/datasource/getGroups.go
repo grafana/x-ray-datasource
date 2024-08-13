@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 func (ds *Datasource) getGroups(rw http.ResponseWriter, req *http.Request) {
@@ -71,5 +72,8 @@ func getGroupsFromXray(xrayClient XrayClient) ([]*xray.GroupSummary, error) {
 		return true
 	})
 
+	if err != nil {
+		err = errorsource.DownstreamError(err, false)
+	}
 	return groups, err
 }

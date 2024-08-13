@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -31,9 +32,7 @@ func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query b
 
 	if err != nil {
 		log.DefaultLogger.Debug("getSingleAnalyticsResult", "error", err)
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.DownstreamError(err, false))
 	}
 
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "len(traces)", len(traces))
@@ -49,12 +48,12 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {
-		return nil, err
+		return nil, errorsource.PluginError(err, false)
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return nil, err
+		return nil, errorsource.PluginError(err, false)
 	}
 
 	log.DefaultLogger.Debug("getTraceSummariesData", "query", queryData.Query)
@@ -138,7 +137,7 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
 		}
 	}
 
-	return traces, err
+	return traces, nil
 }
 
 func makeRequest(from time.Time, to time.Time, sampling float64, filterExpression string) *xray.GetTraceSummariesInput {
@@ -199,7 +198,7 @@ func runRequests(ctx context.Context, xrayClient XrayClient, requests []*xray.Ge
 			group.Go(func() error {
 				resp, err := getTraceSummaries(groupCtx, xrayClient, req)
 				if err != nil {
-					return err
+					return errorsource.DownstreamError(err, false)
 				}
 				responses[index] = resp
 				return nil
@@ -216,7 +215,7 @@ func runRequests(ctx context.Context, xrayClient XrayClient, requests []*xray.Ge
 func getTraceSummaries(ctx context.Context, xrayClient XrayClient, request xray.GetTraceSummariesInput) (*xray.GetTraceSummariesOutput, error) {
 	resp, err := xrayClient.GetTraceSummariesWithContext(ctx, &request)
 	if err != nil {
-		return nil, err
+		return nil, errorsource.DownstreamError(err, false)
 	}
 	log.DefaultLogger.Debug("getTraceSummaries", "from", request.StartTime, "to", request.EndTime, "len(traces)", len(resp.TraceSummaries))
 	return resp, nil
@@ -235,7 +234,7 @@ func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, 
 	}
 
 	count := int64(0)
-	err := xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, input, func(output *xray.GetTimeSeriesServiceStatisticsOutput, b bool) bool {
+	err := xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, input, func(output *xray.GetTimeSeriesServiceStatisticsOutput, _ bool) bool {
 		for _, stats := range output.TimeSeriesServiceStatistics {
 			// Not sure if this can return ServiceSummaryStatistics. It should be returned only if a service filter expression
 			// is defined for a particular service but I would assume a Group can also trigger this.
@@ -248,6 +247,9 @@ func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, 
 		return true
 	})
 
+	if err != nil {
+		err = errorsource.DownstreamError(err, false)
+	}
 	return count, err
 }
 

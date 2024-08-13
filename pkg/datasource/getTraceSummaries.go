@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetTraceSummariesQueryData struct {
@@ -21,16 +22,12 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
@@ -56,7 +53,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 		EndTime:          &query.TimeRange.To,
 		FilterExpression: filterExpression,
 	}
-	err = xrayClient.GetTraceSummariesPages(request, func(page *xray.GetTraceSummariesOutput, lastPage bool) bool {
+	err = xrayClient.GetTraceSummariesPages(request, func(page *xray.GetTraceSummariesOutput, _ bool) bool {
 		for _, summary := range page.TraceSummaries {
 			annotationsCount := 0
 			for _, val := range summary.Annotations {
@@ -85,9 +82,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 
 	if err != nil {
 		log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "error", err)
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.DownstreamError(err, false))
 	}
 
 	return backend.DataResponse{
