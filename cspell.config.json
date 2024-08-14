@@ -8,6 +8,7 @@
     "src/dashboards/**",
     "src/utils/transform.test.ts",
     "yarn.lock",
+    "go.mod",
     "go.sum",
     "mage_output_file.go"
   ],
