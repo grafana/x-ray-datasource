@@ -108,6 +108,7 @@
     "menuitemcheckbox",
     "lefthook",
     "gofmt",
-    "jackspeak"
+    "jackspeak",
+    "errorsource"
   ]
 }
