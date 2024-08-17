@@ -26,7 +26,7 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 	}
 	region := urlQuery.Get("region")
 
-	pluginConfig := httpadapter.PluginConfigFromContext(req.Context())
+  pluginConfig := httpadapter.PluginConfigFromContext(req.Context()) //nolint:staticcheck
 	xrayClient, err := ds.getClient(req.Context(), pluginConfig, RequestSettings{Region: region})
 
 	if err != nil {
