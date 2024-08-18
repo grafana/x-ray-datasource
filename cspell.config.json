@@ -109,6 +109,8 @@
     "lefthook",
     "gofmt",
     "jackspeak",
-    "errorsource"
+    "errorsource",
+    "nolint",
+    "staticcheck"
   ]
 }
