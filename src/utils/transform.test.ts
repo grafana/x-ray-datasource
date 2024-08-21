@@ -101,7 +101,150 @@ const awsResponse: XrayTraceData = {
     },
   ],
 };
-
+const awsResponseWithMultipleRootSpans: XrayTraceData = {
+  Duration: 0.048,
+  Id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+  Segments: [
+    {
+      Document: {
+        id: '3f8b028e1847bc4c',
+        name: 'DynamoDB',
+        start_time: 1591872073.754,
+        trace_id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+        end_time: 1591872073.799,
+        inferred: true,
+        error: false,
+        fault: true,
+        metadata: {
+          http: {
+            dns: {
+              addresses: [
+                {
+                  Zone: '',
+                  IP: '4.2.123.160',
+                },
+                {
+                  Zone: '',
+                  IP: '22.23.14.122',
+                },
+              ],
+            },
+          },
+        },
+        origin: 'AWS::DynamoDB::Table',
+      },
+      Id: '3f8b028e1847bc4c',
+    },
+    {
+      Document: {
+        id: 'eebec87ce4dd8225',
+        name: 'myfrontend-dev',
+        start_time: 1591872073.753,
+        trace_id: '1-5ee20a4a-bab71b6bbc0660dba2adab3e',
+        end_time: 1591872073.855,
+        annotations: {
+          theme: 'flatly',
+        },
+        origin: 'AWS::EC2::Instance',
+        subsegments: [
+          {
+            id: '4ab39ad12cff04b5',
+            name: 'DynamoDB',
+            start_time: 1591872073.753,
+            end_time: 1591872073.754,
+            error: true,
+            http: {
+              response: {
+                status: 400,
+              },
+            },
+            aws: {
+              retries: 0,
+              region: 'us-east-2',
+              attribute_names_substituted: [],
+              resource_names: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
+            },
+            namespace: 'aws',
+            cause: {
+              working_directory: '/var/app/current',
+              exceptions: [
+                {
+                  id: 'exception-1',
+                  message: 'The conditional request failed',
+                  type: 'ConditionalCheckFailedException',
+                  stack: [
+                    {
+                      path: '/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js',
+                      line: 66,
+                      label: 'features.constructor.captureAWSRequest [as customRequestHandler]',
+                    },
+                    {
+                      path: '/var/app/current/node_modules/aws-sdk/lib/service.js',
+                      line: 266,
+                      label: 'features.constructor.addAllRequestListeners',
+                    },
+                  ],
+                },
+                {
+                  id: 'exception-2',
+                  message: 'Undefined stack exception',
+                  type: 'UndefinedStackException',
+                },
+              ],
+            },
+          },
+          {
+            id: '4ab39ad12cff04b5',
+            name: 'DynamoDB',
+            start_time: 1591872073.754,
+            end_time: 1591872073.756,
+            error: true,
+            http: {
+              response: {
+                status: 400,
+              },
+            },
+            aws: {
+              retries: 0,
+              region: 'us-east-2',
+              attribute_names_substituted: [],
+              resource_names: ['awseb-e-cmpzepijzr-stack-StartupSignupsTable-SGJF3KIBUQNA'],
+            },
+            namespace: 'aws',
+            cause: {
+              working_directory: '/var/app/current',
+              exceptions: [
+                {
+                  id: 'exception-1',
+                  message: 'The conditional request failed',
+                  type: 'ConditionalCheckFailedException',
+                  stack: [
+                    {
+                      path: '/var/app/current/node_modules/aws-xray-sdk/lib/patchers/aws_p.js',
+                      line: 66,
+                      label: 'features.constructor.captureAWSRequest [as customRequestHandler]',
+                    },
+                    {
+                      path: '/var/app/current/node_modules/aws-sdk/lib/service.js',
+                      line: 266,
+                      label: 'features.constructor.addAllRequestListeners',
+                    },
+                  ],
+                },
+                {
+                  id: 'exception-2',
+                  message: 'Undefined stack exception',
+                  type: 'UndefinedStackException',
+                },
+              ],
+            },
+          },
+        ],
+      },
+      Id: 'eebec87ce4dd8225',
+    },
+  ],
+};
 const awsResponseWithSql: XrayTraceData = {
   Duration: 0.078,
   Id: '1-12345678-1234567890abcdefghijklmn',
@@ -1065,5 +1208,15 @@ describe('transformTraceResponse function', () => {
 
     const view = new DataFrameView(transformTraceResponse(aws as any));
     expect(view.get(1).duration).toBe(0);
+  });
+
+  it('should sort root spans by startTime if there are multiple', () => {
+    const result = transformTraceResponse(awsResponseWithMultipleRootSpans);
+    const startTimeValues = result.fields.find((field) => field.name === 'startTime')?.values;
+    expect(startTimeValues?.[0]).toEqual(1591872073753);
+    expect(startTimeValues?.[1]).toEqual(1591872073754);
+    const nameValues = result.fields.find((field) => field.name === 'operationName')?.values;
+    expect(nameValues?.[0]).toEqual('AWS::EC2::Instance');
+    expect(nameValues?.[1]).toEqual('AWS::DynamoDB::Table');
   });
 });

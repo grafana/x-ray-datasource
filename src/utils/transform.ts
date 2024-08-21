@@ -80,7 +80,10 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
     },
   });
 
-  for (const span of [...parentSpans, ...segmentSpans, ...subSegmentSpans]) {
+  const sortedParentSpans = parentSpans.sort((span1: TraceSpanRow, span2: TraceSpanRow) => {
+    return span1.startTime - span2.startTime;
+  });
+  for (const span of [...sortedParentSpans, ...segmentSpans, ...subSegmentSpans]) {
     frame.add(span);
   }
 
