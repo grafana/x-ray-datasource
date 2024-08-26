@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetTimeSeriesServiceStatisticsQueryData struct {
@@ -68,16 +69,12 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	log.DefaultLogger.Debug("getTimeSeriesServiceStatisticsForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
@@ -134,7 +131,7 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 		EntitySelectorExpression: entitySelectorExpression,
 		Period:                   &resolution,
 	}
-	err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, lastPage bool) bool {
+	err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, _ bool) bool {
 		for _, statistics := range page.TimeSeriesServiceStatistics {
 			// Use reflection to append values to correct data frame based on the requested columns.
 			for i, column := range requestedColumns {
@@ -172,9 +169,7 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 	})
 
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.DownstreamError(err, false))
 	}
 
 	return backend.DataResponse{

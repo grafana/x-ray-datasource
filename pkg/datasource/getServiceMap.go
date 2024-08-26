@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetServiceMapQueryData struct {
@@ -22,16 +23,12 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.PluginError(err, false))
 	}
 
 	var frame = data.NewFrame(
@@ -51,7 +48,7 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		accountIdsToFilterBy[value] = true
 	}
 
-	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {
+	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, _ bool) bool {
 		for _, service := range page.Services {
 			// filter out non matching account ids, if user has selected them
 			if len(queryData.AccountIds) > 0 {
@@ -77,9 +74,7 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 	})
 
 	if err != nil {
-		return backend.DataResponse{
-			Error: err,
-		}
+		return errorsource.Response(errorsource.DownstreamError(err, false))
 	}
 
 	return backend.DataResponse{
