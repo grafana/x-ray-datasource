@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "X-Ray",
+  "name": "AWS X-Ray",
   "id": "grafana-x-ray-datasource",
   "category": "tracing",
   "metrics": true,
@@ -9,7 +9,7 @@
   "alerting": true,
   "executable": "gpx_x-ray-datasource",
   "info": {
-    "description": "Data source for Amazon AWS X-Ray",
+    "description": "Data source for AWS X-Ray",
     "author": {
       "name": "Grafana",
       "url": "grafana.com"
