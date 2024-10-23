@@ -1,7 +1,8 @@
 module github.com/grafana/x-ray-datasource
 
-go 1.21
-toolchain go1.22.5
+go 1.22
+
+toolchain go1.23.1
 
 require (
 	github.com/aws/aws-sdk-go v1.51.31
