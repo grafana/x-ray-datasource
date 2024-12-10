@@ -150,6 +150,8 @@ jobs:
       - name: Run Playwright tests
         id: run-tests
         run: npm run e2e
+        env:
+          IRRELEVANT: 'nonsense'
 
       - name: Publish report to GCS
         if: ${{ (always() && steps.run-tests.outcome == 'success') || (failure() && steps.run-tests.outcome == 'failure') && github.event.organization.login == 'grafana' }}
