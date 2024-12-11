@@ -1,6 +1,5 @@
 import { XrayDataSource } from './XRayDataSource';
 import {
-  ArrayVector,
   DataFrame,
   DataQueryRequest,
   DataSourceInstanceSettings,
@@ -501,12 +500,12 @@ function makeTraceSummariesResponse(): DataFrame {
       {
         name: 'Id',
         type: FieldType.string,
-        values: new ArrayVector(['12345', '67890']),
+        values: ['12345', '67890'],
       },
       {
         name: 'Duration',
         type: FieldType.number,
-        values: new ArrayVector([10, 20]),
+        values: [10, 20],
       },
     ],
   });
@@ -519,12 +518,12 @@ function makeInsightResponse(): DataFrame {
       {
         name: 'InsightId',
         type: FieldType.string,
-        values: new ArrayVector(['12345', '67890', 'sss']),
+        values: ['12345', '67890', 'sss'],
       },
       {
         name: 'Duration',
         type: FieldType.number,
-        values: new ArrayVector([4590000, 1422000, 42000]),
+        values: [4590000, 1422000, 42000],
       },
     ],
   });
@@ -537,7 +536,7 @@ function makeServiceMapResponse(): DataFrame {
       {
         name: 'Service',
         type: FieldType.string,
-        values: new ArrayVector(makeServiceMapWithLinkedEdge()),
+        values: makeServiceMapWithLinkedEdge(),
       },
     ],
   });
@@ -550,7 +549,7 @@ function makeTraceResponse(trace: XrayTraceDataRaw): DataFrame {
       {
         name: 'traces',
         type: FieldType.trace,
-        values: new ArrayVector([JSON.stringify(trace)]),
+        values: [JSON.stringify(trace)],
       },
     ],
   });
