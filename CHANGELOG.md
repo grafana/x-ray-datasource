@@ -2,19 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.11.0
+
+- Bump the all-node-dependencies group across 1 directory with 31 updates in [#275](https://github.com/grafana/x-ray-datasource/pull/275)
+- Bump nanoid from 3.3.7 to 3.3.8 in the npm_and_yarn group in [#274](https://github.com/grafana/x-ray-datasource/pull/274)
+- Bump the all-go-dependencies group across 1 directory with 4 updates in [#269](https://github.com/grafana/x-ray-datasource/pull/269)
+- Bump cross-spawn from 7.0.3 to 7.0.6 in the npm_and_yarn group in [#271](https://github.com/grafana/x-ray-datasource/pull/271)
+- Bump path-to-regexp from 1.8.0 to 1.9.0 in the npm_and_yarn group in [#260](https://github.com/grafana/x-ray-datasource/pull/260)
+- Bump the all-go-dependencies group across 1 directory with 3 updates in [#262](https://github.com/grafana/x-ray-datasource/pull/262)
+- Bump micromatch from 4.0.7 to 4.0.8 in the npm_and_yarn group in [#259](https://github.com/grafana/x-ray-datasource/pull/259)
+- Bump the all-github-action-dependencies group with 2 updates in [#255](https://github.com/grafana/x-ray-datasource/pull/255)
+- Bump webpack from 5.93.0 to 5.94.0 in the npm_and_yarn group in [#258](https://github.com/grafana/x-ray-datasource/pull/258)
+- Upgrade grafana-plugin-sdk-go (deps): Bump github.com/grafana/grafana-plugin-sdk-go from 0.252.0 to 0.255.0 in [#252](https://github.com/grafana/x-ray-datasource/pull/252)
+- Chore: bump dependencies in [#251](https://github.com/grafana/x-ray-datasource/pull/251)
+- Chore: Update plugin.json keywords in [#250](https://github.com/grafana/x-ray-datasource/pull/250)
+- Update plugin name to match Amazon convention in [#247](https://github.com/grafana/x-ray-datasource/pull/247)
+
 ## 2.10.1
+
 - chore: add errorsource in [#245](https://github.com/grafana/x-ray-datasource/pull/245)
 - Chore: Rename datasource file in [#243](https://github.com/grafana/x-ray-datasource/pull/243)
 - Add pre-commit hook with lint and spellcheck [#242](https://github.com/grafana/x-ray-datasource/pull/242)
 - Use yarn instead of cspell for precommit hook [#246](https://github.com/grafana/x-ray-datasource/pull/246)
 
 ## 2.10.0
+
 - Chore: update dependencies in [#240](https://github.com/grafana/x-ray-datasource/pull/240)
 
 ## 2.9.1
+
 - Migrate to new form styling in config and query editors by @idastambuk in [#235](https://github.com/grafana/x-ray-datasource/pull/235)
 
 ## 2.9.0
+
 - Fix: pass empty array to query all columns by @kevinwcyu in [#228](https://github.com/grafana/x-ray-datasource/pull/228)
 - add stalebot for issues by @katebrenner in [#226](https://github.com/grafana/x-ray-datasource/pull/226)
 - Update to use datasource.Manage and sessions.GetSessionWithAuthSettings by @iwysiu in [#232](https://github.com/grafana/x-ray-datasource/pull/232)
