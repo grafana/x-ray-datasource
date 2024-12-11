@@ -3,10 +3,10 @@ import {
   TraceKeyValuePair,
   DataFrame,
   FieldType,
-  ArrayVector,
   MutableDataFrame,
   FieldColorModeId,
   NodeGraphDataFrameFieldNames,
+  Field,
 } from '@grafana/data';
 import {
   XrayTraceData,
@@ -247,123 +247,129 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
 
   const showRequestCounts = options?.showRequestCounts ?? false;
 
-  const idField = {
+  const idField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.id,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
+    config: {},
   };
-  const titleField = {
+  const titleField: Field<string> = {
     name: NodeGraphDataFrameFieldNames.title,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
     config: { displayName: 'Name' },
   };
 
-  const typeField = {
+  const typeField: Field<string> = {
     name: NodeGraphDataFrameFieldNames.subTitle,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
     config: { displayName: 'Type' },
   };
 
-  const mainStatField = {
+  const mainStatField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.mainStat,
     type: FieldType.number,
-    values: new ArrayVector(),
+    values: [],
     config: { unit: 'ms/t', displayName: 'Average response time' },
   };
 
-  const secondaryStatField = showRequestCounts
+  const secondaryStatField: Field<string | number | undefined> = showRequestCounts
     ? {
         name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.string,
-        values: new ArrayVector(),
+        values: [],
         config: { displayName: 'Requests count' },
       }
     : {
         name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.number,
-        values: new ArrayVector(),
+        values: [],
         config: { unit: 't/min', displayName: 'Transactions per minute' },
       };
 
-  const successField = {
+  const successField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.arc + 'success',
     type: FieldType.number,
-    values: new ArrayVector(),
+    values: [],
     config: { color: { fixedColor: 'green', mode: FieldColorModeId.Fixed }, displayName: 'Success' },
   };
 
-  const errorsField = {
+  const errorsField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.arc + 'errors',
     type: FieldType.number,
-    values: new ArrayVector(),
+    values: [],
     config: { color: { fixedColor: 'semi-dark-yellow', mode: FieldColorModeId.Fixed }, displayName: 'Error' },
   };
 
-  const faultsField = {
+  const faultsField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.arc + 'faults',
     type: FieldType.number,
-    values: new ArrayVector(),
+    values: [],
     config: { color: { fixedColor: 'red', mode: FieldColorModeId.Fixed }, displayName: 'Fault' },
   };
 
-  const throttledField = {
+  const throttledField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.arc + 'throttled',
     type: FieldType.number,
-    values: new ArrayVector(),
+    values: [],
     config: { color: { fixedColor: 'purple', mode: FieldColorModeId.Fixed }, displayName: 'Throttled' },
   };
 
-  const edgeIdField = {
+  const edgeIdField: Field<string> = {
     name: NodeGraphDataFrameFieldNames.id,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
+    config: {},
   };
-  const edgeSourceField = {
+  const edgeSourceField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.source,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
+    config: {},
   };
-  const edgeTargetField = {
+  const edgeTargetField: Field<number> = {
     name: NodeGraphDataFrameFieldNames.target,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
+    config: {},
   };
 
   // These are needed for links to work
-  const edgeSourceNameField = {
+  const edgeSourceNameField: Field<string> = {
     name: 'sourceName',
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
+    config: {},
   };
-  const edgeTargetNameField = {
+  const edgeTargetNameField: Field<string> = {
     name: 'targetName',
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
+    config: {},
   };
 
   // This has to be different a bit because we put different percentages here and want specific prefix based on which
   // value we put in. So it can be success for one row but errors for second. We can only do that if we send it as a
   // string.
-  const edgeMainStatField = {
+  const edgeMainStatField: Field<string> = {
     name: NodeGraphDataFrameFieldNames.mainStat,
     type: FieldType.string,
-    values: new ArrayVector(),
+    values: [],
     config: { displayName: 'Response percentage' },
   };
 
-  const edgeSecondaryStatField = showRequestCounts
+  const edgeSecondaryStatField: Field<string | number | undefined> = showRequestCounts
     ? {
         name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.string,
-        values: new ArrayVector(),
+        values: [],
         config: { displayName: 'Requests count' },
       }
     : {
         name: NodeGraphDataFrameFieldNames.secondaryStat,
         type: FieldType.number,
-        values: new ArrayVector(),
+        values: [],
         config: { unit: 't/min', displayName: 'Transactions per minute' },
       };
 
@@ -376,26 +382,26 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
   for (const service of services) {
     const statsSource = service.SummaryStatistics ? service : service.Edges[0];
     const stats = statsSource.SummaryStatistics;
-    idField.values.add(service.ReferenceId);
-    titleField.values.add(service.Name);
-    typeField.values.add(service.Type);
-    mainStatField.values.add(avgResponseTime(stats));
+    idField.values.push(service.ReferenceId);
+    titleField.values.push(service.Name);
+    typeField.values.push(service.Type);
+    mainStatField.values.push(avgResponseTime(stats));
 
     if (showRequestCounts) {
       const count = statsSource.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
-      secondaryStatField.values.add(count + ' Request' + (count > 1 ? 's' : ''));
+      secondaryStatField.values.push(count + ' Request' + (count > 1 ? 's' : ''));
     } else {
-      secondaryStatField.values.add(
+      secondaryStatField.values.push(
         service.SummaryStatistics
           ? tracesPerMinute(stats, service.StartTime, service.EndTime)
           : // For root nodes we compute stats from it's edge
             tracesPerMinute(stats, service.Edges[0].StartTime, service.Edges[0].EndTime)
       );
     }
-    successField.values.add(successPercentage(stats));
-    errorsField.values.add(errorsPercentage(stats));
-    faultsField.values.add(faultsPercentage(stats));
-    throttledField.values.add(throttledPercentage(stats));
+    successField.values.push(successPercentage(stats));
+    errorsField.values.push(errorsPercentage(stats));
+    faultsField.values.push(faultsPercentage(stats));
+    throttledField.values.push(throttledPercentage(stats));
 
     servicesMap[service.ReferenceId] = service;
     edges.push(...service.Edges.map((e) => ({ edge: e, source: service })));
@@ -409,17 +415,17 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
     if (!target) {
       continue;
     }
-    edgeIdField.values.add(source.ReferenceId + '__' + target.ReferenceId);
-    edgeSourceField.values.add(source.ReferenceId);
-    edgeTargetField.values.add(edge.ReferenceId);
-    edgeSourceNameField.values.add(source.Name);
-    edgeTargetNameField.values.add(target.Name);
+    edgeIdField.values.push(source.ReferenceId + '__' + target.ReferenceId);
+    edgeSourceField.values.push(source.ReferenceId);
+    edgeTargetField.values.push(edge.ReferenceId);
+    edgeSourceNameField.values.push(source.Name);
+    edgeTargetNameField.values.push(target.Name);
 
     const stats = edge.SummaryStatistics;
 
     const success = successPercentage(edge.SummaryStatistics);
     if (success === 1) {
-      edgeMainStatField.values.add(`Success ${(success * 100).toFixed(2)}%`);
+      edgeMainStatField.values.push(`Success ${(success * 100).toFixed(2)}%`);
     } else {
       const firstNonZero = (
         [
@@ -429,17 +435,17 @@ export function parseGraphResponse(response: DataFrame, query?: XrayQuery, optio
         ] as Array<[number, string]>
       ).find((v) => v[0] !== 0);
       if (!firstNonZero) {
-        edgeMainStatField.values.add(`N/A`);
+        edgeMainStatField.values.push(`N/A`);
       } else {
-        edgeMainStatField.values.add(`${firstNonZero[1]} ${(firstNonZero[0] * 100).toFixed(2)}%`);
+        edgeMainStatField.values.push(`${firstNonZero[1]} ${(firstNonZero[0] * 100).toFixed(2)}%`);
       }
     }
 
     if (showRequestCounts) {
       const count = edge.ResponseTimeHistogram.reduce((acc, h) => acc + h.Count, 0);
-      edgeSecondaryStatField.values.add(count + ' Request' + (count > 1 ? 's' : ''));
+      edgeSecondaryStatField.values.push(count + ' Request' + (count > 1 ? 's' : ''));
     } else {
-      edgeSecondaryStatField.values.add(tracesPerMinute(edge.SummaryStatistics, edge.StartTime, edge.EndTime));
+      edgeSecondaryStatField.values.push(tracesPerMinute(edge.SummaryStatistics, edge.StartTime, edge.EndTime));
     }
   }
 

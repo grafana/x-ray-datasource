@@ -1,5 +1,6 @@
 {
   "ignorePaths": [
+    ".config/**",
     ".github/**",
     "node_modules/**",
     "dist/**",
@@ -113,6 +114,7 @@
     "jackspeak",
     "errorsource",
     "nolint",
-    "staticcheck"
+    "staticcheck",
+    "subresource"
   ]
 }
