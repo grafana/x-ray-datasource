@@ -4,7 +4,6 @@ import {
   DataQueryRequest,
   DataSourceInstanceSettings,
   FieldType,
-  MutableDataFrame,
   NodeGraphDataFrameFieldNames,
   ScopedVars,
   TypedVariableModel,
@@ -494,65 +493,76 @@ function makeServiceMapWithLinkedEdge() {
 }
 
 function makeTraceSummariesResponse(): DataFrame {
-  return new MutableDataFrame({
+  return {
     name: 'TraceSummaries',
+    length: 2,
+
     fields: [
       {
         name: 'Id',
         type: FieldType.string,
         values: ['12345', '67890'],
+        config: {},
       },
       {
         name: 'Duration',
         type: FieldType.number,
         values: [10, 20],
+        config: {},
       },
     ],
-  });
+  };
 }
 
 function makeInsightResponse(): DataFrame {
-  return new MutableDataFrame({
+  return {
     name: 'InsightSummaries',
+    length: 2,
     fields: [
       {
         name: 'InsightId',
         type: FieldType.string,
         values: ['12345', '67890', 'sss'],
+        config: {},
       },
       {
         name: 'Duration',
         type: FieldType.number,
         values: [4590000, 1422000, 42000],
+        config: {},
       },
     ],
-  });
+  };
 }
 
 function makeServiceMapResponse(): DataFrame {
-  return new MutableDataFrame({
+  return {
     name: 'ServiceMap',
+    length: 5,
     fields: [
       {
         name: 'Service',
         type: FieldType.string,
         values: makeServiceMapWithLinkedEdge(),
+        config: {},
       },
     ],
-  });
+  };
 }
 
 function makeTraceResponse(trace: XrayTraceDataRaw): DataFrame {
-  return new MutableDataFrame({
+  return {
     name: 'Traces',
+    length: trace.Segments.length,
     fields: [
       {
         name: 'traces',
         type: FieldType.trace,
         values: [JSON.stringify(trace)],
+        config: {},
       },
     ],
-  });
+  };
 }
 
 function makeDatasourceWithResponse(response: DataFrame): XrayDataSource {
