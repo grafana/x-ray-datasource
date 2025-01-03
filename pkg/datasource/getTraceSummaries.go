@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -35,6 +36,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 	responseDataFrame := data.NewFrame(
 		"TraceSummaries",
 		data.NewField("Id", nil, []*string{}),
+		data.NewField("Start Time", nil, []*time.Time{}),
 		data.NewField("Method", nil, []*string{}),
 		data.NewField("Response", nil, []*int64{}),
 		data.NewField("Response Time", nil, []*float64{}).SetConfig(&data.FieldConfig{Unit: "s"}),
@@ -62,6 +64,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 
 			responseDataFrame.AppendRow(
 				summary.Id,
+				summary.StartTime,
 				summary.Http.HttpMethod,
 				summary.Http.HttpStatus,
 				summary.Duration,

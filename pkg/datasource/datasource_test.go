@@ -83,6 +83,7 @@ func makeSummary(region string) *xray.TraceSummary {
 	return &xray.TraceSummary{
 		Annotations: annotations,
 		Duration:    aws.Float64(10.5),
+		StartTime:   aws.Time(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 		Http:        http,
 		Id:          aws.String(traceId),
 		ErrorRootCauses: []*xray.ErrorRootCause{
@@ -516,9 +517,10 @@ func TestDatasource(t *testing.T) {
 		frame := response.Responses["A"].Frames[0]
 		require.Equal(t, 2, frame.Fields[0].Len())
 		require.Equal(t, "id1", *frame.Fields[0].At(0).(*string))
-		require.Equal(t, "GET", *frame.Fields[1].At(0).(*string))
-		require.Equal(t, 10.5, *frame.Fields[3].At(0).(*float64))
-		require.Equal(t, int64(3), *frame.Fields[6].At(0).(*int64))
+		require.Equal(t, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC), *frame.Fields[1].At(0).(*time.Time))
+		require.Equal(t, "GET", *frame.Fields[2].At(0).(*string))
+		require.Equal(t, 10.5, *frame.Fields[4].At(0).(*float64))
+		require.Equal(t, int64(3), *frame.Fields[7].At(0).(*int64))
 	})
 	t.Run("getTraceSummaries query with region", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{Query: "", Region: "us-east-1"})
