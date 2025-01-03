@@ -13,6 +13,7 @@ test('data query is successful when `Trace List` query is valid', async ({ page,
   await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
   await expect(panelEditPage.panel.fieldNames).toHaveText([
     'Id',
+    'Start Time',
     'Method',
     'Response',
     'Response Time',
