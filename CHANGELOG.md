@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.12.0
+
+- Bump the all-node-dependencies group with 19 updates in [#289](https://github.com/grafana/x-ray-datasource/pull/289)
+- Bump the all-go-dependencies group across 1 directory with 4 updates in [#283](https://github.com/grafana/x-ray-datasource/pull/283)
+- Add start time to response in [#286](https://github.com/grafana/x-ray-datasource/pull/275)
+
 ## 2.11.0
 
 - Bump the all-node-dependencies group across 1 directory with 31 updates in [#275](https://github.com/grafana/x-ray-datasource/pull/275)
