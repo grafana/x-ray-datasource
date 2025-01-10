@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.13.0
+
+- Add PDC support in [#282](https://github.com/grafana/x-ray-datasource/pull/282)
+- Replace @grafana/experimental with @grafana/plugin-ui in [#292](https://github.com/grafana/x-ray-datasource/pull/292)
+
 ## 2.12.0
 
 - Bump the all-node-dependencies group with 19 updates in [#289](https://github.com/grafana/x-ray-datasource/pull/289)
