@@ -5,7 +5,7 @@ import { TimeRange } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import React from 'react';
 import { MultiSelect } from '@grafana/ui';
-import { EditorField } from '@grafana/experimental';
+import { EditorField } from '@grafana/plugin-ui';
 type Props = {
   datasource: XrayDataSource;
   query: XrayQuery;

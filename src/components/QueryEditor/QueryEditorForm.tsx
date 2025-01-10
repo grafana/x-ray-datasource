@@ -17,7 +17,7 @@ import {
 import { XrayDataSource } from '../../XRayDataSource';
 import { getTemplateSrv } from '@grafana/runtime';
 import { AccountIdDropdown } from './AccountIdDropdown';
-import { EditorRow, EditorFieldGroup, EditorField } from '@grafana/experimental';
+import { EditorRow, EditorFieldGroup, EditorField } from '@grafana/plugin-ui';
 import { QuerySection } from './QuerySection';
 import { XrayLinks } from './XrayLinks';
 

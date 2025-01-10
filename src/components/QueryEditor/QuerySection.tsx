@@ -4,7 +4,7 @@ import { XrayDataSource } from '../../XRayDataSource';
 import { css } from '@emotion/css';
 import { XrayQuery } from '../../types';
 import { QueryTypeOption } from './constants';
-import { EditorField } from '@grafana/experimental';
+import { EditorField } from '@grafana/plugin-ui';
 import { queryTypeOptionToQueryType } from './QueryEditorForm';
 
 const styles = {
