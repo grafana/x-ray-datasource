@@ -5,7 +5,7 @@ on:
 
 jobs:
   main:
-    if: ${{ github.event.pull_request.user.login != 'kevinwcyu' }}
+    if: ${{ github.event.pull_request.user.login != 'idastambuk' }}
     runs-on: ubuntu-latest
     steps:
       - name: 'Generate token'
