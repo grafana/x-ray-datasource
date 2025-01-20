@@ -1,3 +1,7 @@
+# Compatibility
+
+Grafana AWS X-Ray data source plugin >=2.13.0 is not compatible with Grafana versions <10.4.x due to a breaking change in UI components.
+
 # X-Ray data source
 
 X-Ray datasource plugin provides a support for [AWS X-Ray](https://aws.amazon.com/xray/). Add it as a data source, then you are ready to
