@@ -120,6 +120,7 @@
     "slos",
     "applicationsignals",
     "zizmor",
-    "dompurify"
+    "dompurify",
+    "awsauth"
   ]
 }

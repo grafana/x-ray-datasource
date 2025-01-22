@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
-	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
