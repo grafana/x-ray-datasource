@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.13.1
+
+- Update readme to include info on Compatibility in [#301](https://github.com/grafana/x-ray-datasource/pull/301)
+
 ## 2.13.0
 
 - Add PDC support in [#282](https://github.com/grafana/x-ray-datasource/pull/282)
