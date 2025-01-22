@@ -3,32 +3,32 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetServiceMapQueryData struct {
-	Region     string      `json:"region"`
-	Group      *xray.Group `json:"group"`
-	AccountIds []string    `json:"accountIds,omitempty"`
+	Region     string           `json:"region"`
+	Group      *xraytypes.Group `json:"group"`
+	AccountIds []string         `json:"accountIds,omitempty"`
 }
 
-// getSingleTrace returns single trace from BatchGetTraces API and unmarshals it.
+// getSingleTrace returns single trace from BatchGetTraces API and unmarshalls it.
 func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetServiceMapQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	var frame = data.NewFrame(
@@ -48,7 +48,14 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		accountIdsToFilterBy[value] = true
 	}
 
-	err = xrayClient.GetServiceGraphPagesWithContext(ctx, input, func(page *xray.GetServiceGraphOutput, _ bool) bool {
+	pager := xray.NewGetServiceGraphPaginator(xrayClient, input)
+	var pagerError error
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			pagerError = err
+			break
+		}
 		for _, service := range page.Services {
 			// filter out non matching account ids, if user has selected them
 			if len(queryData.AccountIds) > 0 {
@@ -69,12 +76,10 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 			}
 			frame.AppendRow(string(bytes))
 		}
-		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
-		return true
-	})
+	}
 
-	if err != nil {
-		return errorsource.Response(errorsource.DownstreamError(err, false))
+	if pagerError != nil {
+		return backend.ErrorResponseWithErrorSource(backend.DownstreamError(pagerError))
 	}
 
 	return backend.DataResponse{

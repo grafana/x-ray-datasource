@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -18,21 +19,21 @@ import (
 )
 
 type GetInsightsQueryData struct {
-	State  string      `json:"state"`
-	Group  *xray.Group `json:"group"`
-	Region string      `json:"region"`
+	State  string           `json:"state"`
+	Group  *xraytypes.Group `json:"group"`
+	Region string           `json:"region"`
 }
 
 func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetInsightsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	var states = []string{strings.ToUpper(queryData.State)}
@@ -56,15 +57,15 @@ func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQu
 		states = nil
 	}
 
-	if aws.StringValue(queryData.Group.GroupName) == "All" {
-		groups, err := getGroupsFromXray(xrayClient)
+	if *queryData.Group.GroupName == "All" {
+		groups, err := getGroupsFromXray(ctx, xrayClient)
 
 		if err != nil {
 			return errorsource.Response(err)
 		}
 
 		for _, group := range groups {
-			err = getInsightSummary(xrayClient, query, states, group.GroupName, responseDataFrame)
+			err = getInsightSummary(ctx, xrayClient, query, states, group.GroupName, responseDataFrame)
 
 			if err != nil {
 				return errorsource.Response(err)
@@ -72,7 +73,7 @@ func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQu
 		}
 
 	} else {
-		err = getInsightSummary(xrayClient, query, states, queryData.Group.GroupName, responseDataFrame)
+		err = getInsightSummary(ctx, xrayClient, query, states, queryData.Group.GroupName, responseDataFrame)
 		if err != nil {
 			return errorsource.Response(err)
 		}
@@ -83,28 +84,36 @@ func (ds *Datasource) getSingleInsight(ctx context.Context, query backend.DataQu
 	}
 }
 
-func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []string, groupName *string, responseDataFrame *data.Frame) error {
-	insightsResponse, err := xrayClient.GetInsightSummaries(&xray.GetInsightSummariesInput{
+func toInsightStates(states []string) []xraytypes.InsightState {
+	out := make([]xraytypes.InsightState, len(states))
+	for i, state := range states {
+		out[i] = xraytypes.InsightState(state)
+	}
+	return out
+}
+
+func getInsightSummary(ctx context.Context, xrayClient XrayClient, query backend.DataQuery, states []string, groupName *string, responseDataFrame *data.Frame) error {
+	insightsResponse, err := xrayClient.GetInsightSummaries(ctx, &xray.GetInsightSummariesInput{
 		StartTime: &query.TimeRange.From,
 		EndTime:   &query.TimeRange.To,
-		States:    aws.StringSlice(states),
+		States:    toInsightStates(states),
 		GroupName: groupName,
 	})
 
 	if err != nil {
 		log.DefaultLogger.Debug("GetInsightSummaries", "error", err)
-		return errorsource.DownstreamError(err, false)
+		return backend.DownstreamError(err)
 	}
 
 	for _, insight := range insightsResponse.InsightSummaries {
 
-		rootCauseService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.RootCauseServiceId.Name), aws.StringValue(insight.RootCauseServiceId.Type))
-		anomalousService := fmt.Sprintf("%s (%s)", aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Name), aws.StringValue(insight.TopAnomalousServices[0].ServiceId.Type))
+		rootCauseService := fmt.Sprintf("%s (%s)", *insight.RootCauseServiceId.Name, *insight.RootCauseServiceId.Type)
+		anomalousService := fmt.Sprintf("%s (%s)", *insight.TopAnomalousServices[0].ServiceId.Name, *insight.TopAnomalousServices[0].ServiceId.Type)
 		responseDataFrame.AppendRow(
 			insight.InsightId,
 			getDescription(insight, rootCauseService),
-			cases.Title(language.Und).String(strings.ToLower(*insight.State)),
-			getCategories(aws.StringValueSlice(insight.Categories)),
+			cases.Title(language.Und).String(strings.ToLower(string(insight.State))),
+			getCategories(insight.Categories),
 			getDuration(insight.StartTime, insight.EndTime),
 			rootCauseService,
 			anomalousService,
@@ -115,22 +124,23 @@ func getInsightSummary(xrayClient XrayClient, query backend.DataQuery, states []
 	return nil
 }
 
-func getCategories(categories []string) string {
+func getCategories(categories []xraytypes.InsightCategory) string {
+	out := make([]string, len(categories))
 	for index, category := range categories {
-		categories[index] = cases.Title(language.Und).String(strings.ToLower(category))
+		out[index] = cases.Title(language.Und).String(strings.ToLower(string(category)))
 	}
-	return strings.Join(categories, ", ")
+	return strings.Join(out, ", ")
 }
 
-func getDescription(insight *xray.InsightSummary, rootCauseService string) string {
+func getDescription(insight xraytypes.InsightSummary, rootCauseService string) string {
 	if insight.EndTime == nil {
-		return aws.StringValue(insight.Summary)
+		return *insight.Summary
 	}
 
-	description := strings.Split(aws.StringValue(insight.Summary), ".")[1]
+	description := strings.Split(*insight.Summary, ".")[1]
 
 	if description == "" {
-		return "There were failures in " + rootCauseService + " due to " + *insight.Categories[0] + "."
+		return fmt.Sprintf("There were failures in %s due to %s", rootCauseService, insight.Categories[0])
 	}
 
 	return strings.TrimSpace(description) + "."
@@ -141,5 +151,5 @@ func getDuration(startTime *time.Time, endTime *time.Time) int64 {
 		endTime = aws.Time(time.Now())
 	}
 
-	return int64(endTime.Sub(aws.TimeValue(startTime)) / time.Millisecond)
+	return int64(endTime.Sub(*startTime) / time.Millisecond)
 }

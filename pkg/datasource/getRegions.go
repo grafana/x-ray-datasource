@@ -18,6 +18,7 @@ func (ds *Datasource) GetRegions(rw http.ResponseWriter, req *http.Request) {
 
 	regions := []string{}
 	for _, partition := range endpoints.DefaultPartitions() {
+		// FIXME: what replaces this?
 		regionsForPartition, exists := endpoints.RegionsForService(endpoints.DefaultPartitions(), partition.ID(), xray.EndpointsID)
 		if exists {
 			for region := range regionsForPartition {

@@ -8,18 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetTimeSeriesServiceStatisticsQueryData struct {
 	Query      string   `json:"query"`
 	Columns    []string `json:"columns"`
-	Resolution int64    `json:"resolution"`
+	Resolution int32    `json:"resolution"`
 	Region     string   `json:"region"`
 }
 
@@ -69,12 +69,12 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	log.DefaultLogger.Debug("getTimeSeriesServiceStatisticsForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
@@ -114,7 +114,7 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 		))
 	}
 
-	resolution := int64(60)
+	resolution := int32(60)
 	if queryData.Resolution != 0 {
 		resolution = queryData.Resolution
 	}
@@ -131,7 +131,14 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 		EntitySelectorExpression: entitySelectorExpression,
 		Period:                   &resolution,
 	}
-	err = xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, request, func(page *xray.GetTimeSeriesServiceStatisticsOutput, _ bool) bool {
+	pager := xray.NewGetTimeSeriesServiceStatisticsPaginator(xrayClient, request)
+	var pagerError error
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			pagerError = err
+			break
+		}
 		for _, statistics := range page.TimeSeriesServiceStatistics {
 			// Use reflection to append values to correct data frame based on the requested columns.
 			for i, column := range requestedColumns {
@@ -163,13 +170,10 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 				)
 			}
 		}
+	}
 
-		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
-		return true
-	})
-
-	if err != nil {
-		return errorsource.Response(errorsource.DownstreamError(err, false))
+	if pagerError != nil {
+		return backend.ErrorResponseWithErrorSource(backend.DownstreamError(pagerError))
 	}
 
 	return backend.DataResponse{
@@ -190,18 +194,18 @@ func computeAggregation(name string, values interface{}) interface{} {
 }
 
 func getResponseTime(stats interface{}) *float64 {
-	if val, ok := stats.(*xray.EdgeStatistics); ok {
+	if val, ok := stats.(*xraytypes.EdgeStatistics); ok {
 		return val.TotalResponseTime
-	} else if val, ok := stats.(*xray.ServiceStatistics); ok {
+	} else if val, ok := stats.(*xraytypes.ServiceStatistics); ok {
 		return val.TotalResponseTime
 	}
 	panic("stats is not xray.EdgeStatistics nor xray.ServiceStatistics")
 }
 
 func getTotalCount(stats interface{}) *int64 {
-	if val, ok := stats.(*xray.EdgeStatistics); ok {
+	if val, ok := stats.(*xraytypes.EdgeStatistics); ok {
 		return val.TotalCount
-	} else if val, ok := stats.(*xray.ServiceStatistics); ok {
+	} else if val, ok := stats.(*xraytypes.ServiceStatistics); ok {
 		return val.TotalCount
 	}
 	panic("stats is not xray.EdgeStatistics nor xray.ServiceStatistics")
