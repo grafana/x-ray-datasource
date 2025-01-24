@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"math"
 	"math/rand"
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -19,9 +20,9 @@ import (
 )
 
 type GetAnalyticsQueryData struct {
-	Query  string      `json:"query"`
-	Group  *xray.Group `json:"group"`
-	Region string      `json:"region"`
+	Query  string           `json:"query"`
+	Group  *xraytypes.Group `json:"group"`
+	Region string           `json:"region"`
 }
 
 func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -44,7 +45,7 @@ func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query b
 	}
 }
 
-func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.DataQuery, maxTraces int, pluginContext backend.PluginContext) ([]*xray.TraceSummary, error) {
+func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.DataQuery, maxTraces int, pluginContext backend.PluginContext) ([]xraytypes.TraceSummary, error) {
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {
@@ -61,7 +62,7 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
 	diff := query.TimeRange.To.Sub(query.TimeRange.From)
 	diffQuarter := diff.Nanoseconds() / 4
 
-	var traces []*xray.TraceSummary
+	var traces []xraytypes.TraceSummary
 	var requests []*xray.GetTraceSummariesInput
 	sampling := float64(1)
 	adaptiveSampling := true
@@ -150,10 +151,10 @@ func makeRequest(from time.Time, to time.Time, sampling float64, filterExpressio
 		StartTime:        aws.Time(from),
 		EndTime:          aws.Time(to),
 		FilterExpression: filterExpressionNormalised,
-		TimeRangeType:    aws.String("Event"),
+		TimeRangeType:    xraytypes.TimeRangeTypeEvent,
 		Sampling:         aws.Bool(true),
-		SamplingStrategy: &xray.SamplingStrategy{
-			Name:  aws.String("FixedRate"),
+		SamplingStrategy: &xraytypes.SamplingStrategy{
+			Name:  "FixedRate",
 			Value: aws.Float64(sampling),
 		},
 	}
@@ -162,8 +163,8 @@ func makeRequest(from time.Time, to time.Time, sampling float64, filterExpressio
 var seed int64
 
 // sampleTraces just filters 50% of the traces from the provided list.
-func sampleTraces(traces []*xray.TraceSummary) []*xray.TraceSummary {
-	var samples []*xray.TraceSummary
+func sampleTraces(traces []xraytypes.TraceSummary) []xraytypes.TraceSummary {
+	var samples []xraytypes.TraceSummary
 	s := rand.NewSource(time.Now().UnixNano())
 	if seed != 0 {
 		s = rand.NewSource(seed)
@@ -213,7 +214,7 @@ func runRequests(ctx context.Context, xrayClient XrayClient, requests []*xray.Ge
 }
 
 func getTraceSummaries(ctx context.Context, xrayClient XrayClient, request xray.GetTraceSummariesInput) (*xray.GetTraceSummariesOutput, error) {
-	resp, err := xrayClient.GetTraceSummariesWithContext(ctx, &request)
+	resp, err := xrayClient.GetTraceSummaries(ctx, &request)
 	if err != nil {
 		return nil, errorsource.DownstreamError(err, false)
 	}
@@ -230,27 +231,31 @@ func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, 
 		StartTime: aws.Time(from),
 		EndTime:   aws.Time(to),
 		GroupName: groupName,
-		Period:    aws.Int64(60),
+		Period:    aws.Int32(60),
 	}
 
 	count := int64(0)
-	err := xrayClient.GetTimeSeriesServiceStatisticsPagesWithContext(ctx, input, func(output *xray.GetTimeSeriesServiceStatisticsOutput, _ bool) bool {
-		for _, stats := range output.TimeSeriesServiceStatistics {
-			// Not sure if this can return ServiceSummaryStatistics. It should be returned only if a service filter expression
-			// is defined for a particular service but I would assume a Group can also trigger this.
+	pager := xray.NewGetTimeSeriesServiceStatisticsPaginator(xrayClient, input)
+	var pagerError error
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			pagerError = err
+			break
+		}
+		for _, stats := range page.TimeSeriesServiceStatistics {
 			if stats.ServiceSummaryStatistics != nil {
 				count += *stats.ServiceSummaryStatistics.TotalCount
 			} else if stats.EdgeSummaryStatistics != nil {
 				count += *stats.EdgeSummaryStatistics.TotalCount
 			}
 		}
-		return true
-	})
-
-	if err != nil {
-		err = errorsource.DownstreamError(err, false)
 	}
-	return count, err
+
+	if pagerError != nil {
+		pagerError = errorsource.DownstreamError(pagerError, false)
+	}
+	return count, pagerError
 }
 
 // DataProcessor is responsible for counting and aggregating the trace data byt different columns. It is stateful mainly
@@ -269,7 +274,7 @@ func NewDataProcessor(queryType string) *DataProcessor {
 	}
 }
 
-func (dataProcessor *DataProcessor) processTraces(traces []*xray.TraceSummary) {
+func (dataProcessor *DataProcessor) processTraces(traces []xraytypes.TraceSummary) {
 	for _, trace := range traces {
 		dataProcessor.processSingleTrace(trace)
 	}
@@ -277,7 +282,7 @@ func (dataProcessor *DataProcessor) processTraces(traces []*xray.TraceSummary) {
 
 // processSingleTrace mainly figures out the proper aggregation key for the trace. There is lots of duplication because
 // even though various attributes in the trace summary have the same structure they have different types.
-func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummary) {
+func (dataProcessor *DataProcessor) processSingleTrace(summary xraytypes.TraceSummary) {
 	switch dataProcessor.queryType {
 	case QueryGetAnalyticsRootCauseResponseTimeService, QueryGetAnalyticsRootCauseResponseTimePath:
 		if len(summary.ResponseTimeRootCauses) == 0 {
@@ -348,7 +353,7 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummar
 
 					for _, path := range service.EntityPath {
 						for _, exception := range path.Exceptions {
-							if exception != nil && exception.Name != nil {
+							if exception.Name != nil {
 								key += fmt.Sprintf(" -> %s", *exception.Name)
 							} else {
 								key += " -> unknown"
@@ -387,7 +392,7 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary *xray.TraceSummar
 		}
 	case QueryGetAnalyticsStatusCode:
 		if summary.Http != nil && summary.Http.HttpStatus != nil {
-			dataProcessor.counts[strconv.FormatInt(*summary.Http.HttpStatus, 10)]++
+			dataProcessor.counts[strconv.FormatInt(int64(*summary.Http.HttpStatus), 10)]++
 		} else {
 			dataProcessor.counts["-"]++
 		}
@@ -426,7 +431,7 @@ var labels = map[string]string{
 	QueryGetAnalyticsStatusCode:                   "Status Code",
 }
 
-func getErrorMessage(cause *xray.ErrorRootCause) string {
+func getErrorMessage(cause xraytypes.ErrorRootCause) string {
 	for _, service := range cause.Services {
 		for _, path := range service.EntityPath {
 			for _, exc := range path.Exceptions {
@@ -439,7 +444,7 @@ func getErrorMessage(cause *xray.ErrorRootCause) string {
 	return "-"
 }
 
-func getFaultMessage(cause *xray.FaultRootCause) string {
+func getFaultMessage(cause xraytypes.FaultRootCause) string {
 	for _, service := range cause.Services {
 		for _, path := range service.EntityPath {
 			for _, exc := range path.Exceptions {

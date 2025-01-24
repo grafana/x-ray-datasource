@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -47,32 +47,37 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		tracesResponse, tracesError = xrayClient.BatchGetTraces(&xray.BatchGetTracesInput{TraceIds: []*string{&queryData.Query}})
+		tracesResponse, tracesError = xrayClient.BatchGetTraces(ctx, &xray.BatchGetTracesInput{TraceIds: []string{queryData.Query}})
 	}()
 
 	// We get the trace graph in parallel but if this fails we still return the trace
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		traceGraphError = xrayClient.GetTraceGraphPages(
-			&xray.GetTraceGraphInput{TraceIds: []*string{&queryData.Query}},
-			func(page *xray.GetTraceGraphOutput, _ bool) bool {
-				for _, service := range page.Services {
-					bytes, err := json.Marshal(service)
-					if err != nil {
-						// TODO: probably does not make sense to fail just because of one service but I assume the layout will fail
-						//  because of some edge not connected to anything.
-						log.DefaultLogger.Error(
-							"getSingleTrace failed to marshal service from trace graph",
-							"Name", service.Name,
-							"ReferenceId", service.ReferenceId,
-						)
-					}
-					traceGraphFrame.AppendRow(string(bytes))
+		pager := xray.NewGetTraceGraphPaginator(xrayClient, &xray.GetTraceGraphInput{TraceIds: []string{queryData.Query}})
+		for pager.HasMorePages() {
+			page, err := pager.NextPage(ctx)
+			if err != nil {
+				log.DefaultLogger.Error(
+					"getSingleTrace paginator error",
+					"error", err,
+				)
+				break
+			}
+			for _, service := range page.Services {
+				bytes, err := json.Marshal(service)
+				if err != nil {
+					// TODO: probably does not make sense to fail just because of one service but I assume the layout will fail
+					//  because of some edge not connected to anything.
+					log.DefaultLogger.Error(
+						"getSingleTrace failed to marshal service from trace graph",
+						"Name", service.Name,
+						"ReferenceId", service.ReferenceId,
+					)
 				}
-				return true
-			},
-		)
+				traceGraphFrame.AppendRow(string(bytes))
+			}
+		}
 	}()
 
 	wg.Wait()
