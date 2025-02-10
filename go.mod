@@ -7,10 +7,10 @@ toolchain go1.23.1
 require (
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/grafana/grafana-aws-sdk v0.31.7
-	github.com/grafana/grafana-plugin-sdk-go v0.262.0
+	github.com/grafana/grafana-plugin-sdk-go v0.263.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.10.0
-	golang.org/x/text v0.21.0
+	golang.org/x/sync v0.11.0
+	golang.org/x/text v0.22.0
 )
 
 require (
