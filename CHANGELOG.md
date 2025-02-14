@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.13.2
+
+- Update github.com/grafana/grafana-plugin-sdk-go to v0.265.0 in [#313](https://github.com/grafana/x-ray-datasource/pull/313)
+- Bump the all-go-dependencies group across 1 directory with 3 updates in [#307](https://github.com/grafana/x-ray-datasource/pull/307)
+- Chore: update e2e tests workflow in [#303](https://github.com/grafana/x-ray-datasource/pull/303)
+- Bump golang.org/x/crypto from 0.30.0 to 0.31.0 in the go_modules group in [#288](https://github.com/grafana/x-ray-datasource/pull/288)
+
 ## 2.13.1
 
 - Update readme to include info on Compatibility in [#301](https://github.com/grafana/x-ray-datasource/pull/301)
