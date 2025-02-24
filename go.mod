@@ -4,18 +4,18 @@ go 1.23.5
 
 require (
 	github.com/aws/aws-sdk-go v1.55.6
-	github.com/grafana/grafana-aws-sdk v0.31.7
-	github.com/grafana/grafana-plugin-sdk-go v0.265.0
+	github.com/grafana/grafana-aws-sdk v0.31.8
+	github.com/grafana/grafana-plugin-sdk-go v0.266.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.11.0
-	golang.org/x/text v0.21.0
+	golang.org/x/text v0.22.0
 )
 
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/apache/arrow-go/v18 v18.0.1-0.20241212180703-82be143d7c30 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.32.8 // indirect
-	github.com/aws/smithy-go v1.22.1 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.36.1 // indirect
+	github.com/aws/smithy-go v1.22.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -104,7 +104,7 @@ require (
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
