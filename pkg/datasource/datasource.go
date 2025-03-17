@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
-type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error)
+type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (XrayClient, error)
 
 type Datasource struct {
 	Settings          awsds.AWSDatasourceSettings
@@ -95,10 +95,10 @@ type RequestSettings struct {
 }
 
 func (ds *Datasource) getClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
-	return ds.xrayClientFactory(ctx, pluginContext, requestSettings, ds.authSettings, ds.sessions)
+	return ds.xrayClientFactory(ctx, pluginContext, requestSettings, ds.sessions)
 }
 
-func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error) {
+func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (XrayClient, error) {
 	awsSettings, err := getDsSettings(*pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err

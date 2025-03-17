@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+
 	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
 	"github.com/aws/aws-sdk-go-v2/service/xray"
@@ -17,7 +18,7 @@ type GetServiceMapQueryData struct {
 	AccountIds []string         `json:"accountIds,omitempty"`
 }
 
-// getSingleTrace returns single trace from BatchGetTraces API and unmarshalls it.
+// getSingleTrace returns single trace from BatchGetTraces API and unmarshals it.
 func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
 	queryData := &GetServiceMapQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)

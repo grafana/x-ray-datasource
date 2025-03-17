@@ -3,11 +3,12 @@ package datasource
 import (
 	"context"
 	"encoding/json"
-	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"math"
 	"strconv"
 	"testing"
 	"time"
+
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/xray"
@@ -121,7 +122,7 @@ func (client *XrayClientMock) GetGroups(_ context.Context, _ *xray.GetGroupsInpu
 }
 
 func getXrayClientFactory(client XrayClient) XrayClientFactory {
-	return func(context.Context, backend.PluginContext, RequestSettings, awsds.AuthSettings, *awsds.SessionCache) (XrayClient, error) {
+	return func(context.Context, backend.PluginContext, RequestSettings, *awsds.SessionCache) (XrayClient, error) {
 		return client, nil
 	}
 }

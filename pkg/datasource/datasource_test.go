@@ -304,7 +304,7 @@ func makeTimeSeriesRow(index int, statsType StatsType) xraytypes.TimeSeriesServi
 	return stats
 }
 
-func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ awsds.AuthSettings, _ *awsds.SessionCache) (datasource.XrayClient, error) {
+func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.XrayClient, error) {
 	return &XrayClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil

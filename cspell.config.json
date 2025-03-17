@@ -116,7 +116,6 @@
     "nolint",
     "staticcheck",
     "xraytypes",
-    "unmarshalls",
     "subresource"
   ]
 }
