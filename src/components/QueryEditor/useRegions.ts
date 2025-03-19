@@ -1,21 +1,12 @@
-import useAsync from 'react-use/lib/useAsync';
 import { XrayDataSource } from '../../XRayDataSource';
 import { Region } from '../../types';
-import { useError } from './useError';
 
 /**
- * Get regions from AWS. Fallbacks to static list if there is any error with that.
+ * Use the static list of regions. aws-sdk-go-v2 has no simple replacement for the call
+ * we used to use to get a dynamic list.
  */
 export function useRegions(datasource: XrayDataSource): Region[] | undefined {
-  const result = useAsync(async () => datasource.getRegions(), [datasource]);
-
-  useError('Failed to load regions from AWS, showing default regions instead.', result.error);
-
-  if (result.error) {
-    return defaultRegions;
-  }
-
-  return result.loading ? undefined : result.value;
+  return defaultRegions;
 }
 
 export const defaultRegions = [
