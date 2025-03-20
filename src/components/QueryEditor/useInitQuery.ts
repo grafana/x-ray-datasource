@@ -1,4 +1,4 @@
-import { Group, Region, XrayQuery, XrayQueryType } from '../../types';
+import { Group, Region, XrayQuery, XrayQueryMode, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../XRayDataSource';
 import { useEffect } from 'react';
 import { dummyAllGroup } from './constants';
@@ -17,6 +17,14 @@ export function useInitQuery(
     // We assume here the "Default" group is always there but lets fallback to first group if not. In case there are
     // no groups we don't have to actually crash as most queryTypes don't need group to be defined
     const defaultGroup = groups.find((g: Group) => g.GroupName === 'Default') || groups[0];
+
+    // If the query mode is not set, assume its X-Ray
+    if (!query.queryMode) {
+      onChange({
+        ...query,
+        queryMode: XrayQueryMode.xray,
+      });
+    }
 
     // We assume that if there is no queryType during mount there should not be any query. This is basically
     // a case of clean slate init of the query. We do not need to check if query has traceId or not as we do with

@@ -2,8 +2,7 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { QueryEditorProps, ScopedVars } from '@grafana/data';
 import { MultiSelect, Select, ButtonCascader } from '@grafana/ui';
-import { Group, Region, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
-import { useInitQuery } from './useInitQuery';
+import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import {
   QueryTypeOption,
   columnNames,
@@ -91,7 +90,6 @@ const getStyles = () => ({
 
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {
   groups: Group[];
-  regions: Region[];
 };
 export function QueryEditorForm({
   query,
@@ -100,12 +98,8 @@ export function QueryEditorForm({
   onRunQuery,
   groups,
   range,
-  regions,
   data,
 }: XrayQueryEditorFormProps) {
-  const allRegions = [{ label: 'default', value: 'default', text: 'default' }, ...regions];
-  useInitQuery(query, onChange, groups, allRegions, datasource);
-
   const selectedOptions = queryTypeToQueryTypeOptions(query.queryType);
 
   const allGroups = selectedOptions[0] === insightsOption ? [dummyAllGroup, ...groups] : groups;
@@ -131,24 +125,6 @@ export function QueryEditorForm({
             >
               {selectedOptions[selectedOptions.length - 1].label}
             </ButtonCascader>
-          </EditorField>
-          <EditorField label="Region" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="region">
-            <Select
-              id="region"
-              className={styles.regionSelect}
-              options={allRegions}
-              value={query.region}
-              onChange={(v) =>
-                onChange({
-                  ...query,
-                  region: v.value,
-                })
-              }
-              width={18}
-              placeholder="Choose Region"
-              menuPlacement="bottom"
-              maxMenuHeight={500}
-            />
           </EditorField>
           <EditorField label="Group" className={`query-keyword ${styles.formFieldStyles}`} htmlFor="groupName">
             <Select

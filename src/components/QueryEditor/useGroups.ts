@@ -7,7 +7,7 @@ import { useError } from './useError';
  * Returns group for a datasource and region. In case the deps change we will still return old groups. This is to
  * prevent flash of loading state when changing group.
  */
-export function useGroups(datasource: XrayDataSource, region?: string): Group[] | undefined {
+export function useGroups(datasource: XrayDataSource, region?: string): Group[] {
   const result = useAsync(async () => datasource.getGroups(region), [datasource, region]);
   useError('Failed to load groups', result.error);
 
@@ -22,5 +22,5 @@ export function useGroups(datasource: XrayDataSource, region?: string): Group[] 
     ];
   }
 
-  return result.value;
+  return result.value || [];
 }
