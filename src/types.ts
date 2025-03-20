@@ -16,6 +16,7 @@ export type Region = {
 // TODO: would make sense at this point to change to discriminated union type
 export interface XrayQuery extends DataQuery {
   queryType?: XrayQueryType;
+  serviceQueryType?: ServicesQueryType;
   query: string;
 
   // Used in case of getTimeSeriesServiceStatistics to say which column/series actually return
@@ -33,6 +34,9 @@ export interface XrayQuery extends DataQuery {
 
   // used to manually filter service map queries by account ids
   accountIds?: string[];
+
+  // Used to display the correct query editor
+  queryMode?: XrayQueryMode;
 }
 
 // Needs to match datasource Query* constants in backend code
@@ -53,6 +57,16 @@ export enum XrayQueryType {
   getAnalyticsStatusCode = 'getAnalyticsStatusCode',
   getInsights = 'getInsights',
   getServiceMap = 'getServiceMap',
+}
+
+export enum ServicesQueryType {
+  listServices = 'listServices',
+}
+
+export enum XrayQueryMode {
+  xray = 'X-Ray',
+  services = 'Services',
+  slos = 'SLOs',
 }
 
 export interface XrayJsonData extends AwsAuthDataSourceJsonData {
