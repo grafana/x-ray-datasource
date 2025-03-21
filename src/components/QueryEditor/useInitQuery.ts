@@ -1,4 +1,4 @@
-import { Group, Region, ServicesQueryType, XrayQuery, XrayQueryMode, XrayQueryType } from '../../types';
+import { Group, Region, ServicesQueryType, XrayQuery, QueryMode, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../XRayDataSource';
 import { useEffect } from 'react';
 import { dummyAllGroup } from './constants';
@@ -24,7 +24,7 @@ export function useInitQuery(
     if (!query.queryMode) {
       newQuery = {
         ...query,
-        queryMode: XrayQueryMode.xray,
+        queryMode: QueryMode.xray,
       };
       updated = true;
     }
@@ -32,7 +32,7 @@ export function useInitQuery(
     // We assume that if there is no queryType during mount there should not be any query. This is basically
     // a case of clean slate init of the query. We do not need to check if query has traceId or not as we do with
     // the QueryTypeOptions mapping.
-    if (newQuery.queryMode === XrayQueryMode.xray && !newQuery.queryType) {
+    if (newQuery.queryMode === QueryMode.xray && !newQuery.queryType) {
       newQuery = {
         ...newQuery,
         queryType: XrayQueryType.getTraceSummaries,
@@ -41,7 +41,7 @@ export function useInitQuery(
         region: 'default',
       };
       updated = true;
-    } else if (newQuery.queryMode === XrayQueryMode.services && !newQuery.serviceQueryType) {
+    } else if (newQuery.queryMode === QueryMode.services && !newQuery.serviceQueryType) {
       newQuery = {
         ...newQuery,
         serviceQueryType: ServicesQueryType.listServices,

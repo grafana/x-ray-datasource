@@ -36,7 +36,7 @@ export interface XrayQuery extends DataQuery {
   accountIds?: string[];
 
   // Used to display the correct query editor
-  queryMode?: XrayQueryMode;
+  queryMode?: QueryMode;
 }
 
 // Needs to match datasource Query* constants in backend code
@@ -63,7 +63,7 @@ export enum ServicesQueryType {
   listServices = 'listServices',
 }
 
-export enum XrayQueryMode {
+export enum QueryMode {
   xray = 'X-Ray',
   services = 'Services',
   slos = 'SLOs',
