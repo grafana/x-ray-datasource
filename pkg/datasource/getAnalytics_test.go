@@ -8,28 +8,31 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/xray"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/stretchr/testify/require"
 )
 
 type XrayClientMock struct {
-	traces []*xray.TraceSummary
+	traces []xraytypes.TraceSummary
 }
 
-func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
+func (client *XrayClientMock) GetServiceGraph(_ context.Context, _ *xray.GetServiceGraphInput, _ ...func(*xray.Options)) (*xray.GetServiceGraphOutput, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
-func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
+func (client *XrayClientMock) GetTraceGraph(_ context.Context, _ *xray.GetTraceGraphInput, _ ...func(*xray.Options)) (*xray.GetTraceGraphOutput, error) {
+	//TODO implement me
 	panic("implement me")
 }
 
-func NewXrayClientMock(traces ...[]*xray.TraceSummary) *XrayClientMock {
-	var allTraces []*xray.TraceSummary
+func NewXrayClientMock(traces ...[]xraytypes.TraceSummary) *XrayClientMock {
+	var allTraces []xraytypes.TraceSummary
 	for _, l := range traces {
 		allTraces = append(allTraces, l...)
 	}
@@ -38,11 +41,7 @@ func NewXrayClientMock(traces ...[]*xray.TraceSummary) *XrayClientMock {
 	}
 }
 
-func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
-	return nil
-}
-
-func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error) {
+func (client *XrayClientMock) GetTraceSummaries(_ context.Context, input *xray.GetTraceSummariesInput, _ ...func(*xray.Options)) (*xray.GetTraceSummariesOutput, error) {
 	resp := &xray.GetTraceSummariesOutput{}
 
 	// We use ID to mark what group the trace should be in so we can simulate multiple multiple paged request as that is
@@ -71,7 +70,7 @@ func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, inpu
 
 	// Simple sampling if sampling strategy is used
 	if input.SamplingStrategy != nil {
-		var sampled []*xray.TraceSummary
+		var sampled []xraytypes.TraceSummary
 		m := int(math.Floor(1 / *input.SamplingStrategy.Value))
 
 		for index, trace := range resp.TraceSummaries {
@@ -97,35 +96,33 @@ func tokenToNumber(token *string) int {
 	return t
 }
 
-func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error) {
+func (client *XrayClientMock) BatchGetTraces(_ context.Context, _ *xray.BatchGetTracesInput, _ ...func(*xray.Options)) (*xray.BatchGetTracesOutput, error) {
 	return nil, nil
 }
 
-func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(context aws.Context, input *xray.GetTimeSeriesServiceStatisticsInput, fn func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool, options ...request.Option) error {
+func (client *XrayClientMock) GetTimeSeriesServiceStatistics(_ context.Context, _ *xray.GetTimeSeriesServiceStatisticsInput, _ ...func(*xray.Options)) (*xray.GetTimeSeriesServiceStatisticsOutput, error) {
 	// We need this in these tests only to get the total count for the happy path without filter expression
-	out := &xray.GetTimeSeriesServiceStatisticsOutput{
-		TimeSeriesServiceStatistics: []*xray.TimeSeriesServiceStatistics{
+	return &xray.GetTimeSeriesServiceStatisticsOutput{
+		TimeSeriesServiceStatistics: []xraytypes.TimeSeriesServiceStatistics{
 			{
-				EdgeSummaryStatistics: &xray.EdgeStatistics{
+				EdgeSummaryStatistics: &xraytypes.EdgeStatistics{
 					TotalCount: aws.Int64(int64(len(client.traces))),
 				},
 			},
 		},
-	}
-	fn(out, true)
-	return nil
+	}, nil
 }
 
-func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error) {
+func (client *XrayClientMock) GetInsightSummaries(_ context.Context, _ *xray.GetInsightSummariesInput, _ ...func(*xray.Options)) (*xray.GetInsightSummariesOutput, error) {
 	return nil, nil
 }
 
-func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error {
-	return nil
+func (client *XrayClientMock) GetGroups(_ context.Context, _ *xray.GetGroupsInput, _ ...func(*xray.Options)) (*xray.GetGroupsOutput, error) {
+	return nil, nil
 }
 
 func getXrayClientFactory(client XrayClient) XrayClientFactory {
-	return func(context.Context, backend.PluginContext, RequestSettings, awsds.AuthSettings, *awsds.SessionCache) (XrayClient, error) {
+	return func(context.Context, backend.PluginContext, RequestSettings, *awsds.SessionCache) (XrayClient, error) {
 		return client, nil
 	}
 }
@@ -206,7 +203,7 @@ func makeQuery(filter string, from string, to string) *backend.DataQuery {
 	return query
 }
 
-func makeTrace(t string, id string, count int) []*xray.TraceSummary {
+func makeTrace(t string, id string, count int) []xraytypes.TraceSummary {
 	parsed, err := time.Parse(time.RFC3339, t)
 	if err != nil {
 		panic(err)
@@ -215,9 +212,9 @@ func makeTrace(t string, id string, count int) []*xray.TraceSummary {
 	if id == "0" {
 		id2 = nil
 	}
-	var traces []*xray.TraceSummary
+	var traces []xraytypes.TraceSummary
 	for i := 0; i < count; i++ {
-		traces = append(traces, &xray.TraceSummary{
+		traces = append(traces, xraytypes.TraceSummary{
 			MatchedEventTime: aws.Time(parsed),
 			Id:               id2,
 		})

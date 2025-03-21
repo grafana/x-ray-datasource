@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go/service/xray"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/x-ray-datasource/pkg/client"
@@ -19,7 +16,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
-type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error)
+type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (XrayClient, error)
 
 type Datasource struct {
 	Settings          awsds.AWSDatasourceSettings
@@ -98,10 +95,10 @@ type RequestSettings struct {
 }
 
 func (ds *Datasource) getClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
-	return ds.xrayClientFactory(ctx, pluginContext, requestSettings, ds.authSettings, ds.sessions)
+	return ds.xrayClientFactory(ctx, pluginContext, requestSettings, ds.sessions)
 }
 
-func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, authSettings awsds.AuthSettings, sessions *awsds.SessionCache) (XrayClient, error) {
+func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (XrayClient, error) {
 	awsSettings, err := getDsSettings(*pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
@@ -112,7 +109,7 @@ func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, req
 		awsSettings.Region = requestSettings.Region
 	}
 
-	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, *pluginContext.DataSourceInstanceSettings, authSettings, sessions)
+	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, *pluginContext.DataSourceInstanceSettings, sessions)
 	if err != nil {
 		return nil, err
 	}
@@ -120,17 +117,11 @@ func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, req
 }
 
 type XrayClient interface {
-	BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error)
-	GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error)
-	GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error
-	GetTimeSeriesServiceStatisticsPagesWithContext(
-		aws.Context,
-		*xray.GetTimeSeriesServiceStatisticsInput,
-		func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool,
-		...request.Option,
-	) error
-	GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error)
-	GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error
-	GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error
-	GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error
+	xray.BatchGetTracesAPIClient
+	xray.GetInsightSummariesAPIClient
+	xray.GetGroupsAPIClient
+	xray.GetServiceGraphAPIClient
+	xray.GetTraceGraphAPIClient
+	xray.GetTraceSummariesAPIClient
+	xray.GetTimeSeriesServiceStatisticsAPIClient
 }

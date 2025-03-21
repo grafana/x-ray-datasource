@@ -115,6 +115,7 @@
     "errorsource",
     "nolint",
     "staticcheck",
+    "xraytypes",
     "subresource"
   ]
 }

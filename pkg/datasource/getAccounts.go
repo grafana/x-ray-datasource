@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
@@ -26,7 +26,7 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 	}
 	region := urlQuery.Get("region")
 
-  pluginConfig := httpadapter.PluginConfigFromContext(req.Context()) //nolint:staticcheck
+	pluginConfig := httpadapter.PluginConfigFromContext(req.Context()) //nolint:staticcheck
 	xrayClient, err := ds.getClient(req.Context(), pluginConfig, RequestSettings{Region: region})
 
 	if err != nil {
@@ -57,7 +57,14 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 
 	accounts := []Account{}
 
-	err = xrayClient.GetServiceGraphPagesWithContext(req.Context(), input, func(page *xray.GetServiceGraphOutput, lastPage bool) bool {
+	pager := xray.NewGetServiceGraphPaginator(xrayClient, input)
+	var pagerError error
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(req.Context())
+		if err != nil {
+			pagerError = err
+			break
+		}
 		for _, service := range page.Services {
 			if service.AccountId != nil {
 				account := Account{
@@ -67,11 +74,9 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		// Not sure how many pages there can possibly be but for now try to iterate over all the pages.
-		return true
-	})
-	if err != nil {
-		sendError(rw, err)
+	}
+	if pagerError != nil {
+		sendError(rw, pagerError)
 		return
 	}
 
