@@ -17,7 +17,7 @@ import (
 func CreateXrayClient(ctx context.Context, settings awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, sessions *awsds.SessionCache) (*xray.Client, error) {
 	region := settings.Region
 	if region == "" || region == "default" {
-		region = settings.Region
+		region = settings.DefaultRegion
 	}
 	httpClient, err := getHTTPClient(ctx, backendSettings)
 	if err != nil {
