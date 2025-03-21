@@ -2,7 +2,6 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { EditorHeader, InlineSelect } from '@grafana/plugin-ui';
 
 import { XrayDataSource } from '../../XRayDataSource';
-import { useRegions } from './useRegions';
 import { XrayQuery, XrayQueryMode, XrayJsonData, Region } from '../../types';
 import React from 'react';
 
@@ -12,13 +11,12 @@ export interface Props extends QueryEditorProps<XrayDataSource, XrayQuery, XrayJ
 
 const apiModes: Array<SelectableValue<XrayQueryMode>> = [
   { label: 'X-Ray', value: XrayQueryMode.xray },
-  //{ label: 'Services', value: XrayQueryMode.services },
+  { label: 'Services', value: XrayQueryMode.services },
 ];
 
-const QueryHeader = ({ query, onChange, datasource }: Props) => {
+const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
   const { queryMode, region } = query;
   //const isMonitoringAccount = useIsMonitoringAccount(datasource.resources, query.region);
-  const regions = useRegions(datasource);
   const onQueryModeChange = ({ value }: SelectableValue<XrayQueryMode>) => {
     if (value && value !== queryMode) {
       onChange({
@@ -31,7 +29,6 @@ const QueryHeader = ({ query, onChange, datasource }: Props) => {
   const onRegionChange = async (region: string) => {
     onChange({ ...query, region });
   };
-  console.log(region, queryMode);
 
   return (
     <>
