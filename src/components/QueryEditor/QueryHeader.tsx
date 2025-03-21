@@ -2,22 +2,22 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { EditorHeader, InlineSelect } from '@grafana/plugin-ui';
 
 import { XrayDataSource } from '../../XRayDataSource';
-import { XrayQuery, XrayQueryMode, XrayJsonData, Region } from '../../types';
+import { XrayQuery, QueryMode, XrayJsonData, Region } from '../../types';
 import React from 'react';
 
 export interface Props extends QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> {
   regions: Region[];
 }
 
-const apiModes: Array<SelectableValue<XrayQueryMode>> = [
-  { label: 'X-Ray', value: XrayQueryMode.xray },
-  { label: 'Services', value: XrayQueryMode.services },
+const apiModes: Array<SelectableValue<QueryMode>> = [
+  { label: 'X-Ray', value: QueryMode.xray },
+  { label: 'Services', value: QueryMode.services },
 ];
 
 const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
   const { queryMode, region } = query;
   //const isMonitoringAccount = useIsMonitoringAccount(datasource.resources, query.region);
-  const onQueryModeChange = ({ value }: SelectableValue<XrayQueryMode>) => {
+  const onQueryModeChange = ({ value }: SelectableValue<QueryMode>) => {
     if (value && value !== queryMode) {
       onChange({
         ...query,

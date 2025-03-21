@@ -91,7 +91,7 @@ const getStyles = () => ({
 export type XrayQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {
   groups: Group[];
 };
-export function QueryEditorForm({
+export function XRayQueryEditor({
   query,
   onChange,
   datasource,
