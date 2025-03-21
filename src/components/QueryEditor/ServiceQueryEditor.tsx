@@ -7,21 +7,6 @@ import { ServicesQueryType, XrayJsonData, XrayQuery } from 'types';
 import { XrayDataSource } from 'XRayDataSource';
 import { AccountIdDropdown } from './AccountIdDropdown';
 
-const getStyles = () => ({
-  queryParamsRow: css`
-    flex-wrap: wrap;
-  `,
-  spring: css`
-    flex: 1;
-  `,
-  regionSelect: css`
-    margin-right: 4px;
-  `,
-  formFieldStyles: css({
-    marginBottom: 0,
-  }),
-});
-
 export type ServiceQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {};
 
 const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
@@ -71,3 +56,18 @@ export function ServiceQueryEditor({
     </>
   );
 }
+
+const getStyles = () => ({
+  queryParamsRow: css`
+    flex-wrap: wrap;
+  `,
+  spring: css`
+    flex: 1;
+  `,
+  regionSelect: css`
+    margin-right: 4px;
+  `,
+  formFieldStyles: css({
+    marginBottom: 0,
+  }),
+});

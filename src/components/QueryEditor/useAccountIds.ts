@@ -6,10 +6,7 @@ import { TimeRange } from '@grafana/data';
 import { uniq } from 'lodash';
 
 export function useAccountIds(datasource: XrayDataSource, query: XrayQuery, range?: TimeRange): string[] {
-  const result = useAsync(
-    async () => datasource.getAccountIdsForServiceMap(range, query.group),
-    [datasource, range, query]
-  );
+  const result = useAsync(async () => datasource.getAccountIds(range, query.group), [datasource, range, query]);
 
   useError('Failed to load accountIds', result.error);
   if (result.error) {
