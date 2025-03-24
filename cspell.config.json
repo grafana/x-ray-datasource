@@ -116,6 +116,7 @@
     "nolint",
     "staticcheck",
     "xraytypes",
+    "awsauth",
     "subresource"
   ]
 }
