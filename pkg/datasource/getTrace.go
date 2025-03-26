@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/service/xray"
@@ -16,6 +17,21 @@ import (
 type GetTraceQueryData struct {
 	Query  string `json:"query"`
 	Region string `json:"region"`
+}
+
+// isW3CTraceID checks if the trace ID is in W3C format
+func isW3CTraceID(traceID string) bool {
+	// W3C trace IDs are 32 hex characters (16 bytes)
+	return len(traceID) == 32 && !strings.Contains(traceID, "-")
+}
+
+// convertW3CToXRayTraceID converts a W3C format trace ID to X-Ray format
+func convertW3CToXRayTraceID(w3cTraceID string) string {
+	// X-Ray format: 1-{8 chars}-{24 chars}
+	if len(w3cTraceID) == 32 {
+		return fmt.Sprintf("1-%s-%s", w3cTraceID[0:8], w3cTraceID[8:])
+	}
+	return w3cTraceID
 }
 
 // getSingleTrace returns single trace from BatchGetTraces API and unmarshals it.
@@ -32,7 +48,14 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 		return errorsource.Response(err)
 	}
 
-	log.DefaultLogger.Debug("getSingleTrace", "RefID", query.RefID, "query", queryData.Query, "region", queryData.Region)
+	// Handle W3C format trace IDs by converting to X-Ray format
+	traceID := queryData.Query
+	if isW3CTraceID(traceID) {
+		traceID = convertW3CToXRayTraceID(traceID)
+		log.DefaultLogger.Debug("Converted W3C trace ID to X-Ray format", "original", queryData.Query, "converted", traceID)
+	}
+
+	log.DefaultLogger.Debug("getSingleTrace", "RefID", query.RefID, "query", queryData.Query, "traceID", traceID, "region", queryData.Region)
 
 	var wg sync.WaitGroup
 	var tracesResponse *xray.BatchGetTracesOutput
@@ -47,7 +70,7 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		tracesResponse, tracesError = xrayClient.BatchGetTraces(&xray.BatchGetTracesInput{TraceIds: []*string{&queryData.Query}})
+		tracesResponse, tracesError = xrayClient.BatchGetTraces(&xray.BatchGetTracesInput{TraceIds: []*string{&traceID}})
 	}()
 
 	// We get the trace graph in parallel but if this fails we still return the trace
@@ -55,7 +78,7 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	go func() {
 		defer wg.Done()
 		traceGraphError = xrayClient.GetTraceGraphPages(
-			&xray.GetTraceGraphInput{TraceIds: []*string{&queryData.Query}},
+			&xray.GetTraceGraphInput{TraceIds: []*string{&traceID}},
 			func(page *xray.GetTraceGraphOutput, _ bool) bool {
 				for _, service := range page.Services {
 					bytes, err := json.Marshal(service)
