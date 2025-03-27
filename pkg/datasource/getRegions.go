@@ -1,13 +1,42 @@
 package datasource
 
 import (
+	"encoding/json"
 	"net/http"
+
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/service/xray"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
-// GetRegions has no easy equivalent in aws-sdk-go-v2, so we respond with 404. (We could
-// use 410, but that's intended for permanent removals, and we may find a replacement for
-// this eventually.)
-// The UI has been updated not to call this endpoint anyway.
 func (ds *Datasource) GetRegions(rw http.ResponseWriter, req *http.Request) {
-	rw.WriteHeader(http.StatusNotFound)
+	if req.Method != "GET" {
+		rw.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	regions := []string{}
+	for _, partition := range endpoints.DefaultPartitions() {
+		// FIXME: what replaces this?
+		regionsForPartition, exists := endpoints.RegionsForService(endpoints.DefaultPartitions(), partition.ID(), xray.EndpointsID)
+		if exists {
+			for region := range regionsForPartition {
+				regions = append(regions, region)
+			}
+		}
+	}
+
+	body, err := json.Marshal(regions)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	rw.Header().Set("content-type", "application/json")
+	_, err = rw.Write(body)
+	if err != nil {
+		log.DefaultLogger.Error("failed to write response", "err", err.Error())
+		return
+	}
 }
