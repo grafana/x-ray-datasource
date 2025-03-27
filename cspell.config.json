@@ -117,6 +117,7 @@
     "staticcheck",
     "xraytypes",
     "subresource",
-    "slos"
+    "slos",
+    "applicationsignals"
   ]
 }

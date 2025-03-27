@@ -137,7 +137,7 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:04Z", "0", 100),
 		)
 		settings := awsds.AWSDatasourceSettings{}
-		ds := NewDatasource(context.Background(), getXrayClientFactory(xrayMock), settings)
+		ds := NewDatasource(context.Background(), getXrayClientFactory(xrayMock), getAppSignalsClient, settings)
 		// This should go happy path use 0.5 sampling and return half of the traces
 		traces, err := ds.getTraceSummariesData(
 			context.Background(),
@@ -162,7 +162,7 @@ func TestGetAnalytics(t *testing.T) {
 			makeTrace("2020-09-16T00:00:06Z", "1", 100),
 		)
 		settings := awsds.AWSDatasourceSettings{}
-		ds := NewDatasource(context.Background(), getXrayClientFactory(xrayMock), settings)
+		ds := NewDatasource(context.Background(), getXrayClientFactory(xrayMock), getAppSignalsClient, settings)
 		// first loop should return 600 traces which is more than 400
 		// sample those 600 to 300 (actual 299 due to probability)
 		// second loop returns 150 traces (using 0.5 sampling in the request)
