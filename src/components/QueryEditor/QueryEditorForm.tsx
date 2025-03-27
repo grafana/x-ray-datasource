@@ -63,7 +63,7 @@ function queryTypeToQueryTypeOptions(queryType?: XrayQueryType): QueryTypeOption
 export function queryTypeOptionToQueryType(selected: string[], query: string, scopedVars?: ScopedVars): XrayQueryType {
   if (selected[0] === traceListOption.value) {
     const resolvedQuery = getTemplateSrv().replace(query, scopedVars);
-    const isTraceIdQuery = /^\d-\w{8}-\w{24}$/.test(resolvedQuery.trim());
+    const isTraceIdQuery = /^(\d-\w{8}-\w{24}|\w{32})$/.test(resolvedQuery.trim());
     return isTraceIdQuery ? XrayQueryType.getTrace : XrayQueryType.getTraceSummaries;
   } else {
     let found: any = undefined;

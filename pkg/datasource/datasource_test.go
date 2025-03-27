@@ -169,7 +169,7 @@ func (client *XrayClientMock) BatchGetTraces(_ context.Context, input *xray.Batc
 			Traces: []xraytypes.Trace{},
 		}, nil
 	}
-	traceId := "trace1"
+	traceId := input.TraceIds[0]
 	if client.queryCalledWithRegion != "" {
 		traceId = traceId + "-" + client.queryCalledWithRegion
 	}
@@ -382,7 +382,7 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("getTrace query", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "traceID"})
+		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "trace1"})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
@@ -398,12 +398,34 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("getTrace query with different region", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "traceID", Region: "us-east-1"})
+		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: "trace1", Region: "us-east-1"})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 		require.JSONEq(
 			t,
 			"{\"Duration\":1,\"Id\":\"trace1-us-east-1\",\"LimitExceeded\":null,\"Segments\":[{\"Document\":\"{}\",\"Id\":\"segment1\"}]}",
+			response.Responses["A"].Frames[0].Fields[0].At(0).(string),
+		)
+	})
+
+	t.Run("getTrace query with W3C format trace ID", func(t *testing.T) {
+		// Use a valid W3C format trace ID (32 hex characters)
+		w3cTraceID := "1234567890abcdef1234567890abcdef"
+
+		response, err := queryDatasource(ds, datasource.QueryGetTrace, datasource.GetTraceQueryData{Query: w3cTraceID})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		// Verify we get correct frames
+		require.Equal(t, 2, len(response.Responses["A"].Frames))
+		require.Equal(t, "TraceGraph", response.Responses["A"].Frames[1].Name)
+		require.Equal(t, 1, response.Responses["A"].Frames[1].Fields[0].Len())
+		require.Equal(t, 1, response.Responses["A"].Frames[0].Fields[0].Len())
+
+		// Verify that the trace ID was correctly converted from W3C format to X-Ray format
+		require.JSONEq(
+			t,
+			"{\"Duration\":1,\"Id\":\"1-12345678-90abcdef1234567890abcdef\",\"LimitExceeded\":null,\"Segments\":[{\"Document\":\"{}\",\"Id\":\"segment1\"}]}",
 			response.Responses["A"].Frames[0].Fields[0].At(0).(string),
 		)
 	})
