@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/x-ray-datasource/pkg/datasource"
@@ -20,14 +20,14 @@ type XrayClientMock struct {
 	queryCalledWithRegion string
 }
 
-func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, input *xray.GetServiceGraphInput, fn func(*xray.GetServiceGraphOutput, bool) bool, opts ...request.Option) error {
+func (client *XrayClientMock) GetServiceGraph(_ context.Context, _ *xray.GetServiceGraphInput, _ ...func(*xray.Options)) (*xray.GetServiceGraphOutput, error) {
 	serviceName := "mockServiceName"
 	if client.queryCalledWithRegion != "" {
 		serviceName = serviceName + "-" + client.queryCalledWithRegion
 	}
-	output := &xray.GetServiceGraphOutput{
+	return &xray.GetServiceGraphOutput{
 		NextToken: nil,
-		Services: []*xray.Service{
+		Services: []xraytypes.Service{
 			{
 				Name:      aws.String(serviceName),
 				AccountId: aws.String("testAccount1"),
@@ -37,42 +37,35 @@ func (client *XrayClientMock) GetServiceGraphPagesWithContext(ctx aws.Context, i
 				AccountId: aws.String("testAccount2"),
 			},
 		},
-	}
-	fn(output, false)
-	return nil
+	}, nil
 }
 
-func (client *XrayClientMock) GetTraceGraphPages(input *xray.GetTraceGraphInput, fn func(*xray.GetTraceGraphOutput, bool) bool) error {
-	output := &xray.GetTraceGraphOutput{
+func (client *XrayClientMock) GetTraceGraph(_ context.Context, _ *xray.GetTraceGraphInput, _ ...func(*xray.Options)) (*xray.GetTraceGraphOutput, error) {
+	return &xray.GetTraceGraphOutput{
 		NextToken: nil,
-		Services: []*xray.Service{
+		Services: []xraytypes.Service{
 			{},
 		},
-	}
-	fn(output, false)
-	return nil
+	}, nil
 }
 
-func makeSummary(region string) *xray.TraceSummary {
-	http := &xray.Http{
+func makeSummary(region string) xraytypes.TraceSummary {
+	http := &xraytypes.Http{
 		ClientIp:   aws.String("127.0.0.1"),
 		HttpMethod: aws.String("GET"),
-		HttpStatus: aws.Int64(200),
+		HttpStatus: aws.Int32(200),
 		HttpURL:    aws.String("localhost"),
 	}
 
-	annotations := make(map[string][]*xray.ValueWithServiceIds)
-	annotations["foo"] = []*xray.ValueWithServiceIds{{
-		AnnotationValue: &xray.AnnotationValue{},
-		ServiceIds:      []*xray.ServiceId{},
+	annotations := make(map[string][]xraytypes.ValueWithServiceIds)
+	annotations["foo"] = []xraytypes.ValueWithServiceIds{{
+		ServiceIds: []xraytypes.ServiceId{},
 	}, {
-		AnnotationValue: &xray.AnnotationValue{},
-		ServiceIds:      []*xray.ServiceId{},
+		ServiceIds: []xraytypes.ServiceId{},
 	}}
 
-	annotations["bar"] = []*xray.ValueWithServiceIds{{
-		AnnotationValue: &xray.AnnotationValue{},
-		ServiceIds:      []*xray.ServiceId{},
+	annotations["bar"] = []xraytypes.ValueWithServiceIds{{
+		ServiceIds: []xraytypes.ServiceId{},
 	}}
 
 	traceId := "id1"
@@ -80,22 +73,22 @@ func makeSummary(region string) *xray.TraceSummary {
 		traceId = "id-" + region
 	}
 
-	return &xray.TraceSummary{
+	return xraytypes.TraceSummary{
 		Annotations: annotations,
 		Duration:    aws.Float64(10.5),
 		StartTime:   aws.Time(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
 		Http:        http,
 		Id:          aws.String(traceId),
-		ErrorRootCauses: []*xray.ErrorRootCause{
+		ErrorRootCauses: []xraytypes.ErrorRootCause{
 			{
 				ClientImpacting: nil,
-				Services: []*xray.ErrorRootCauseService{
+				Services: []xraytypes.ErrorRootCauseService{
 					{
 						Name: aws.String("service_name_1"),
 						Type: aws.String("service_type_1"),
-						EntityPath: []*xray.ErrorRootCauseEntity{
+						EntityPath: []xraytypes.ErrorRootCauseEntity{
 							{
-								Exceptions: []*xray.RootCauseException{
+								Exceptions: []xraytypes.RootCauseException{
 									{
 										Name:    aws.String("Test exception"),
 										Message: aws.String("Test exception message"),
@@ -107,16 +100,16 @@ func makeSummary(region string) *xray.TraceSummary {
 				},
 			},
 		},
-		FaultRootCauses: []*xray.FaultRootCause{
+		FaultRootCauses: []xraytypes.FaultRootCause{
 			{
 				ClientImpacting: nil,
-				Services: []*xray.FaultRootCauseService{
+				Services: []xraytypes.FaultRootCauseService{
 					{
 						Name: aws.String("faulty_service_name_1"),
 						Type: aws.String("faulty_service_type_1"),
-						EntityPath: []*xray.FaultRootCauseEntity{
+						EntityPath: []xraytypes.FaultRootCauseEntity{
 							{
-								Exceptions: []*xray.RootCauseException{
+								Exceptions: []xraytypes.RootCauseException{
 									{
 										Name:    aws.String("Test fault"),
 										Message: aws.String("Test fault message"),
@@ -128,14 +121,14 @@ func makeSummary(region string) *xray.TraceSummary {
 				},
 			},
 		},
-		ResponseTimeRootCauses: []*xray.ResponseTimeRootCause{
+		ResponseTimeRootCauses: []xraytypes.ResponseTimeRootCause{
 			{
 				ClientImpacting: nil,
-				Services: []*xray.ResponseTimeRootCauseService{
+				Services: []xraytypes.ResponseTimeRootCauseService{
 					{
 						Name: aws.String("response_service_name_1"),
 						Type: aws.String("response_service_type_1"),
-						EntityPath: []*xray.ResponseTimeRootCauseEntity{
+						EntityPath: []xraytypes.ResponseTimeRootCauseEntity{
 							{Name: aws.String("response_service_name_1")},
 							{Name: aws.String("response_sub_service_name_1")},
 						},
@@ -143,7 +136,7 @@ func makeSummary(region string) *xray.TraceSummary {
 					{
 						Name: aws.String("response_service_name_2"),
 						Type: aws.String("response_service_type_2"),
-						EntityPath: []*xray.ResponseTimeRootCauseEntity{
+						EntityPath: []xraytypes.ResponseTimeRootCauseEntity{
 							{Name: aws.String("response_service_name_2")},
 							{Name: aws.String("response_sub_service_name_2")},
 						},
@@ -154,13 +147,7 @@ func makeSummary(region string) *xray.TraceSummary {
 	}
 }
 
-func (client *XrayClientMock) GetTraceSummariesPages(input *xray.GetTraceSummariesInput, fn func(*xray.GetTraceSummariesOutput, bool) bool) error {
-	resp, err := client.GetTraceSummariesWithContext(context.Background(), input)
-	fn(resp, true)
-	return err
-}
-
-func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, input *xray.GetTraceSummariesInput, opts ...request.Option) (*xray.GetTraceSummariesOutput, error) {
+func (client *XrayClientMock) GetTraceSummaries(_ context.Context, _ *xray.GetTraceSummariesInput, _ ...func(*xray.Options)) (*xray.GetTraceSummariesOutput, error) {
 	// To make sure we don't panic in this case.
 	nilHttpSummary := makeSummary(client.queryCalledWithRegion)
 	nilHttpSummary.Http.ClientIp = nil
@@ -170,27 +157,27 @@ func (client *XrayClientMock) GetTraceSummariesWithContext(ctx aws.Context, inpu
 
 	output := &xray.GetTraceSummariesOutput{
 		ApproximateTime: aws.Time(time.Now()),
-		TraceSummaries:  []*xray.TraceSummary{makeSummary(client.queryCalledWithRegion), nilHttpSummary},
+		TraceSummaries:  []xraytypes.TraceSummary{makeSummary(client.queryCalledWithRegion), nilHttpSummary},
 	}
 
 	return output, nil
 }
 
-func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*xray.BatchGetTracesOutput, error) {
-	if *input.TraceIds[0] == "notFound" {
+func (client *XrayClientMock) BatchGetTraces(_ context.Context, input *xray.BatchGetTracesInput, _ ...func(*xray.Options)) (*xray.BatchGetTracesOutput, error) {
+	if input.TraceIds[0] == "notFound" {
 		return &xray.BatchGetTracesOutput{
-			Traces: []*xray.Trace{},
+			Traces: []xraytypes.Trace{},
 		}, nil
 	}
-	traceId := *input.TraceIds[0]
+	traceId := input.TraceIds[0]
 	if client.queryCalledWithRegion != "" {
 		traceId = traceId + "-" + client.queryCalledWithRegion
 	}
 	return &xray.BatchGetTracesOutput{
-		Traces: []*xray.Trace{{
+		Traces: []xraytypes.Trace{{
 			Duration: aws.Float64(1.0),
 			Id:       aws.String(traceId),
-			Segments: []*xray.Segment{
+			Segments: []xraytypes.Segment{
 				{
 					Id:       aws.String("segment1"),
 					Document: aws.String("{}"),
@@ -200,57 +187,56 @@ func (client *XrayClientMock) BatchGetTraces(input *xray.BatchGetTracesInput) (*
 	}, nil
 }
 
-func (client *XrayClientMock) GetTimeSeriesServiceStatisticsPagesWithContext(context aws.Context, input *xray.GetTimeSeriesServiceStatisticsInput, fn func(*xray.GetTimeSeriesServiceStatisticsOutput, bool) bool, options ...request.Option) error {
+func (client *XrayClientMock) GetTimeSeriesServiceStatistics(_ context.Context, _ *xray.GetTimeSeriesServiceStatisticsInput, _ ...func(*xray.Options)) (*xray.GetTimeSeriesServiceStatisticsOutput, error) {
 	firstRow := 0
 	if client.queryCalledWithRegion != "" {
 		firstRow = 13
 	}
 
 	output := &xray.GetTimeSeriesServiceStatisticsOutput{
-		TimeSeriesServiceStatistics: []*xray.TimeSeriesServiceStatistics{
+		TimeSeriesServiceStatistics: []xraytypes.TimeSeriesServiceStatistics{
 			makeTimeSeriesRow(firstRow, Edge),
 			makeTimeSeriesRow(1, Edge),
 			makeTimeSeriesRow(2, Service),
 		},
 	}
-	fn(output, false)
-	return nil
+	return output, nil
 }
 
 const insightSummary = "some text. some more."
 
-func (client *XrayClientMock) GetInsightSummaries(input *xray.GetInsightSummariesInput) (*xray.GetInsightSummariesOutput, error) {
+func (client *XrayClientMock) GetInsightSummaries(_ context.Context, _ *xray.GetInsightSummariesInput, _ ...func(*xray.Options)) (*xray.GetInsightSummariesOutput, error) {
 	return &xray.GetInsightSummariesOutput{
-		InsightSummaries: []*xray.InsightSummary{
+		InsightSummaries: []xraytypes.InsightSummary{
 			{
 				Summary:              aws.String(insightSummary),
 				StartTime:            aws.Time(time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC)),
 				EndTime:              aws.Time(time.Date(2020, 6, 20, 1, 20, 1, 0, time.UTC)),
-				State:                aws.String("CLOSED"),
-				Categories:           aws.StringSlice([]string{"FAULT", "ERROR"}),
+				State:                xraytypes.InsightStateClosed,
+				Categories:           []xraytypes.InsightCategory{xraytypes.InsightCategoryFault, "ERROR"},
 				GroupName:            aws.String("Grafana"),
-				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
-				TopAnomalousServices: []*xray.AnomalousService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
+				RootCauseServiceId:   &xraytypes.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
+				TopAnomalousServices: []xraytypes.AnomalousService{{ServiceId: &xraytypes.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
 				InsightId:            aws.String("id-" + client.queryCalledWithRegion),
 			},
 			{
 				Summary:              aws.String(insightSummary),
 				StartTime:            aws.Time(time.Date(2020, 6, 20, 1, 0, 1, 0, time.UTC)),
 				EndTime:              nil,
-				Categories:           aws.StringSlice([]string{"a", "b"}),
-				State:                aws.String("ACTIVE"),
+				Categories:           []xraytypes.InsightCategory{"a", "b"},
+				State:                xraytypes.InsightStateActive,
 				GroupName:            aws.String("Grafana"),
-				RootCauseServiceId:   &xray.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
-				TopAnomalousServices: []*xray.AnomalousService{{ServiceId: &xray.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
+				RootCauseServiceId:   &xraytypes.ServiceId{Name: aws.String("graf"), Type: aws.String("AWS")},
+				TopAnomalousServices: []xraytypes.AnomalousService{{ServiceId: &xraytypes.ServiceId{Name: aws.String("graf2"), Type: aws.String("AWS2")}}},
 				InsightId:            aws.String("id-2-" + client.queryCalledWithRegion),
 			},
 		},
 	}, nil
 }
 
-func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func(*xray.GetGroupsOutput, bool) bool) error {
-	output := &xray.GetGroupsOutput{
-		Groups: []*xray.GroupSummary{
+func (client *XrayClientMock) GetGroups(_ context.Context, _ *xray.GetGroupsInput, _ ...func(*xray.Options)) (*xray.GetGroupsOutput, error) {
+	return &xray.GetGroupsOutput{
+		Groups: []xraytypes.GroupSummary{
 			{
 				GroupARN:         aws.String("arn:1"),
 				GroupName:        aws.String("Default"),
@@ -262,9 +248,7 @@ func (client *XrayClientMock) GetGroupsPages(input *xray.GetGroupsInput, fn func
 				FilterExpression: aws.String("service(\"test\")"),
 			},
 		},
-	}
-	fn(output, false)
-	return nil
+	}, nil
 }
 
 type StatsType string
@@ -274,26 +258,26 @@ const (
 	Service = "service"
 )
 
-func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceStatistics {
-	stats := &xray.TimeSeriesServiceStatistics{
+func makeTimeSeriesRow(index int, statsType StatsType) xraytypes.TimeSeriesServiceStatistics {
+	stats := xraytypes.TimeSeriesServiceStatistics{
 		EdgeSummaryStatistics: nil,
-		ResponseTimeHistogram: []*xray.HistogramEntry{
+		ResponseTimeHistogram: []xraytypes.HistogramEntry{
 			{
-				Count: aws.Int64(5),
-				Value: aws.Float64(42.42),
+				Count: 5,
+				Value: 42.42,
 			},
 		},
 		ServiceSummaryStatistics: nil,
 		Timestamp:                aws.Time(time.Date(2020, 6, 20, 1, index, 1, 0, time.UTC)),
 	}
 	if statsType == "edge" {
-		stats.EdgeSummaryStatistics = &xray.EdgeStatistics{
-			ErrorStatistics: &xray.ErrorStatistics{
+		stats.EdgeSummaryStatistics = &xraytypes.EdgeStatistics{
+			ErrorStatistics: &xraytypes.ErrorStatistics{
 				OtherCount:    aws.Int64(10),
 				ThrottleCount: aws.Int64(10),
 				TotalCount:    aws.Int64(20),
 			},
-			FaultStatistics: &xray.FaultStatistics{
+			FaultStatistics: &xraytypes.FaultStatistics{
 				OtherCount: aws.Int64(15),
 				TotalCount: aws.Int64(20),
 			},
@@ -302,13 +286,13 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 			TotalResponseTime: aws.Float64(3.14),
 		}
 	} else {
-		stats.ServiceSummaryStatistics = &xray.ServiceStatistics{
-			ErrorStatistics: &xray.ErrorStatistics{
+		stats.ServiceSummaryStatistics = &xraytypes.ServiceStatistics{
+			ErrorStatistics: &xraytypes.ErrorStatistics{
 				OtherCount:    aws.Int64(10),
 				ThrottleCount: aws.Int64(11),
 				TotalCount:    aws.Int64(20),
 			},
-			FaultStatistics: &xray.FaultStatistics{
+			FaultStatistics: &xraytypes.FaultStatistics{
 				OtherCount: aws.Int64(15),
 				TotalCount: aws.Int64(20),
 			},
@@ -320,7 +304,7 @@ func makeTimeSeriesRow(index int, statsType StatsType) *xray.TimeSeriesServiceSt
 	return stats
 }
 
-func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ awsds.AuthSettings, _ *awsds.SessionCache) (datasource.XrayClient, error) {
+func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.XrayClient, error) {
 	return &XrayClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil
@@ -362,7 +346,7 @@ func TestDatasource(t *testing.T) {
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
 		// Insight with nil EndTime should not throw error
-		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xray.Group{GroupName: aws.String("Grafana")}})
+		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xraytypes.Group{GroupName: aws.String("Grafana")}})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
@@ -389,7 +373,7 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("getInsightSummaries query with different region", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xray.Group{GroupName: aws.String("Grafana")}, Region: "us-east-1"})
+		response, err := queryDatasource(ds, datasource.QueryGetInsights, datasource.GetInsightsQueryData{State: "All", Group: &xraytypes.Group{GroupName: aws.String("Grafana")}, Region: "us-east-1"})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 		frame := response.Responses["A"].Frames[0]
@@ -554,7 +538,7 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("getServiceMap query", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}})
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xraytypes.Group{}})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
@@ -564,7 +548,7 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("getServiceMap query with region", func(t *testing.T) {
-		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xray.Group{}, Region: "us-east-1"})
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xraytypes.Group{}, Region: "us-east-1"})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
 
@@ -645,7 +629,7 @@ func TestDatasource(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		var data []*xray.GroupSummary
+		var data []*xraytypes.GroupSummary
 		err = json.Unmarshal(resp.Body, &data)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(data))

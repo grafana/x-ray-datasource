@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/xray"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/xray"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetTraceSummariesQueryData struct {
@@ -23,12 +22,12 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return errorsource.Response(errorsource.PluginError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
 	log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "RefID", query.RefID, "query", queryData.Query)
@@ -38,7 +37,7 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 		data.NewField("Id", nil, []*string{}),
 		data.NewField("Start Time", nil, []*time.Time{}),
 		data.NewField("Method", nil, []*string{}),
-		data.NewField("Response", nil, []*int64{}),
+		data.NewField("Response", nil, []*int32{}),
 		data.NewField("Response Time", nil, []*float64{}).SetConfig(&data.FieldConfig{Unit: "s"}),
 		data.NewField("URL", nil, []*string{}),
 		data.NewField("Client IP", nil, []*string{}),
@@ -55,7 +54,14 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 		EndTime:          &query.TimeRange.To,
 		FilterExpression: filterExpression,
 	}
-	err = xrayClient.GetTraceSummariesPages(request, func(page *xray.GetTraceSummariesOutput, _ bool) bool {
+	pager := xray.NewGetTraceSummariesPaginator(xrayClient, request)
+	var pagerError error
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			pagerError = err
+			break
+		}
 		for _, summary := range page.TraceSummaries {
 			annotationsCount := 0
 			for _, val := range summary.Annotations {
@@ -80,12 +86,14 @@ func (ds *Datasource) getTraceSummariesForSingleQuery(ctx context.Context, query
 			log.DefaultLogger.Error("could not count the rows in response dataframe", "error", err)
 		}
 		// Hardcode to have similar limit to x-ray console.
-		return count < 1000
-	})
+		if count >= 1000 {
+			break
+		}
+	}
 
-	if err != nil {
-		log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "error", err)
-		return errorsource.Response(errorsource.DownstreamError(err, false))
+	if pagerError != nil {
+		log.DefaultLogger.Debug("getTraceSummariesForSingleQuery", "error", pagerError)
+		return backend.ErrorResponseWithErrorSource(backend.DownstreamError(pagerError))
 	}
 
 	return backend.DataResponse{
