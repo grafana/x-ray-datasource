@@ -151,7 +151,7 @@ describe('QueryEditor', () => {
     expect(screen.queryByText(/^Query$/)).toBeNull();
   });
 
-  it('correctly changes the query type if user fills in trace id', async () => {
+  it('correctly changes the query type if user fills in trace id (X-Ray format)', async () => {
     const { onChange } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
 
     const field = screen.getByTestId('query-field-mock');
@@ -161,6 +161,20 @@ describe('QueryEditor', () => {
     expect(onChange.mock.calls[1][0]).toEqual({
       refId: 'A',
       query: '1-5f160a8b-83190adad07f429219c0e259',
+      queryType: XrayQueryType.getTrace,
+    });
+  });
+
+  it('correctly changes the query type if user fills in trace id (W3C format)', async () => {
+    const { onChange } = await renderWithQuery({ query: '', queryType: XrayQueryType.getTraceSummaries });
+
+    const field = screen.getByTestId('query-field-mock');
+
+    fireEvent.change(field, { target: { value: '5f160a8b83190adad07f429219c0e259' } });
+
+    expect(onChange.mock.calls[1][0]).toEqual({
+      refId: 'A',
+      query: '5f160a8b83190adad07f429219c0e259',
       queryType: XrayQueryType.getTrace,
     });
   });
