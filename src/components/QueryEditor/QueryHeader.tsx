@@ -41,7 +41,6 @@ const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
           onChange={({ value: region }) => region && onRegionChange(region)}
           options={regions}
         />
-
         <InlineSelect
           aria-label="Query mode"
           value={queryMode}

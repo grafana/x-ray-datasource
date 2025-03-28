@@ -70,14 +70,17 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			return nil, err
 		}
 
-		if model.QueryMode == ModeServices {
+		switch model.QueryMode {
+		case ModeServices:
 			switch model.ServiceQueryType {
 			case QueryListServices:
 				currentRes = ds.ListServices(ctx, query, req.PluginContext)
 			default:
 				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown service query type: %s", query.QueryType), false)
 			}
-		} else {
+		case "":
+			fallthrough
+		case ModeXRay:
 			switch query.QueryType {
 			case QueryGetTrace:
 				currentRes = ds.getSingleTrace(ctx, query, req.PluginContext)
@@ -104,6 +107,8 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			default:
 				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown query type: %s", query.QueryType), false)
 			}
+		default:
+			currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown query mode: %s", model.QueryMode), false)
 		}
 		res.Responses[query.RefID] = currentRes
 	}
