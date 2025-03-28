@@ -35,6 +35,12 @@ export interface XrayQuery extends DataQuery {
   // used to manually filter service map queries by account ids
   accountIds?: string[];
 
+  // if linked accounts should be used for a service query
+  includeLinkedAccounts?: boolean;
+
+  // used to filter list services by account id
+  accountId?: string;
+
   // Used to display the correct query editor
   queryMode?: QueryMode;
 }

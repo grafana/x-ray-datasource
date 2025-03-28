@@ -11,9 +11,9 @@ import (
 )
 
 type ListServicesQueryData struct {
-	Region                string   `json:"region,omitempty"`
-	AccountIds            []string `json:"accountIds,omitempty"`
-	IncludeLinkedAccounts bool     `json:"includeLinkedAccounts,omitempty"`
+	Region                string `json:"region,omitempty"`
+	AccountId             string `json:"accountId,omitempty"`
+	IncludeLinkedAccounts bool   `json:"includeLinkedAccounts,omitempty"`
 }
 
 func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -34,8 +34,8 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 		EndTime:               &query.TimeRange.To,
 		IncludeLinkedAccounts: queryData.IncludeLinkedAccounts,
 	}
-	if len(queryData.AccountIds) > 0 {
-		input.AwsAccountId = &queryData.AccountIds[0]
+	if len(queryData.AccountId) > 0 {
+		input.AwsAccountId = &queryData.AccountId
 	}
 
 	var listServicesFrame = data.NewFrame(
@@ -64,6 +64,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 
 	pager := applicationsignals.NewListServicesPaginator(appSignalsClient, &input)
 	var pagerError error
+
 	for pager.HasMorePages() {
 		output, err := pager.NextPage(ctx)
 		if err != nil {
@@ -76,7 +77,6 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 			var application, applicationArn string
 			var telemetrySDK, telemetryAgent, telemetrySource string
 			for _, currMap := range summary.AttributeMaps {
-				backend.Logger.Warn("attribute map", "currMap", currMap)
 				if currMap["PlatformType"] != "" {
 					platformType = currMap["PlatformType"]
 					eksCluster = currMap["EKS.Cluster"]

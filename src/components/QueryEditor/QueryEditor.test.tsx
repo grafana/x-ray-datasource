@@ -217,7 +217,7 @@ describe('QueryEditor', () => {
   it('correctly changes the query type if user fills in trace id (W3C format)', async () => {
     const { onChange } = await renderWithQuery({
       query: '',
-      queryMode: XrayQueryMode.xray,
+      queryMode: QueryMode.xray,
       queryType: XrayQueryType.getTraceSummaries,
     });
 
@@ -228,7 +228,7 @@ describe('QueryEditor', () => {
     expect(onChange.mock.calls[1][0]).toEqual({
       refId: 'A',
       query: '5f160a8b83190adad07f429219c0e259',
-      queryMode: XrayQueryMode.xray,
+      queryMode: QueryMode.xray,
       queryType: XrayQueryType.getTrace,
     });
   });
