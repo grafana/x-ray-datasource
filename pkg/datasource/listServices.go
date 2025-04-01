@@ -76,29 +76,29 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 			var platformType, eksCluster, k8sCluster, namespace, workload, node, pod, autoScalingGroup, instanceId, host string
 			var application, applicationArn string
 			var telemetrySDK, telemetryAgent, telemetrySource string
-			for _, currMap := range summary.AttributeMaps {
-				if currMap["PlatformType"] != "" {
-					platformType = currMap["PlatformType"]
-					eksCluster = currMap["EKS.Cluster"]
-					k8sCluster = currMap["K8s.Cluster"]
-					namespace = currMap["K8s.Namespace"]
-					workload = currMap["K8s.Workload"]
-					node = currMap["K8s.Node"]
-					pod = currMap["K8s.Pod"]
-					autoScalingGroup = currMap["EC2.AutoScalingGroup"]
-					instanceId = currMap["EC2.InstanceId"]
-					host = currMap["Host"]
+			for _, currentMap := range summary.AttributeMaps {
+				if currentMap["PlatformType"] != "" {
+					platformType = currentMap["PlatformType"]
+					eksCluster = currentMap["EKS.Cluster"]
+					k8sCluster = currentMap["K8s.Cluster"]
+					namespace = currentMap["K8s.Namespace"]
+					workload = currentMap["K8s.Workload"]
+					node = currentMap["K8s.Node"]
+					pod = currentMap["K8s.Pod"]
+					autoScalingGroup = currentMap["EC2.AutoScalingGroup"]
+					instanceId = currentMap["EC2.InstanceId"]
+					host = currentMap["Host"]
 				}
 
-				if currMap["AWS.Application"] != "" {
-					application = currMap["AWS.Application"]
-					applicationArn = currMap["AWS.Application.ARN"]
+				if currentMap["AWS.Application"] != "" {
+					application = currentMap["AWS.Application"]
+					applicationArn = currentMap["AWS.Application.ARN"]
 				}
 
-				if currMap["Telemetry.SDK"] != "" {
-					telemetrySDK = currMap["Telemetry.SDK"]
-					telemetryAgent = currMap["Telemetry.Agent"]
-					telemetrySource = currMap["Telemetry.Source"]
+				if currentMap["Telemetry.SDK"] != "" {
+					telemetrySDK = currentMap["Telemetry.SDK"]
+					telemetryAgent = currentMap["Telemetry.Agent"]
+					telemetrySource = currentMap["Telemetry.Source"]
 				}
 			}
 
