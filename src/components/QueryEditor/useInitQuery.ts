@@ -21,9 +21,9 @@ export function useInitQuery(
     let updated = false;
 
     // If the query mode is not set, assume its X-Ray
-    if (!query.queryMode) {
+    if (!newQuery.queryMode) {
       newQuery = {
-        ...query,
+        ...newQuery,
         queryMode: QueryMode.xray,
       };
       updated = true;

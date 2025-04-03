@@ -16,12 +16,10 @@ const apiModes: Array<SelectableValue<QueryMode>> = [
 
 const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
   const { queryMode, region } = query;
-  //const isMonitoringAccount = useIsMonitoringAccount(datasource.resources, query.region);
   const onQueryModeChange = ({ value }: SelectableValue<QueryMode>) => {
     if (value && value !== queryMode) {
       onChange({
         ...query,
-        queryType: undefined,
         queryMode: value,
       });
     }
@@ -42,6 +40,7 @@ const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
           options={regions}
         />
         <InlineSelect
+          label="Mode"
           aria-label="Query mode"
           value={queryMode}
           options={apiModes}
