@@ -116,6 +116,8 @@
     "nolint",
     "staticcheck",
     "xraytypes",
-    "subresource"
+    "subresource",
+    "slos",
+    "applicationsignals"
   ]
 }

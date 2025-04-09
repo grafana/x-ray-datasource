@@ -1,4 +1,4 @@
-import { Group, Region, XrayQuery, XrayQueryType } from '../../types';
+import { Group, Region, ServicesQueryType, XrayQuery, QueryMode, XrayQueryType } from '../../types';
 import { XrayDataSource } from '../../XRayDataSource';
 import { useEffect } from 'react';
 import { dummyAllGroup } from './constants';
@@ -17,31 +17,55 @@ export function useInitQuery(
     // We assume here the "Default" group is always there but lets fallback to first group if not. In case there are
     // no groups we don't have to actually crash as most queryTypes don't need group to be defined
     const defaultGroup = groups.find((g: Group) => g.GroupName === 'Default') || groups[0];
+    let newQuery = query;
+    let updated = false;
+
+    // If the query mode is not set, assume its X-Ray
+    if (!newQuery.queryMode) {
+      newQuery = {
+        ...newQuery,
+        queryMode: QueryMode.xray,
+      };
+      updated = true;
+    }
 
     // We assume that if there is no queryType during mount there should not be any query. This is basically
     // a case of clean slate init of the query. We do not need to check if query has traceId or not as we do with
     // the QueryTypeOptions mapping.
-    if (!query.queryType) {
-      onChange({
-        ...query,
+    if (newQuery.queryMode === QueryMode.xray && !newQuery.queryType) {
+      newQuery = {
+        ...newQuery,
         queryType: XrayQueryType.getTraceSummaries,
         query: '',
         group: defaultGroup,
         region: 'default',
-      });
+      };
+      updated = true;
+    } else if (newQuery.queryMode === QueryMode.services && !newQuery.serviceQueryType) {
+      newQuery = {
+        ...newQuery,
+        serviceQueryType: ServicesQueryType.listServices,
+        region: 'default',
+      };
+      updated = true;
     } else {
       // Lets make sure that we have group and region in the query and that they actually match what AWS tells us is
       // valid.
-      const group = getNewGroup(query, groups, defaultGroup);
-      const region = getNewRegion(query, regions);
+      const group = getNewGroup(newQuery, groups, defaultGroup);
+      const region = getNewRegion(newQuery, regions);
 
-      if (group !== query.group || region !== query.region) {
-        onChange({
-          ...query,
+      if (group !== newQuery.group || region !== newQuery.region) {
+        newQuery = {
+          ...newQuery,
           group,
           region,
-        });
+        };
+        updated = true;
       }
+    }
+
+    if (updated) {
+      onChange(newQuery);
     }
   }, [query, groups, regions, onChange, dataSource]);
 }
