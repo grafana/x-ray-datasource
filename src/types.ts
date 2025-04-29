@@ -43,6 +43,9 @@ export interface XrayQuery extends DataQuery {
 
   // Used to display the correct query editor
   queryMode?: QueryMode;
+
+  // Used to get results by service for Application Signals queries
+  service?: Record<string, string>;
 }
 
 // Needs to match datasource Query* constants in backend code
@@ -67,6 +70,7 @@ export enum XrayQueryType {
 
 export enum ServicesQueryType {
   listServices = 'listServices',
+  listServiceOperations = 'listServiceOperations',
 }
 
 export enum QueryMode {

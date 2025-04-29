@@ -47,6 +47,7 @@ func NewDatasource(ctx context.Context, xrayClientFactory XrayClientFactory, app
 	resMux.HandleFunc("/groups", ds.getGroups)
 	resMux.HandleFunc("/regions", ds.GetRegions)
 	resMux.HandleFunc("/accounts", ds.GetAccounts)
+	resMux.HandleFunc("/services", ds.GetServices)
 	ds.ResourceMux = httpadapter.New(resMux)
 
 	authSettings := awsds.ReadAuthSettings(ctx)
@@ -75,8 +76,10 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			switch model.ServiceQueryType {
 			case QueryListServices:
 				currentRes = ds.ListServices(ctx, query, req.PluginContext)
+			case QueryListServiceOperations:
+				currentRes = ds.ListServiceOperations(ctx, query, req.PluginContext)
 			default:
-				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown service query type: %s", query.QueryType), false)
+				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType), false)
 			}
 		case "":
 			fallthrough
@@ -179,4 +182,5 @@ type XrayClient interface {
 
 type AppSignalsClient interface {
 	applicationsignals.ListServicesAPIClient
+	applicationsignals.ListServiceOperationsAPIClient
 }

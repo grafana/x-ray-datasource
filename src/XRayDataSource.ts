@@ -80,6 +80,17 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     ];
   }
 
+  async getServices(region?: string, range?: TimeRange, accountId?: string): Promise<Array<Record<string, string>>> {
+    const params = new URLSearchParams({
+      region: region ?? '',
+      startTime: range ? range.from.toISOString() : '',
+      endTime: range ? range.to.toISOString() : '',
+      accountId: accountId ?? '',
+    });
+    const searchString = '?' + params.toString();
+    return this.getResource(`services${searchString}`);
+  }
+
   async getAccountIds(range?: TimeRange, group?: Group): Promise<string[]> {
     if (!config.featureToggles.cloudWatchCrossAccountQuerying) {
       return [];
