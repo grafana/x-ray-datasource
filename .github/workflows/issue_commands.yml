@@ -2,6 +2,10 @@ name: Run commands when issues are labeled
 on:
   issues:
     types: [labeled, unlabeled]
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -12,6 +16,7 @@ jobs:
           repository: 'grafana/grafana-github-actions'
           path: ./actions
           ref: main
+          persist-credentials: false
       - name: Install Actions
         run: npm install --production --prefix ./actions
       - name: 'Generate token'
