@@ -118,6 +118,7 @@
     "xraytypes",
     "subresource",
     "slos",
-    "applicationsignals"
+    "applicationsignals",
+    "zizmor"
   ]
 }

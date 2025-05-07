@@ -1,16 +1,17 @@
 name: PR automation
 on:
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
     types:
       - labeled
       - opened
 concurrency:
   group: pr-commands-${{ github.event.number }}
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 jobs:
   main:
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Actions
