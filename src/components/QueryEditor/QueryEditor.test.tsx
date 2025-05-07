@@ -388,6 +388,7 @@ describe('QueryEditor', () => {
           },
           query: {
             refId: 'A',
+            query: '',
             queryMode: QueryMode.services,
             serviceQueryType: ServicesQueryType.listServiceOperations,
             service: {
@@ -396,7 +397,7 @@ describe('QueryEditor', () => {
               Name: 'service1',
               Type: 'Service',
             },
-          } as any,
+          },
         }}
         onChange={() => {}}
       />
