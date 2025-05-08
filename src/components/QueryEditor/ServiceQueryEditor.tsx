@@ -7,12 +7,21 @@ import { ServicesQueryType, XrayJsonData, XrayQuery } from 'types';
 import { XrayDataSource } from 'XRayDataSource';
 import { config } from '@grafana/runtime';
 import { useAccountIds } from './useAccountIds';
+import { useServices } from './useServices';
 
 export type ServiceQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {};
 
 const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
   { label: 'List Services', value: ServicesQueryType.listServices },
+  { label: 'List Service Operations', value: ServicesQueryType.listServiceOperations },
 ];
+
+function serviceToOption(service: Record<string, string>) {
+  return {
+    value: service,
+    label: service.Name,
+  };
+}
 
 export function ServiceQueryEditor({ query, onChange, datasource, range }: ServiceQueryEditorFormProps) {
   const styles = getStyles();
@@ -24,7 +33,12 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
   }));
   accountIdOptions.push({ value: '', label: 'Default' });
   const hasStoredAccountIdFilter = !!(query.accountId && query.accountId.length);
-  const showAccountIdDropdown = config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter;
+  const showAccountIdDropdown =
+    (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter) &&
+    query.serviceQueryType === ServicesQueryType.listServices;
+
+  const services = useServices(datasource, query.region, range, query.accountId);
+  const serviceOptions = (services || []).map(serviceToOption);
 
   return (
     <>
@@ -68,7 +82,24 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
                     onChange({
                       ...query,
                       accountId: value.value,
-                    } as any);
+                    });
+                  }}
+                />
+              </EditorField>
+            </>
+          )}
+          {query.serviceQueryType === ServicesQueryType.listServiceOperations && (
+            <>
+              <EditorField label="Service" className="query-keyword" htmlFor="service">
+                <Select
+                  id="service"
+                  options={serviceOptions}
+                  value={query.service ? serviceToOption(query.service) : undefined}
+                  onChange={(value) => {
+                    onChange({
+                      ...query,
+                      service: value.value,
+                    });
                   }}
                 />
               </EditorField>

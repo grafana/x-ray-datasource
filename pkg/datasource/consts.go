@@ -22,5 +22,6 @@ const (
 	QueryGetInsights                              = "getInsights"
 	QueryGetServiceMap                            = "getServiceMap"
 
-	QueryListServices = "listServices"
+	QueryListServices          = "listServices"
+	QueryListServiceOperations = "listServiceOperations"
 )
