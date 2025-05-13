@@ -34,6 +34,11 @@ jobs:
         GRAFANA_IMAGE: ${{fromJson(needs.resolve-versions.outputs.matrix)}}
     name: e2e ${{ matrix.GRAFANA_IMAGE.name }}@${{ matrix.GRAFANA_IMAGE.VERSION }}
     runs-on: ubuntu-latest
+    permissions: 
+      contents: read
+       # The "id-token: write" permission is required by "get-vault-secrets" action. We request it here
+        # instead of the whole workflow, in order to reduce the scope of the permission.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
