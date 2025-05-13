@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   resolve-versions:
@@ -18,9 +17,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Resolve Grafana E2E versions
         id: resolve-versions
-        uses: grafana/plugin-actions/e2e-version@main
+        uses: grafana/plugin-actions/e2e-version@c233e9f6752186a9b256a2a451ec3067fbf712c2 # main
         with:
           version-resolver-type: version-support-policy
 
@@ -35,17 +36,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          persist-credentials: false
 
       - name: Install yarn dependencies
         run: yarn install
 
       - name: Install Mage
-        uses: magefile/mage-action@v3
+        uses: magefile/mage-action@6f50bbb8ea47d56e62dee92392788acbc8192d0b # v3.1.0
         with:
           install-only: true
 
@@ -58,13 +62,21 @@ jobs:
       - name: Install Playwright Browsers
         run: yarn playwright install --with-deps
 
+      - name: Get secrets from vault
+        id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            AWS_ACCESS_KEY_ID=e2e:accessKey
+            AWS_SECRET_ACCESS_KEY=e2e:secretKey
+
       - name: Start Grafana
         run: |
           docker compose pull
-          GRAFANA_VERSION=${{ matrix.GRAFANA_IMAGE.VERSION }} GRAFANA_IMAGE=${{ matrix.GRAFANA_IMAGE.NAME }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} docker compose up -d
+          GRAFANA_VERSION=${{ matrix.GRAFANA_IMAGE.VERSION }} GRAFANA_IMAGE=${{ matrix.GRAFANA_IMAGE.NAME }} AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} docker compose up -d
 
       - name: Wait for grafana server
-        uses: grafana/plugin-actions/wait-for-grafana@main
+        uses: grafana/plugin-actions/wait-for-grafana@c233e9f6752186a9b256a2a451ec3067fbf712c2 # main
 
       - name: Run Playwright tests
         id: run-tests

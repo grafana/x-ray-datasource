@@ -8,10 +8,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
+	appSignalsTypes "github.com/aws/aws-sdk-go-v2/service/applicationsignals/types"
 	"github.com/aws/aws-sdk-go-v2/service/xray"
 	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"github.com/grafana/x-ray-datasource/pkg/datasource"
 	"github.com/stretchr/testify/require"
 )
@@ -310,6 +313,110 @@ func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettin
 	}, nil
 }
 
+type AppSignalsClientMock struct {
+	queryCalledWithRegion string
+}
+
+func (client *AppSignalsClientMock) ListServices(context.Context, *applicationsignals.ListServicesInput, ...func(*applicationsignals.Options)) (*applicationsignals.ListServicesOutput, error) {
+	return &applicationsignals.ListServicesOutput{
+		ServiceSummaries: []appSignalsTypes.ServiceSummary{
+			{
+				KeyAttributes: map[string]string{
+					"Type":        "Service",
+					"Name":        "billing-service-python",
+					"Environment": "eks:app-signals-demo/default",
+				},
+				AttributeMaps: []map[string]string{
+					{
+						"PlatformType":         "AWS::EKS",
+						"EKS.Cluster":          "app-signals-demo",
+						"K8s.Namespace":        "default",
+						"K8s.Workload":         "billing-service-python",
+						"EC2.AutoScalingGroup": "scaling",
+						"EC2.InstanceId":       "id",
+						"Host":                 "hostname",
+					},
+				},
+			},
+			{
+				KeyAttributes: map[string]string{
+					"Type":         "Resource",
+					"ResourceType": "SomeResource",
+					"Name":         "allFields",
+					"Identifier":   "id",
+					"Environment":  "environment",
+				},
+				AttributeMaps: []map[string]string{
+					{
+						"PlatformType":  "K8s",
+						"K8s.Cluster":   "fake-resource",
+						"K8s.Namespace": "default",
+						"K8s.Workload":  "allFields",
+						"K8s.Node":      "node",
+						"K8s.Pod":       "pod",
+					},
+					{
+						"AWS.Application":     "applicationName",
+						"AWS.Application.ARN": "applicationArn",
+					},
+					{
+						"Telemetry.SDK":    "sdk",
+						"Telemetry.Agent":  "agent",
+						"Telemetry.Source": "source",
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+func (client *AppSignalsClientMock) ListServiceOperations(context.Context, *applicationsignals.ListServiceOperationsInput, ...func(*applicationsignals.Options)) (*applicationsignals.ListServiceOperationsOutput, error) {
+	return &applicationsignals.ListServiceOperationsOutput{
+		ServiceOperations: []appSignalsTypes.ServiceOperation{
+			{
+				Name: aws.String("InternalOperation"),
+				MetricReferences: []appSignalsTypes.MetricReference{
+					{
+						MetricName: aws.String("Latency"),
+						MetricType: aws.String("LATENCY"),
+						Namespace:  aws.String("AppSignals"),
+						AccountId:  aws.String("id"),
+						Dimensions: []appSignalsTypes.Dimension{
+							{Name: aws.String("foo"), Value: aws.String("bar")},
+							{Name: aws.String("baz"), Value: aws.String("tab")},
+						},
+					},
+					{
+						MetricName: aws.String("Fault"),
+						MetricType: aws.String("FAULT"),
+						Namespace:  aws.String("AppSignals"),
+						Dimensions: []appSignalsTypes.Dimension{},
+					},
+				},
+			},
+			{
+				Name: aws.String("ExternalOperation"),
+				MetricReferences: []appSignalsTypes.MetricReference{
+					{
+						MetricName: aws.String("Error"),
+						MetricType: aws.String("ERROR"),
+						Namespace:  aws.String("AppSignals"),
+						Dimensions: []appSignalsTypes.Dimension{
+							{Name: aws.String("foo"), Value: aws.String("bar")},
+						},
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+func appSignalsClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.AppSignalsClient, error) {
+	return &AppSignalsClientMock{
+		queryCalledWithRegion: requestSettings.Region,
+	}, nil
+}
+
 func queryDatasource(ds *datasource.Datasource, queryType string, query interface{}) (*backend.QueryDataResponse, error) {
 	jsonData, _ := json.Marshal(query)
 
@@ -342,7 +449,7 @@ func queryDatasourceResource(ds *datasource.Datasource, req *backend.CallResourc
 
 func TestDatasource(t *testing.T) {
 	settings := awsds.AWSDatasourceSettings{}
-	ds := datasource.NewDatasource(context.Background(), xrayClientFactory, settings)
+	ds := datasource.NewDatasource(context.Background(), xrayClientFactory, appSignalsClientFactory, settings)
 
 	t.Run("getInsightSummaries query", func(t *testing.T) {
 		// Insight with nil EndTime should not throw error
@@ -620,6 +727,70 @@ func TestDatasource(t *testing.T) {
 				float64(100),
 			},
 		})
+	})
+
+	t.Run("listServices query", func(t *testing.T) {
+		response, err := queryDatasource(ds, "", map[string]string{
+			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServices, "region": "us-east-1",
+		})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		expectedFrame := data.Frame{
+			Name: "ListServices",
+			Fields: []*data.Field{
+				data.NewField("Type", nil, []string{"Service", "Resource"}),
+				data.NewField("ResourceType", nil, []string{"", "SomeResource"}),
+				data.NewField("Name", nil, []string{"billing-service-python", "allFields"}),
+				data.NewField("Identifier", nil, []string{"", "id"}),
+				data.NewField("Environment", nil, []string{"eks:app-signals-demo/default", "environment"}),
+				data.NewField("PlatformType", nil, []string{"AWS::EKS", "K8s"}),
+				data.NewField("EKS.Cluster", nil, []string{"app-signals-demo", ""}),
+				data.NewField("K8s.Cluster", nil, []string{"", "fake-resource"}),
+				data.NewField("Namespace", nil, []string{"default", "default"}),
+				data.NewField("Workload", nil, []string{"billing-service-python", "allFields"}),
+				data.NewField("Node", nil, []string{"", "node"}),
+				data.NewField("Pod", nil, []string{"", "pod"}),
+				data.NewField("EC2.AutoScalingGroup", nil, []string{"scaling", ""}),
+				data.NewField("EC2.InstanceId", nil, []string{"id", ""}),
+				data.NewField("Host", nil, []string{"hostname", ""}),
+				data.NewField("Application", nil, []string{"", "applicationName"}),
+				data.NewField("Application.ARN", nil, []string{"", "applicationArn"}),
+				data.NewField("Telemetry.SDK", nil, []string{"", "sdk"}),
+				data.NewField("Telemetry.Agent", nil, []string{"", "agent"}),
+				data.NewField("Telemetry.Source", nil, []string{"", "source"}),
+			},
+		}
+		require.Equal(t, expectedFrame, *frame)
+	})
+
+	t.Run("listServiceOperations query", func(t *testing.T) {
+		response, err := queryDatasource(ds, "", map[string]interface{}{
+			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServiceOperations, "region": "us-east-1",
+			"Service": map[string]string{
+				"AwsAccountId": "569069006612",
+				"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
+				"Name":         "datasources-graphite-latest-07978676",
+				"Type":         "Service",
+			},
+		})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		expectedFrame := data.Frame{
+			Name: "ListServices",
+			Fields: []*data.Field{
+				data.NewField("Name", nil, []*string{aws.String("InternalOperation"), aws.String("InternalOperation"), aws.String("ExternalOperation")}),
+				data.NewField("MetricName", nil, []*string{aws.String("Latency"), aws.String("Fault"), aws.String("Error")}),
+				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
+				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
+				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
+				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+			},
+		}
+		require.Equal(t, expectedFrame, *frame)
 	})
 
 	t.Run("getGroups query", func(t *testing.T) {

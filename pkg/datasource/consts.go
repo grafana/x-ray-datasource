@@ -2,6 +2,9 @@ package datasource
 
 // Needs to match XrayQueryType in frontend code
 const (
+	ModeXRay     = "X-Ray"
+	ModeServices = "Services"
+
 	QueryGetTrace                                 = "getTrace"
 	QueryGetTraceSummaries                        = "getTraceSummaries"
 	QueryGetTimeSeriesServiceStatistics           = "getTimeSeriesServiceStatistics"
@@ -18,4 +21,7 @@ const (
 	QueryGetAnalyticsStatusCode                   = "getAnalyticsStatusCode"
 	QueryGetInsights                              = "getInsights"
 	QueryGetServiceMap                            = "getServiceMap"
+
+	QueryListServices          = "listServices"
+	QueryListServiceOperations = "listServiceOperations"
 )
