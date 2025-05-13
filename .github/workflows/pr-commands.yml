@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      # The "id-token: write" permission is required by "get-vault-secrets" action
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Actions
