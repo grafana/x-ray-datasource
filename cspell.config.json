@@ -119,6 +119,7 @@
     "subresource",
     "slos",
     "applicationsignals",
-    "zizmor"
+    "zizmor",
+    "dompurify"
   ]
 }
