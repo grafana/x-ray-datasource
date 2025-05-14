@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.14.0
+
+- Feat: Auto convert w3c trace format (#184) in [#332](https://github.com/grafana/x-ray-datasource/pull/332)
+- Actions: Do not use hashes for grafana/ actions in [#352](https://github.com/grafana/x-ray-datasource/pull/352)
+- Github actions: Add token permissions in [#351](https://github.com/grafana/x-ray-datasource/pull/351)
+- Implement listServiceOperations in [#349](https://github.com/grafana/x-ray-datasource/pull/349)
+- add zizmor ignore rule in [#350](https://github.com/grafana/x-ray-datasource/pull/350)
+- use vault token instead of github in [#348](https://github.com/grafana/x-ray-datasource/pull/348)
+- use vault for e2e secrets in [#346](https://github.com/grafana/x-ray-datasource/pull/346)
+- Update github actions files in [#345](https://github.com/grafana/x-ray-datasource/pull/345)
+- Create App Signals dropdown and ListServices query in [#338](https://github.com/grafana/x-ray-datasource/pull/338)
+- Update for aws-sdk-go-v2 in [#305](https://github.com/grafana/x-ray-datasource/pull/305)
+- Chore: add label to external contributions in [#310](https://github.com/grafana/x-ray-datasource/pull/310)
+- Bump the all-node-dependencies group across 1 directory with 42 updates in [#343](https://github.com/grafana/x-ray-datasource/pull/343)
+- Bump the all-go-dependencies group across 1 directory with 7 updates in [#342](https://github.com/grafana/x-ray-datasource/pull/342)
+- Bump golang.org/x/net from 0.34.0 to 0.36.0 in the go_modules group in [#325](https://github.com/grafana/x-ray-datasource/pull/325)
+- Bump dompurify from 3.2.3 to 3.2.4 in the npm_and_yarn group in [#319](https://github.com/grafana/x-ray-datasource/pull/319)
+
 ## 2.13.2
 
 - Update github.com/grafana/grafana-plugin-sdk-go to v0.265.0 in [#313](https://github.com/grafana/x-ray-datasource/pull/313)
