@@ -71,6 +71,7 @@ export enum XrayQueryType {
 export enum ServicesQueryType {
   listServices = 'listServices',
   listServiceOperations = 'listServiceOperations',
+  listServiceDependencies = 'listServiceDependencies',
 }
 
 export enum QueryMode {

@@ -406,6 +406,52 @@ describe('QueryEditor', () => {
     expect(await screen.findByText('service1')).toBeDefined();
     expect(mockGetServices).toHaveBeenCalled();
   });
+
+  it('shows the Services in a dropdown on listServiceDependencies selection', async () => {
+    const mockGetServices = jest.fn(() =>
+      Promise.resolve([
+        {
+          AwsAccountId: '12345678910',
+          Environment: 'cluster',
+          Name: 'service1',
+          Type: 'Service',
+        },
+        {
+          AwsAccountId: '12345678910',
+          Environment: 'cluster',
+          Name: 'service2',
+          Type: 'Service',
+        },
+      ])
+    );
+    render(
+      <QueryEditor
+        {...{
+          ...defaultProps,
+          datasource: {
+            ...defaultProps.datasource,
+            getServices: mockGetServices,
+          },
+          query: {
+            refId: 'A',
+            query: '',
+            queryMode: QueryMode.services,
+            serviceQueryType: ServicesQueryType.listServiceDependencies,
+            service: {
+              AwsAccountId: '12345678910',
+              Environment: 'cluster',
+              Name: 'service1',
+              Type: 'Service',
+            },
+          },
+        }}
+        onChange={() => {}}
+      />
+    );
+    expect(screen.getByTestId('Spinner')).toBeDefined();
+    expect(await screen.findByText('service1')).toBeDefined();
+    expect(mockGetServices).toHaveBeenCalled();
+  });
 });
 
 function makeDataSource(settings: DataSourceInstanceSettings<XrayJsonData>) {

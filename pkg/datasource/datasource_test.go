@@ -410,6 +410,57 @@ func (client *AppSignalsClientMock) ListServiceOperations(context.Context, *appl
 		},
 	}, nil
 }
+func (client *AppSignalsClientMock) ListServiceDependencies(context.Context, *applicationsignals.ListServiceDependenciesInput, ...func(*applicationsignals.Options)) (*applicationsignals.ListServiceDependenciesOutput, error) {
+	return &applicationsignals.ListServiceDependenciesOutput{
+
+		ServiceDependencies: []appSignalsTypes.ServiceDependency{
+			{
+				OperationName:           aws.String("InternalOperation"),
+				DependencyOperationName: aws.String("PUT /eureka"),
+				DependencyKeyAttributes: map[string]string{
+					"Name": "discovery-server:8761",
+					"Type": "InternalService",
+				},
+				MetricReferences: []appSignalsTypes.MetricReference{
+					{
+						MetricName: aws.String("Latency"),
+						MetricType: aws.String("LATENCY"),
+						Namespace:  aws.String("AppSignals"),
+						AccountId:  aws.String("id"),
+						Dimensions: []appSignalsTypes.Dimension{
+							{Name: aws.String("foo"), Value: aws.String("bar")},
+							{Name: aws.String("baz"), Value: aws.String("tab")},
+						},
+					},
+					{
+						MetricName: aws.String("Fault"),
+						MetricType: aws.String("FAULT"),
+						Namespace:  aws.String("AppSignals"),
+						Dimensions: []appSignalsTypes.Dimension{},
+					},
+				},
+			},
+			{
+				OperationName:           aws.String("ExternalOperation"),
+				DependencyOperationName: aws.String("GET /eureka"),
+				DependencyKeyAttributes: map[string]string{
+					"Name": "external-server:8761",
+					"Type": "RemoteService",
+				},
+				MetricReferences: []appSignalsTypes.MetricReference{
+					{
+						MetricName: aws.String("Error"),
+						MetricType: aws.String("ERROR"),
+						Namespace:  aws.String("AppSignals"),
+						Dimensions: []appSignalsTypes.Dimension{
+							{Name: aws.String("foo"), Value: aws.String("bar")},
+						},
+					},
+				},
+			},
+		},
+	}, nil
+}
 
 func appSignalsClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.AppSignalsClient, error) {
 	return &AppSignalsClientMock{
@@ -783,6 +834,36 @@ func TestDatasource(t *testing.T) {
 			Name: "ListServices",
 			Fields: []*data.Field{
 				data.NewField("Name", nil, []*string{aws.String("InternalOperation"), aws.String("InternalOperation"), aws.String("ExternalOperation")}),
+				data.NewField("MetricName", nil, []*string{aws.String("Latency"), aws.String("Fault"), aws.String("Error")}),
+				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
+				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
+				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
+				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+			},
+		}
+		require.Equal(t, expectedFrame, *frame)
+	})
+
+	t.Run("listServiceDependencies query", func(t *testing.T) {
+		response, err := queryDatasource(ds, "", map[string]interface{}{
+			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServiceDependencies, "region": "us-east-1",
+			"Service": map[string]string{
+				"AwsAccountId": "569069006612",
+				"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
+				"Name":         "datasources-graphite-latest-07978676",
+				"Type":         "Service",
+			},
+		})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		expectedFrame := data.Frame{
+			Name: "ListServiceDependencies",
+			Fields: []*data.Field{
+				data.NewField("OperationName", nil, []*string{aws.String("InternalOperation"), aws.String("InternalOperation"), aws.String("ExternalOperation")}),
+				data.NewField("DependencyOperationName", nil, []*string{aws.String("PUT /eureka"), aws.String("PUT /eureka"), aws.String("GET /eureka")}),
+				data.NewField("DependencyKeyAttributes", nil, []*string{aws.String("Name:discovery-server:8761, Type:InternalService"), aws.String("Name:discovery-server:8761, Type:InternalService"), aws.String("Name:external-server:8761, Type:RemoteService")}),
 				data.NewField("MetricName", nil, []*string{aws.String("Latency"), aws.String("Fault"), aws.String("Error")}),
 				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
