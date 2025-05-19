@@ -78,6 +78,8 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 				currentRes = ds.ListServices(ctx, query, req.PluginContext)
 			case QueryListServiceOperations:
 				currentRes = ds.ListServiceOperations(ctx, query, req.PluginContext)
+			case QueryListServiceDependencies:
+				currentRes = ds.ListServiceDependencies(ctx, query, req.PluginContext)
 			default:
 				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType), false)
 			}
@@ -183,4 +185,5 @@ type XrayClient interface {
 type AppSignalsClient interface {
 	applicationsignals.ListServicesAPIClient
 	applicationsignals.ListServiceOperationsAPIClient
+	applicationsignals.ListServiceDependenciesAPIClient
 }
