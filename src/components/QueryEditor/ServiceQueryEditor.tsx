@@ -12,8 +12,9 @@ import { useServices } from './useServices';
 export type ServiceQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {};
 
 const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
-  { label: 'List Services', value: ServicesQueryType.listServices },
-  { label: 'List Service Operations', value: ServicesQueryType.listServiceOperations },
+  { label: 'List services', value: ServicesQueryType.listServices },
+  { label: 'List service operations', value: ServicesQueryType.listServiceOperations },
+  { label: 'List service dependencies', value: ServicesQueryType.listServiceDependencies },
 ];
 
 function serviceToOption(service: Record<string, string>) {
@@ -88,7 +89,8 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
               </EditorField>
             </>
           )}
-          {query.serviceQueryType === ServicesQueryType.listServiceOperations && (
+          {(query.serviceQueryType === ServicesQueryType.listServiceOperations ||
+            query.serviceQueryType === ServicesQueryType.listServiceDependencies) && (
             <>
               <EditorField label="Service" className="query-keyword" htmlFor="service">
                 <Select
