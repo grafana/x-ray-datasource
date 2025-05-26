@@ -5,11 +5,11 @@ go 1.24.1
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/xray v1.31.4
-	github.com/grafana/grafana-aws-sdk v0.38.3
+	github.com/grafana/grafana-aws-sdk v0.38.4
 	github.com/grafana/grafana-plugin-sdk-go v0.277.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.13.0
-	golang.org/x/text v0.24.0
+	golang.org/x/sync v0.14.0
+	golang.org/x/text v0.25.0
 )
 
 require (
