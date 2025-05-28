@@ -126,7 +126,7 @@ describe('QueryEditor', () => {
     expect(screen.getByText(expected)).not.toBeNull();
   });
 
-  it.each([[QueryMode.services, ServicesQueryType.listServices, 'List Services']])(
+  it.each([[QueryMode.services, ServicesQueryType.listServices, 'List services']])(
     'renders proper query type option when query mode is %s and query type is %s',
     async (mode, type, expected) => {
       await renderWithQuery({
