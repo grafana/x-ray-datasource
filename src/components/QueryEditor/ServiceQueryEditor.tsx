@@ -8,6 +8,7 @@ import { XrayDataSource } from 'XRayDataSource';
 import { config } from '@grafana/runtime';
 import { useAccountIds } from './useAccountIds';
 import { useServices } from './useServices';
+import { useOperations } from './useOperations';
 
 export type ServiceQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {};
 
@@ -15,6 +16,7 @@ const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
   { label: 'List services', value: ServicesQueryType.listServices },
   { label: 'List service operations', value: ServicesQueryType.listServiceOperations },
   { label: 'List service dependencies', value: ServicesQueryType.listServiceDependencies },
+  { label: 'List Service Level Objectives', value: ServicesQueryType.listSLOs },
 ];
 
 function serviceToOption(service: Record<string, string>) {
@@ -25,6 +27,7 @@ function serviceToOption(service: Record<string, string>) {
 }
 
 export function ServiceQueryEditor({ query, onChange, datasource, range }: ServiceQueryEditorFormProps) {
+  const { serviceQueryType, service, region } = query;
   const styles = getStyles();
 
   const accountIds = useAccountIds(datasource, query, range);
@@ -32,14 +35,20 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
     value: accountId,
     label: accountId,
   }));
-  accountIdOptions.push({ value: '', label: 'Default' });
+  accountIdOptions.push({ value: '', label: 'Not specified' });
   const hasStoredAccountIdFilter = !!(query.accountId && query.accountId.length);
   const showAccountIdDropdown =
     (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter) &&
-    query.serviceQueryType === ServicesQueryType.listServices;
+    (serviceQueryType === ServicesQueryType.listServices || serviceQueryType === ServicesQueryType.listSLOs);
 
-  const services = useServices(datasource, query.region, range, query.accountId);
+  const services = useServices(datasource, region, range, query.accountId);
   const serviceOptions = (services || []).map(serviceToOption);
+
+  const operations = useOperations(datasource, serviceQueryType, region, range, service);
+  const operationOptions: Array<SelectableValue<string>> = (operations || []).map((operation) => ({
+    label: operation,
+    value: operation,
+  }));
 
   return (
     <>
@@ -48,7 +57,7 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
           <EditorField label="Query Type" className={`query-keyword ${styles.formFieldStyles}`}>
             <Select
               id="queryType"
-              value={query.serviceQueryType}
+              value={serviceQueryType}
               options={servicesQueryOptions}
               onChange={(value) => {
                 onChange({
@@ -67,8 +76,10 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
                   onChange={() => {
                     const includeLinkedAccounts = !(query.includeLinkedAccounts ?? false);
                     const newQuery = { ...query, includeLinkedAccounts };
-                    if (!includeLinkedAccounts) {
-                      newQuery.accountId = '';
+                    if (includeLinkedAccounts) {
+                      newQuery.accountId = accountIdOptions[0].value;
+                    } else {
+                      newQuery.accountId = ''; // Reset accountId if linked accounts are not included
                     }
                     onChange(newQuery);
                   }}
@@ -79,6 +90,7 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
                   id="accountId"
                   options={accountIdOptions}
                   value={query.accountId ?? ''}
+                  disabled={!query.includeLinkedAccounts && serviceQueryType === ServicesQueryType.listSLOs}
                   onChange={(value) => {
                     onChange({
                       ...query,
@@ -89,23 +101,35 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
               </EditorField>
             </>
           )}
-          {(query.serviceQueryType === ServicesQueryType.listServiceOperations ||
-            query.serviceQueryType === ServicesQueryType.listServiceDependencies) && (
-            <>
-              <EditorField label="Service" className="query-keyword" htmlFor="service">
-                <Select
-                  id="service"
-                  options={serviceOptions}
-                  value={query.service ? serviceToOption(query.service) : undefined}
-                  onChange={(value) => {
-                    onChange({
-                      ...query,
-                      service: value.value,
-                    });
-                  }}
-                />
-              </EditorField>
-            </>
+          {serviceQueryType !== ServicesQueryType.listServices && (
+            <EditorField label="Service" className="query-keyword" htmlFor="service">
+              <Select
+                id="service"
+                options={serviceOptions}
+                value={query.service ? serviceToOption(query.service) : undefined}
+                onChange={(value) => {
+                  onChange({
+                    ...query,
+                    service: value.value,
+                  });
+                }}
+              />
+            </EditorField>
+          )}
+          {serviceQueryType === ServicesQueryType.listSLOs && (
+            <EditorField label="Operation" className="query-keyword" htmlFor="operation">
+              <Select
+                id="operation"
+                options={operationOptions}
+                value={query.operationName ? { value: query.operationName, label: query.operationName } : undefined}
+                onChange={(value) => {
+                  onChange({
+                    ...query,
+                    operationName: value.value,
+                  });
+                }}
+              />
+            </EditorField>
           )}
         </EditorFieldGroup>
       </EditorRow>

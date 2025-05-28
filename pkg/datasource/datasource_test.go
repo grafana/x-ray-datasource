@@ -462,6 +462,33 @@ func (client *AppSignalsClientMock) ListServiceDependencies(context.Context, *ap
 	}, nil
 }
 
+func (client *AppSignalsClientMock) ListServiceLevelObjectives(context.Context, *applicationsignals.ListServiceLevelObjectivesInput, ...func(*applicationsignals.Options)) (*applicationsignals.ListServiceLevelObjectivesOutput, error) {
+	return &applicationsignals.ListServiceLevelObjectivesOutput{
+		SloSummaries: []appSignalsTypes.ServiceLevelObjectiveSummary{
+			{
+				Name:          aws.String("testSLO"),
+				OperationName: aws.String("GET /**"),
+				CreatedTime:   aws.Time(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
+				KeyAttributes: map[string]string{
+					"Environment":  "eks:app-signals-demo/default",
+					"Name":         "vets-service-java",
+					"AwsAccountId": "000000000000",
+				},
+			},
+			{
+				Name:          aws.String("Latency for Frontend InternalOperationInternalOperation"),
+				OperationName: aws.String("InternalOperation"),
+				CreatedTime:   aws.Time(time.Date(2025, time.February, 1, 12, 0, 0, 0, time.UTC)),
+				KeyAttributes: map[string]string{
+					"Type":         "Service",
+					"Name":         "pet-clinic-frontend-java",
+					"AwsAccountId": "999999999999",
+				},
+			},
+		},
+	}, nil
+}
+
 func appSignalsClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.AppSignalsClient, error) {
 	return &AppSignalsClientMock{
 		queryCalledWithRegion: requestSettings.Region,
@@ -869,6 +896,36 @@ func TestDatasource(t *testing.T) {
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
 				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
 				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+			},
+		}
+		require.Equal(t, expectedFrame, *frame)
+	})
+
+	t.Run("listServiceLevelObjectives query", func(t *testing.T) {
+		response, err := queryDatasource(ds, "", map[string]interface{}{
+			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServiceLevelObjectives, "region": "us-east-1",
+			"Service": map[string]string{
+				"AwsAccountId": "569069006612",
+				"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
+				"Name":         "datasources-graphite-latest-07978676",
+				"Type":         "Service",
+			},
+		})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		expectedFrame := data.Frame{
+			Name: "ListServiceLevelObjectives",
+			Fields: []*data.Field{
+				data.NewField("Name", nil, []*string{aws.String("testSLO"), aws.String("Latency for Frontend InternalOperationInternalOperation")}),
+				data.NewField("OperationName", nil, []*string{aws.String("GET /**"), aws.String("InternalOperation")}),
+				data.NewField("CreatedTime", nil, []*time.Time{
+					aws.Time(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
+					aws.Time(time.Date(2025, time.February, 1, 12, 0, 0, 0, time.UTC))}),
+				data.NewField("KeyAttributes", nil, []*string{
+					aws.String("AwsAccountId:000000000000, Environment:eks:app-signals-demo/default, Name:vets-service-java"),
+					aws.String("AwsAccountId:999999999999, Name:pet-clinic-frontend-java, Type:Service")}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)

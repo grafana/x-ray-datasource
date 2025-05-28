@@ -91,6 +91,22 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return this.getResource(`services${searchString}`);
   }
 
+  async getOperations(region?: string, range?: TimeRange, service?: Record<string, string>): Promise<string[]> {
+    const params = new URLSearchParams({
+      region: region ?? '',
+      startTime: range ? range.from.toISOString() : '',
+      endTime: range ? range.to.toISOString() : '',
+    });
+
+    let body: Record<string, string> = {};
+    if (service) {
+      body = service;
+    }
+
+    const searchString = '?' + params.toString();
+    return this.postResource(`operations${searchString}`, body);
+  }
+
   async getAccountIds(range?: TimeRange, group?: Group): Promise<string[]> {
     if (!config.featureToggles.cloudWatchCrossAccountQuerying) {
       return [];
