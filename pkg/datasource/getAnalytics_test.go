@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/xray"
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
+
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/stretchr/testify/require"
