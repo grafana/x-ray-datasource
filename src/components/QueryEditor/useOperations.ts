@@ -21,7 +21,7 @@ export function useOperations(
       return Promise.resolve([]);
     }
   }, [datasource, range, region, service, serviceQueryType]);
-  useError('Failed to load services', result.error);
+  useError('Failed to load operations', result.error);
 
   if (result.error) {
     return [];

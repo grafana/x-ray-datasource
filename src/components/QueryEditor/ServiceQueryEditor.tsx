@@ -35,7 +35,7 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
     value: accountId,
     label: accountId,
   }));
-  accountIdOptions.push({ value: '', label: 'Not specified' });
+  accountIdOptions.push({ value: '', label: 'None' });
   const hasStoredAccountIdFilter = !!(query.accountId && query.accountId.length);
   const showAccountIdDropdown =
     (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter) &&

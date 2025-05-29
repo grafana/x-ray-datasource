@@ -130,7 +130,7 @@ describe('QueryEditor', () => {
     [QueryMode.services, ServicesQueryType.listServices, 'List services'],
     [QueryMode.services, ServicesQueryType.listServiceOperations, 'List service operations'],
     [QueryMode.services, ServicesQueryType.listServiceDependencies, 'List service dependencies'],
-    [QueryMode.services, ServicesQueryType.listSLOs, 'List Service Level Objectives'],
+    [QueryMode.services, ServicesQueryType.listSLOs, 'List Service Level Objectives (SLO)'],
   ])('renders proper query type option when query mode is %s and query type is %s', async (mode, type, expected) => {
     await renderWithQuery({
       queryMode: mode,
