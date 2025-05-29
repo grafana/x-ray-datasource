@@ -48,6 +48,7 @@ func NewDatasource(ctx context.Context, xrayClientFactory XrayClientFactory, app
 	resMux.HandleFunc("/regions", ds.GetRegions)
 	resMux.HandleFunc("/accounts", ds.GetAccounts)
 	resMux.HandleFunc("/services", ds.GetServices)
+	resMux.HandleFunc("/operations", ds.GetOperations)
 	ds.ResourceMux = httpadapter.New(resMux)
 
 	authSettings := awsds.ReadAuthSettings(ctx)
@@ -78,6 +79,10 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 				currentRes = ds.ListServices(ctx, query, req.PluginContext)
 			case QueryListServiceOperations:
 				currentRes = ds.ListServiceOperations(ctx, query, req.PluginContext)
+			case QueryListServiceDependencies:
+				currentRes = ds.ListServiceDependencies(ctx, query, req.PluginContext)
+			case QueryListServiceLevelObjectives:
+				currentRes = ds.ListServiceLevelObjectives(ctx, query, req.PluginContext)
 			default:
 				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType), false)
 			}
@@ -183,4 +188,6 @@ type XrayClient interface {
 type AppSignalsClient interface {
 	applicationsignals.ListServicesAPIClient
 	applicationsignals.ListServiceOperationsAPIClient
+	applicationsignals.ListServiceDependenciesAPIClient
+	applicationsignals.ListServiceLevelObjectivesAPIClient
 }

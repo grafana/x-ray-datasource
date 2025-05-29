@@ -46,6 +46,9 @@ export interface XrayQuery extends DataQuery {
 
   // Used to get results by service for Application Signals queries
   service?: Record<string, string>;
+
+  // Used to get results for List Service Level Objectives queries in Application Signals
+  operationName?: string;
 }
 
 // Needs to match datasource Query* constants in backend code
@@ -71,6 +74,8 @@ export enum XrayQueryType {
 export enum ServicesQueryType {
   listServices = 'listServices',
   listServiceOperations = 'listServiceOperations',
+  listServiceDependencies = 'listServiceDependencies',
+  listSLOs = 'listServiceLevelObjectives',
 }
 
 export enum QueryMode {
