@@ -16,7 +16,7 @@ const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
   { label: 'List services', value: ServicesQueryType.listServices },
   { label: 'List service operations', value: ServicesQueryType.listServiceOperations },
   { label: 'List service dependencies', value: ServicesQueryType.listServiceDependencies },
-  { label: 'List Service Level Objectives', value: ServicesQueryType.listSLOs },
+  { label: 'List Service Level Objectives (SLO)', value: ServicesQueryType.listSLOs },
 ];
 
 function serviceToOption(service: Record<string, string>) {
