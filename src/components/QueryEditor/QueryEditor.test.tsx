@@ -126,17 +126,19 @@ describe('QueryEditor', () => {
     expect(screen.getByText(expected)).not.toBeNull();
   });
 
-  it.each([[QueryMode.services, ServicesQueryType.listServices, 'List services']])(
-    'renders proper query type option when query mode is %s and query type is %s',
-    async (mode, type, expected) => {
-      await renderWithQuery({
-        queryMode: mode,
-        query: 'test query',
-        serviceQueryType: type as ServicesQueryType,
-      });
-      expect(screen.getByText(expected)).not.toBeNull();
-    }
-  );
+  it.each([
+    [QueryMode.services, ServicesQueryType.listServices, 'List services'],
+    [QueryMode.services, ServicesQueryType.listServiceOperations, 'List service operations'],
+    [QueryMode.services, ServicesQueryType.listServiceDependencies, 'List service dependencies'],
+    [QueryMode.services, ServicesQueryType.listSLOs, 'List Service Level Objectives (SLO)'],
+  ])('renders proper query type option when query mode is %s and query type is %s', async (mode, type, expected) => {
+    await renderWithQuery({
+      queryMode: mode,
+      query: 'test query',
+      serviceQueryType: type as ServicesQueryType,
+    });
+    expect(screen.getByText(expected)).not.toBeNull();
+  });
 
   it('inits the query with query type', async () => {
     const { onChange } = await renderWithQuery({ query: '' });
@@ -361,7 +363,11 @@ describe('QueryEditor', () => {
     expect(mockGetAccountIds).not.toHaveBeenCalled();
   });
 
-  it('shows the Services in a dropdown on listServiceOperations selection', async () => {
+  it.each([
+    ServicesQueryType.listServiceOperations,
+    ServicesQueryType.listServiceDependencies,
+    ServicesQueryType.listSLOs,
+  ])('renders service dropdown if query type is %s', async (serviceType) => {
     const mockGetServices = jest.fn(() =>
       Promise.resolve([
         {
@@ -390,7 +396,7 @@ describe('QueryEditor', () => {
             refId: 'A',
             query: '',
             queryMode: QueryMode.services,
-            serviceQueryType: ServicesQueryType.listServiceOperations,
+            serviceQueryType: serviceType,
             service: {
               AwsAccountId: '12345678910',
               Environment: 'cluster',
@@ -407,50 +413,13 @@ describe('QueryEditor', () => {
     expect(mockGetServices).toHaveBeenCalled();
   });
 
-  it('shows the Services in a dropdown on listServiceDependencies selection', async () => {
-    const mockGetServices = jest.fn(() =>
-      Promise.resolve([
-        {
-          AwsAccountId: '12345678910',
-          Environment: 'cluster',
-          Name: 'service1',
-          Type: 'Service',
-        },
-        {
-          AwsAccountId: '12345678910',
-          Environment: 'cluster',
-          Name: 'service2',
-          Type: 'Service',
-        },
-      ])
-    );
-    render(
-      <QueryEditor
-        {...{
-          ...defaultProps,
-          datasource: {
-            ...defaultProps.datasource,
-            getServices: mockGetServices,
-          },
-          query: {
-            refId: 'A',
-            query: '',
-            queryMode: QueryMode.services,
-            serviceQueryType: ServicesQueryType.listServiceDependencies,
-            service: {
-              AwsAccountId: '12345678910',
-              Environment: 'cluster',
-              Name: 'service1',
-              Type: 'Service',
-            },
-          },
-        }}
-        onChange={() => {}}
-      />
-    );
-    expect(screen.getByTestId('Spinner')).toBeDefined();
-    expect(await screen.findByText('service1')).toBeDefined();
-    expect(mockGetServices).toHaveBeenCalled();
+  it('renders operations input if queryType is list SLOs ', async () => {
+    await renderWithQuery({
+      queryMode: QueryMode.services,
+      query: 'test query',
+      serviceQueryType: ServicesQueryType.listSLOs,
+    });
+    expect(screen.getByText('Operation')).not.toBeNull();
   });
 });
 
