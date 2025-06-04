@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.15.0
+
+- Bump the all-go-dependencies group across 1 directory with 3 updates in [#360](https://github.com/grafana/x-ray-datasource/pull/360)
+- Bump the all-node-dependencies group across 1 directory with 18 updates in [#359](https://github.com/grafana/x-ray-datasource/pull/359)
+- App Signals: Implement List Service Level Objectives query in [#361](https://github.com/grafana/x-ray-datasource/pull/361)
+- App Signals: Implement ListServiceDependencies in [#356](https://github.com/grafana/x-ray-datasource/pull/356)
+- Update for grafana-aws-sdk new style v2 authentication in [#336](https://github.com/grafana/x-ray-datasource/pull/336)
+
 ## 2.14.0
 
 - Feat: Auto convert w3c trace format (#184) in [#332](https://github.com/grafana/x-ray-datasource/pull/332)
