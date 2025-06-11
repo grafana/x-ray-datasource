@@ -26,9 +26,6 @@ const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
     onChange({ ...query, region });
   };
 
-  // @ts-ignore
-  const showModeSelector = config.featureToggles.xrayApplicationSignals ?? false;
-
   return (
     <>
       <EditorHeader>
@@ -40,17 +37,15 @@ const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
           onChange={({ value: region }) => region && onRegionChange(region)}
           options={regions}
         />
-        {showModeSelector && (
-          <InlineSelect
-            label="Mode"
-            aria-label="Query mode"
-            value={queryMode}
-            options={apiModes}
-            onChange={onQueryModeChange}
-            inputId={`cloudwatch-query-mode-${query.refId}`}
-            id={`cloudwatch-query-mode-${query.refId}`}
-          />
-        )}
+        <InlineSelect
+          label="Mode"
+          aria-label="Query mode"
+          value={queryMode}
+          options={apiModes}
+          onChange={onQueryModeChange}
+          inputId={`cloudwatch-query-mode-${query.refId}`}
+          id={`cloudwatch-query-mode-${query.refId}`}
+        />
       </EditorHeader>
     </>
   );
