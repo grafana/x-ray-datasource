@@ -369,6 +369,7 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary xraytypes.TraceSu
 					}
 				}
 			case QueryGetAnalyticsRootCauseFaultMessage:
+				key = getFaultMessage(cause)
 			default:
 				key = getFaultMessage(cause)
 			}
