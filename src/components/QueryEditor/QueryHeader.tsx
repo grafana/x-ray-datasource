@@ -4,7 +4,6 @@ import { EditorHeader, InlineSelect } from '@grafana/plugin-ui';
 import { XrayDataSource } from '../../XRayDataSource';
 import { XrayQuery, QueryMode, XrayJsonData, Region } from '../../types';
 import React from 'react';
-import { config } from '@grafana/runtime';
 
 export interface Props extends QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> {
   regions: Region[];

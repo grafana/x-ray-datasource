@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 	"math"
 	"math/rand"
 	"strconv"
 	"time"
+
+	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/xray"
@@ -315,10 +316,11 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary xraytypes.TraceSu
 		}
 		for _, cause := range summary.ErrorRootCauses {
 			var key string
-			if dataProcessor.queryType == QueryGetAnalyticsRootCauseErrorService {
+			switch dataProcessor.queryType {
+			case QueryGetAnalyticsRootCauseErrorService:
 				service := cause.Services[len(cause.Services)-1]
 				key = fmt.Sprintf("%s (%s)", *service.Name, *service.Type)
-			} else if dataProcessor.queryType == QueryGetAnalyticsRootCauseErrorPath {
+			case QueryGetAnalyticsRootCauseErrorPath:
 				for index, service := range cause.Services {
 					key += fmt.Sprintf("%s (%s)", *service.Name, *service.Type)
 
@@ -331,7 +333,8 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary xraytypes.TraceSu
 						key += " => "
 					}
 				}
-			} else {
+
+			default:
 				key = getErrorMessage(cause)
 			}
 			dataProcessor.counts[key]++
@@ -344,10 +347,11 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary xraytypes.TraceSu
 		}
 		for _, cause := range summary.FaultRootCauses {
 			var key string
-			if dataProcessor.queryType == QueryGetAnalyticsRootCauseFaultService {
+			switch dataProcessor.queryType {
+			case QueryGetAnalyticsRootCauseFaultService:
 				service := cause.Services[len(cause.Services)-1]
 				key = fmt.Sprintf("%s (%s)", *service.Name, *service.Type)
-			} else if dataProcessor.queryType == QueryGetAnalyticsRootCauseFaultPath {
+			case QueryGetAnalyticsRootCauseFaultPath:
 				for index, service := range cause.Services {
 					key += fmt.Sprintf("%s (%s)", *service.Name, *service.Type)
 
@@ -364,11 +368,11 @@ func (dataProcessor *DataProcessor) processSingleTrace(summary xraytypes.TraceSu
 						key += " => "
 					}
 				}
-			} else if dataProcessor.queryType == QueryGetAnalyticsRootCauseFaultMessage {
-				key = getFaultMessage(cause)
-			} else {
+			case QueryGetAnalyticsRootCauseFaultMessage:
+			default:
 				key = getFaultMessage(cause)
 			}
+
 			dataProcessor.counts[key]++
 			dataProcessor.total++
 		}

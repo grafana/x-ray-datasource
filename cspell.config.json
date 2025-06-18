@@ -13,7 +13,8 @@
     "go.sum",
     "mage_output_file.go",
     "playwright-report",
-    "test-results"
+    "test-results",
+    ".gitignore"
   ],
   "words": [
     "awsds",
