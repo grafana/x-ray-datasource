@@ -6,7 +6,7 @@ import React from 'react';
 import { ServicesQueryType, XrayJsonData, XrayQuery } from 'types';
 import { XrayDataSource } from 'XRayDataSource';
 import { config } from '@grafana/runtime';
-import { useAccountIds } from './useAccountIds';
+import { useAccountIdsWithQuery } from './useAccountIds';
 import { useServices } from './useServices';
 import { useOperations } from './useOperations';
 
@@ -30,12 +30,13 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
   const { serviceQueryType, service, region } = query;
   const styles = getStyles();
 
-  const accountIds = useAccountIds(datasource, query, range);
+  const accountIds = useAccountIdsWithQuery(datasource, query, range);
   const accountIdOptions = (accountIds || []).map((accountId: string) => ({
     value: accountId,
     label: accountId,
   }));
   accountIdOptions.push({ value: '', label: 'None' });
+  console.log(accountIdOptions);
   const hasStoredAccountIdFilter = !!(query.accountId && query.accountId.length);
   const showAccountIdDropdown =
     (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter) &&

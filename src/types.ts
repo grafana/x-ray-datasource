@@ -51,6 +51,22 @@ export interface XrayQuery extends DataQuery {
   operationName?: string;
 }
 
+export enum VariableQueryType {
+  Regions = 'regions',
+  Groups = 'groups',
+  Accounts = 'accounts',
+  Services = 'services',
+  Operations = 'operations',
+}
+
+export interface XrayVariableQuery extends DataQuery {
+  queryType: VariableQueryType;
+  region?: string;
+  group?: Group;
+  accountId?: string;
+  service?: Record<string, string>;
+}
+
 // Needs to match datasource Query* constants in backend code
 export enum XrayQueryType {
   getTrace = 'getTrace',

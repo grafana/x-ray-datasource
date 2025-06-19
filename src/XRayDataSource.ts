@@ -29,6 +29,7 @@ import {
 import { parseGraphResponse, transformTraceResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
 import { makeLinks } from './utils/links';
+import { XrayVariableSupport } from 'variables';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -39,6 +40,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
     this.languageProvider = new XRayLanguageProvider(this);
     this.instanceSettings = instanceSettings;
+    this.variables = new XrayVariableSupport(this);
   }
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
@@ -60,7 +62,8 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
   async getGroups(region?: string): Promise<Group[]> {
     let searchString = '';
     if (region) {
-      const params = new URLSearchParams({ region });
+      const actualRegion = getTemplateSrv().replace(region);
+      const params = new URLSearchParams({ actualRegion });
       searchString = '?' + params.toString();
     }
     return this.getResource(`groups${searchString}`);
@@ -82,10 +85,10 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
   async getServices(region?: string, range?: TimeRange, accountId?: string): Promise<Array<Record<string, string>>> {
     const params = new URLSearchParams({
-      region: region ?? '',
+      region: getTemplateSrv().replace(this.getActualRegion(region)),
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
-      accountId: accountId ?? '',
+      accountId: getTemplateSrv().replace(accountId ?? ''),
     });
     const searchString = '?' + params.toString();
     return this.getResource(`services${searchString}`);
@@ -93,7 +96,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
   async getOperations(region?: string, range?: TimeRange, service?: Record<string, string>): Promise<string[]> {
     const params = new URLSearchParams({
-      region: region ?? '',
+      region: getTemplateSrv().replace(this.getActualRegion(region)),
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
     });
@@ -114,7 +117,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     const params = new URLSearchParams({
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
-      group: group?.GroupName || 'Default',
+      group: getTemplateSrv().replace(group?.GroupName || 'Default'),
     });
 
     const searchString = '?' + params.toString();
@@ -165,6 +168,20 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         '?' + urlQuery?.toString().replace(/\+/g, '%20').replace(/%3A/g, ':').replace(/%7E/g, '~')
       : '';
     return `${this.getXrayUrl(query.region)}#/${section}${queryParams}`;
+  }
+
+  // public
+  getVariables() {
+    return getTemplateSrv()
+      .getVariables()
+      .map((v) => `$${v.name}`);
+  }
+
+  getActualRegion(region?: string) {
+    if (region === 'default' || region === undefined || region === '') {
+      return this.instanceSettings.jsonData.defaultRegion ?? '';
+    }
+    return region;
   }
 
   interpolateVariablesInQueries(queries: XrayQuery[], scopedVars: ScopedVars): XrayQuery[] {

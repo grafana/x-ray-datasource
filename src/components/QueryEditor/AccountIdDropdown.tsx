@@ -1,5 +1,5 @@
 import { XrayDataSource } from 'XRayDataSource';
-import { useAccountIds } from './useAccountIds';
+import { useAccountIdsWithQuery } from './useAccountIds';
 import { XrayQuery } from '../../types';
 import { TimeRange } from '@grafana/data';
 import { config } from '@grafana/runtime';
@@ -14,7 +14,7 @@ type Props = {
 };
 
 export const AccountIdDropdown = (props: Props) => {
-  const accountIds = useAccountIds(props.datasource, props.query, props.range);
+  const accountIds = useAccountIdsWithQuery(props.datasource, props.query, props.range);
   const hasStoredAccountIdFilter = !!(props.query.accountIds && props.query.accountIds.length);
   const showAccountIdDropdown = config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter;
 
