@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -16,11 +17,11 @@ import (
 )
 
 type ListServiceLevelObjectivesQueryData struct {
-	Region                string            `json:"region,omitempty"`
-	Service               map[string]string `json:"service,omitempty"`
-	OperationName         string            `json:"operationName,omitempty"`
-	IncludeLinkedAccounts bool              `json:"includeLinkedAccounts,omitempty"`
-	AccountId             string            `json:"accountId,omitempty"`
+	Region                string `json:"region,omitempty"`
+	ServiceString         string `json:"serviceString,omitempty"`
+	OperationName         string `json:"operationName,omitempty"`
+	IncludeLinkedAccounts bool   `json:"includeLinkedAccounts,omitempty"`
+	AccountId             string `json:"accountId,omitempty"`
 }
 
 func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -30,7 +31,7 @@ func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query back
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
-	if len(queryData.Service) == 0 {
+	if len(queryData.ServiceString) == 0 {
 		return backend.ErrorResponseWithErrorSource(backend.DownstreamErrorf("Service not set on query"))
 	}
 
@@ -39,9 +40,16 @@ func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query back
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
+	serviceMap := map[string]string{}
+	err = json.Unmarshal([]byte(queryData.ServiceString), &serviceMap)
+	if err != nil {
+		log.DefaultLogger.Error("why")
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
+	}
+
 	input := applicationsignals.ListServiceLevelObjectivesInput{
 		OperationName:         aws.String(queryData.OperationName),
-		KeyAttributes:         queryData.Service,
+		KeyAttributes:         serviceMap,
 		IncludeLinkedAccounts: queryData.IncludeLinkedAccounts,
 	}
 

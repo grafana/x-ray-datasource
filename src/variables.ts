@@ -2,6 +2,7 @@ import {
   CustomVariableSupport,
   DataQueryRequest,
   DataQueryResponse,
+  ScopedVars,
   SelectableValue,
   TimeRange,
   toOption,
@@ -14,14 +15,14 @@ import { defaultRegions } from 'components/QueryEditor/useRegions';
 
 export function groupsToVariables(groups: Group[]): SelectableValue[] {
   return groups.map((group: Group) => ({
-    value: group.GroupARN,
+    value: group.GroupName,
     text: group.GroupName,
   }));
 }
 
 function serviceToVariables(service: Record<string, string>): SelectableValue {
   return {
-    value: service,
+    value: JSON.stringify(service),
     text: service.Name,
   };
 }
@@ -35,23 +36,22 @@ export class XrayVariableSupport extends CustomVariableSupport<XrayDataSource, X
   editor = XrayVariableQueryEditor;
 
   query(request: DataQueryRequest<XrayVariableQuery>): Observable<DataQueryResponse> {
-    return from(this.execute(request.range, request.targets[0])).pipe(map((data) => ({ data })));
+    return from(this.execute(request.range, request.targets[0], request.scopedVars)).pipe(map((data) => ({ data })));
   }
 
-  async execute(range: TimeRange, query: XrayVariableQuery) {
+  async execute(range: TimeRange, query: XrayVariableQuery, scopedVars: ScopedVars) {
     try {
-      console.log('type', query.queryType);
       switch (query.queryType) {
         case VariableQueryType.Regions:
           return defaultRegions;
         case VariableQueryType.Groups:
-          return groupsToVariables(await this.datasource.getGroups(query.region));
+          return groupsToVariables(await this.datasource.getGroups(query.region, scopedVars));
         case VariableQueryType.Accounts:
-          return await this.datasource.getAccountIds(range, query.group);
+          return (await this.datasource.getAccountIds(range, query.groupName)).map(toOption);
         case VariableQueryType.Services:
           return (await this.datasource.getServices(query.region, range, query.accountId)).map(serviceToVariables);
         case VariableQueryType.Operations:
-          return (await this.datasource.getOperations(query.region, range, query.service)).map(toOption);
+          return (await this.datasource.getOperations(query.region, range, query.serviceString)).map(toOption);
       }
     } catch (error) {
       console.error(`Could not run Xray Variable Query ${query}`, error);

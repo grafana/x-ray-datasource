@@ -389,6 +389,11 @@ describe('QueryEditor', () => {
         },
       ])
     );
+    const service = {
+      AwsAccountId: '12345678910',
+      Environment: 'cluster',
+      Name: 'service1',
+    };
     render(
       <QueryEditor
         {...{
@@ -402,12 +407,8 @@ describe('QueryEditor', () => {
             query: '',
             queryMode: QueryMode.services,
             serviceQueryType: serviceType,
-            service: {
-              AwsAccountId: '12345678910',
-              Environment: 'cluster',
-              Name: 'service1',
-              Type: 'Service',
-            },
+            serviceName: 'service1',
+            serviceString: JSON.stringify(service),
           },
         }}
         onChange={() => {}}

@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { GrafanaTheme2, QueryEditorProps, SelectableValue } from '@grafana/data';
+import { GrafanaTheme2, QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import { Select, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { Group, VariableQueryType, XrayJsonData, XrayQuery, XrayVariableQuery } from 'types';
@@ -7,8 +7,9 @@ import { XrayDataSource } from 'XRayDataSource';
 import { useAccountIds } from './QueryEditor/useAccountIds';
 import { useServices } from './QueryEditor/useServices';
 import { EditorField } from '@grafana/plugin-ui';
-import { useRegions } from './QueryEditor/useRegions';
+import { useRegionOptions } from './QueryEditor/useRegions';
 import { useGroups } from './QueryEditor/useGroups';
+import { serviceStringsToOption } from './utils';
 
 export type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData, XrayVariableQuery>;
 
@@ -20,30 +21,32 @@ const variableQueryOptions: Array<SelectableValue<VariableQueryType>> = [
   { label: 'Operations', value: VariableQueryType.Operations },
 ];
 
-function serviceToOption(service: Record<string, string>) {
-  return {
-    value: service,
-    label: service.Name,
+function groupsToOptions(groups: Group[], datasource: XrayDataSource): Array<SelectableValue<string>> {
+  const variableOptionGroup = {
+    label: 'Template Variables',
+    options: datasource.getVariables().map(toOption),
   };
+  let groupOptions: Array<SelectableValue<string>> = groups.map((group: Group) => ({
+    value: group.GroupName,
+    label: group.GroupName,
+  }));
+  groupOptions = [...groupOptions, variableOptionGroup];
+  return groupOptions;
 }
 
 export const XrayVariableQueryEditor = ({ query, datasource, onChange, range }: Props) => {
-  const { queryType, region, group, accountId, service } = query;
+  const { queryType, region, groupName, accountId, serviceName, serviceString } = query;
   const styles = useStyles2(getStyles);
 
-  const regions = useRegions(datasource);
+  const regionOptions = useRegionOptions(datasource);
+
   // Use groups will return old groups after region change so it does not flash loading state. in case datasource
   // changes regions will return undefined so that will do the loading state.
   const groups = useGroups(datasource, region) ?? [];
-  const groupOptions = groups.map((group: Group) => ({
-    value: group.GroupARN,
-    label: group.GroupName,
-  }));
+  let groupOptions = groupsToOptions(groups, datasource);
 
-  const accountIds = useAccountIds(datasource, group, range);
-
+  const accountIds = useAccountIds(datasource, groupName, range);
   const services = useServices(datasource, region, range, query.accountId);
-  const serviceOptions = (services || []).map(serviceToOption);
 
   return (
     <div className={styles.formStyles}>
@@ -61,7 +64,7 @@ export const XrayVariableQueryEditor = ({ query, datasource, onChange, range }: 
         <EditorField label="Region">
           <Select
             value={region}
-            options={regions}
+            options={regionOptions}
             allowCustomValue
             onChange={(value) => {
               onChange({ ...query, region: value.value });
@@ -72,11 +75,11 @@ export const XrayVariableQueryEditor = ({ query, datasource, onChange, range }: 
       {query.queryType === VariableQueryType.Accounts && (
         <EditorField label="Group">
           <Select
-            value={query.group?.GroupName}
+            value={query.groupName}
             options={groupOptions}
             allowCustomValue
             onChange={(value) => {
-              onChange({ ...query, group: groups.find((g: Group) => g.GroupARN === value.value) });
+              onChange({ ...query, groupName: value.value });
             }}
           />
         </EditorField>
@@ -96,10 +99,10 @@ export const XrayVariableQueryEditor = ({ query, datasource, onChange, range }: 
       {query.queryType === VariableQueryType.Operations && (
         <EditorField label="Service">
           <Select
-            value={service ? serviceToOption(service) : undefined}
-            options={serviceOptions}
+            value={serviceName && serviceString ? serviceStringsToOption(serviceName, serviceString) : undefined}
+            options={services}
             onChange={(value) => {
-              onChange({ ...query, service: value.value });
+              onChange({ ...query, serviceName: value.label, serviceString: value.value });
             }}
           />
         </EditorField>

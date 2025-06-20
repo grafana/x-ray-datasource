@@ -4,6 +4,7 @@ import { EditorHeader, InlineSelect } from '@grafana/plugin-ui';
 import { XrayDataSource } from '../../XRayDataSource';
 import { XrayQuery, QueryMode, XrayJsonData, Region } from '../../types';
 import React from 'react';
+import { useRegionOptions } from './useRegions';
 
 export interface Props extends QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> {
   regions: Region[];
@@ -25,6 +26,8 @@ const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
     onChange({ ...query, region });
   };
 
+  const regionOptions = useRegionOptions(datasource);
+
   return (
     <>
       <EditorHeader>
@@ -34,7 +37,7 @@ const QueryHeader = ({ query, onChange, datasource, regions }: Props) => {
           placeholder="Select region"
           allowCustomValue
           onChange={({ value: region }) => region && onRegionChange(region)}
-          options={regions}
+          options={regionOptions}
         />
         <InlineSelect
           label="Mode"
