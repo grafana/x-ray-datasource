@@ -45,7 +45,6 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
     const processedRequest = processRequest(request, getTemplateSrv());
-    console.log(processRequest);
     let response = super.query(processedRequest);
     return response.pipe(
       map((dataQueryResponse) => {
@@ -84,9 +83,15 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     ];
   }
 
-  async getServices(region?: string, range?: TimeRange, accountId?: string): Promise<Array<Record<string, string>>> {
+  async getServices(
+    region?: string,
+    range?: TimeRange,
+    accountId?: string,
+    scopedVars?: ScopedVars
+  ): Promise<Array<Record<string, string>>> {
+    const actualRegion = this.getActualRegion(region);
     const params = new URLSearchParams({
-      region: getTemplateSrv().replace(this.getActualRegion(region)),
+      region: getTemplateSrv().replace(actualRegion, scopedVars),
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
       accountId: getTemplateSrv().replace(accountId ?? ''),
@@ -95,9 +100,14 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return this.getResource(`services${searchString}`);
   }
 
-  async getOperations(region?: string, range?: TimeRange, service?: string): Promise<string[]> {
+  async getOperations(
+    region?: string,
+    range?: TimeRange,
+    service?: string,
+    scopedVars?: ScopedVars
+  ): Promise<string[]> {
     const params = new URLSearchParams({
-      region: getTemplateSrv().replace(this.getActualRegion(region)),
+      region: getTemplateSrv().replace(this.getActualRegion(region), scopedVars),
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
     });
@@ -111,14 +121,14 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     return this.postResource(`operations${searchString}`, body);
   }
 
-  async getAccountIds(range?: TimeRange, group?: string): Promise<string[]> {
+  async getAccountIds(range?: TimeRange, group?: string, scopedVars?: ScopedVars): Promise<string[]> {
     if (!config.featureToggles.cloudWatchCrossAccountQuerying) {
       return [];
     }
     const params = new URLSearchParams({
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
-      group: getTemplateSrv().replace(group ?? 'Default'),
+      group: getTemplateSrv().replace(group ?? 'Default', scopedVars),
     });
 
     const searchString = '?' + params.toString();
@@ -368,6 +378,7 @@ function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: Templ
       newTarget.accountIds = newTarget.accountIds?.map((value) => templateSrv.replace(value, request.scopedVars));
       newTarget.accountId = templateSrv.replace(newTarget.accountId, request.scopedVars);
       newTarget.serviceString = templateSrv.replace(newTarget.serviceString, request.scopedVars);
+      newTarget.operationName = templateSrv.replace(newTarget.operationName, request.scopedVars);
       // TODO: handle group interpolation
 
       // Add Group filter expression to the query filter expression. This seems to mimic what x-ray console is doing

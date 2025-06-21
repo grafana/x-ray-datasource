@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -43,7 +42,6 @@ func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query back
 	serviceMap := map[string]string{}
 	err = json.Unmarshal([]byte(queryData.ServiceString), &serviceMap)
 	if err != nil {
-		log.DefaultLogger.Error("why")
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 

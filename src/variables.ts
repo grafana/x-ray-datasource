@@ -47,11 +47,15 @@ export class XrayVariableSupport extends CustomVariableSupport<XrayDataSource, X
         case VariableQueryType.Groups:
           return groupsToVariables(await this.datasource.getGroups(query.region, scopedVars));
         case VariableQueryType.Accounts:
-          return (await this.datasource.getAccountIds(range, query.groupName)).map(toOption);
+          return (await this.datasource.getAccountIds(range, query.groupName, scopedVars)).map(toOption);
         case VariableQueryType.Services:
-          return (await this.datasource.getServices(query.region, range, query.accountId)).map(serviceToVariables);
+          return (await this.datasource.getServices(query.region, range, query.accountId, scopedVars)).map(
+            serviceToVariables
+          );
         case VariableQueryType.Operations:
-          return (await this.datasource.getOperations(query.region, range, query.serviceString)).map(toOption);
+          return (await this.datasource.getOperations(query.region, range, query.serviceString, scopedVars)).map(
+            toOption
+          );
       }
     } catch (error) {
       console.error(`Could not run Xray Variable Query ${query}`, error);

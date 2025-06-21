@@ -64,6 +64,16 @@ export function useInitQuery(
       }
     }
 
+    // Set serviceName and serviceString if query is set and they are not
+    if (query.service) {
+      if (!query.serviceName) {
+        newQuery.serviceName = query.service.Name;
+        newQuery.serviceString = JSON.stringify(query.service);
+      }
+      newQuery.service = undefined;
+      updated = true;
+    }
+
     if (updated) {
       onChange(newQuery);
     }
@@ -95,8 +105,8 @@ function getNewGroup(query: XrayQuery, groups: Group[], defaultGroup: Group): Gr
 function getNewRegion(query: XrayQuery, regions: Region[]): string {
   if (query.region) {
     const newRegion = regions.find((r) => r.value === query.region);
-    if (newRegion) {
-      return newRegion.value;
+    if (newRegion || query.region.startsWith('$')) {
+      return query.region;
     }
   }
   return 'default';

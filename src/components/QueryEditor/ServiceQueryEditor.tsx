@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import { EditorField, EditorFieldGroup, EditorRow } from '@grafana/plugin-ui';
 import { InlineSwitch, Select } from '@grafana/ui';
 import React from 'react';
@@ -26,11 +26,16 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
   const styles = getStyles();
 
   const accountIds = useAccountIdsWithQuery(datasource, query, range);
-  const accountIdOptions = (accountIds || []).map((accountId: string) => ({
+  const accountIdOptions: Array<SelectableValue<string>> = (accountIds || []).map((accountId: string) => ({
     value: accountId,
     label: accountId,
   }));
   accountIdOptions.push({ value: '', label: 'None' });
+  const variableOptionGroup = {
+    label: 'Template Variables',
+    options: datasource.getVariables().map(toOption),
+  };
+  accountIdOptions.push(variableOptionGroup);
   const hasStoredAccountIdFilter = !!(query.accountId && query.accountId.length);
   const showAccountIdDropdown =
     (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter) &&
@@ -43,6 +48,7 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
     label: operation,
     value: operation,
   }));
+  operationOptions.push(variableOptionGroup);
 
   return (
     <>
