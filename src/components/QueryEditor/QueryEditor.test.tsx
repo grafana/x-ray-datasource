@@ -23,6 +23,9 @@ const defaultProps = {
     getXrayUrlForQuery() {
       return 'console';
     },
+    getVariables() {
+      return [];
+    },
   } as any,
 };
 
@@ -34,19 +37,6 @@ jest.mock('./XRayQueryField', () => {
     )),
   };
 });
-
-jest.mock(
-  'grafana/app/core/app_events',
-  () => {
-    return {
-      __esModule: true,
-      default: {
-        emit: jest.fn(),
-      },
-    };
-  },
-  { virtual: true }
-);
 
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
@@ -72,6 +62,9 @@ jest.mock('@grafana/runtime', () => ({
     },
     containsTemplate: jest.fn(),
     updateTimeRange: jest.fn(),
+  }),
+  getAppEvents: () => ({
+    publish: jest.fn(),
   }),
 }));
 
