@@ -951,6 +951,7 @@ func TestDatasource(t *testing.T) {
 		var data []*xraytypes.GroupSummary
 		err = json.Unmarshal(resp.Body, &data)
 		require.NoError(t, err)
+
 		require.Equal(t, 2, len(data))
 		require.Equal(t, "Default", *data[0].GroupName)
 		require.Equal(t, "GroupTest", *data[1].GroupName)

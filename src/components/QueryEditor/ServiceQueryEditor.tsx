@@ -21,7 +21,6 @@ const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
 ];
 
 export function ServiceQueryEditor({ query, onChange, datasource, range }: ServiceQueryEditorFormProps) {
-  //query = migrateQuery(query);
   const { serviceQueryType, serviceName, serviceString, region } = query;
   const styles = getStyles();
 

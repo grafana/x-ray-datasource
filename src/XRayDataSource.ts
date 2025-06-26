@@ -63,7 +63,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     let searchString = '';
     if (region) {
       const actualRegion = getTemplateSrv().replace(this.getActualRegion(region), scopedVars);
-      const params = new URLSearchParams({ actualRegion });
+      const params = new URLSearchParams({ region: actualRegion });
       searchString = '?' + params.toString();
     }
     return this.getResource(`groups${searchString}`);
