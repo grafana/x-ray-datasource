@@ -2,11 +2,29 @@ import { XrayDataSource } from 'XRayDataSource';
 import { useAsync } from 'react-use';
 import { XrayQuery } from 'types';
 import { useError } from './useError';
-import { TimeRange } from '@grafana/data';
+import { SelectableValue, TimeRange, toOption } from '@grafana/data';
 import { uniq } from 'lodash';
 
-export function useAccountIds(datasource: XrayDataSource, query: XrayQuery, range?: TimeRange): string[] {
-  const result = useAsync(async () => datasource.getAccountIds(range, query.group), [datasource, range, query]);
+export function useAccountIds(datasource: XrayDataSource, groupName?: string, range?: TimeRange): SelectableValue[] {
+  const result = useAsync(async () => datasource.getAccountIds(range, groupName), [datasource, range, groupName]);
+
+  useError('Failed to load accountIds', result.error);
+  if (result.error) {
+    return [];
+  }
+
+  const variableOptionGroup = {
+    label: 'Template Variables',
+    options: datasource.getVariables().map(toOption),
+  };
+  return result.loading || !result.value ? [] : [...result.value.map(toOption), variableOptionGroup];
+}
+
+export function useAccountIdsWithQuery(datasource: XrayDataSource, query: XrayQuery, range?: TimeRange): string[] {
+  const result = useAsync(
+    async () => datasource.getAccountIds(range, query.group?.GroupName),
+    [datasource, range, query]
+  );
 
   useError('Failed to load accountIds', result.error);
   if (result.error) {

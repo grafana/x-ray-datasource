@@ -23,6 +23,9 @@ const defaultProps = {
     getXrayUrlForQuery() {
       return 'console';
     },
+    getVariables() {
+      return [];
+    },
   } as any,
 };
 
@@ -34,19 +37,6 @@ jest.mock('./XRayQueryField', () => {
     )),
   };
 });
-
-jest.mock(
-  'grafana/app/core/app_events',
-  () => {
-    return {
-      __esModule: true,
-      default: {
-        emit: jest.fn(),
-      },
-    };
-  },
-  { virtual: true }
-);
 
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
@@ -72,6 +62,9 @@ jest.mock('@grafana/runtime', () => ({
     },
     containsTemplate: jest.fn(),
     updateTimeRange: jest.fn(),
+  }),
+  getAppEvents: () => ({
+    publish: jest.fn(),
   }),
 }));
 
@@ -291,7 +284,12 @@ describe('QueryEditor', () => {
   });
 
   it('shows the accountIds in a dropdown on service map selection', async () => {
-    const mockGetAccountIds = jest.fn(() => Promise.resolve(['account1', 'account2']));
+    const mockGetAccountIds = jest.fn(() =>
+      Promise.resolve([
+        { value: 'account1', label: 'account1' },
+        { value: 'account2', label: 'account2' },
+      ])
+    );
     render(
       <QueryEditor
         {...{
@@ -384,6 +382,11 @@ describe('QueryEditor', () => {
         },
       ])
     );
+    const service = {
+      AwsAccountId: '12345678910',
+      Environment: 'cluster',
+      Name: 'service1',
+    };
     render(
       <QueryEditor
         {...{
@@ -397,12 +400,8 @@ describe('QueryEditor', () => {
             query: '',
             queryMode: QueryMode.services,
             serviceQueryType: serviceType,
-            service: {
-              AwsAccountId: '12345678910',
-              Environment: 'cluster',
-              Name: 'service1',
-              Type: 'Service',
-            },
+            serviceName: 'service1',
+            serviceString: JSON.stringify(service),
           },
         }}
         onChange={() => {}}

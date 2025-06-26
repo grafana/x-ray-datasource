@@ -1,14 +1,15 @@
 import { css } from '@emotion/css';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import { EditorField, EditorFieldGroup, EditorRow } from '@grafana/plugin-ui';
 import { InlineSwitch, Select } from '@grafana/ui';
 import React from 'react';
 import { ServicesQueryType, XrayJsonData, XrayQuery } from 'types';
 import { XrayDataSource } from 'XRayDataSource';
 import { config } from '@grafana/runtime';
-import { useAccountIds } from './useAccountIds';
+import { useAccountIdsWithQuery } from './useAccountIds';
 import { useServices } from './useServices';
 import { useOperations } from './useOperations';
+import { serviceStringsToOption } from 'components/utils';
 
 export type ServiceQueryEditorFormProps = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData> & {};
 
@@ -19,36 +20,34 @@ const servicesQueryOptions: Array<SelectableValue<ServicesQueryType>> = [
   { label: 'List Service Level Objectives (SLO)', value: ServicesQueryType.listSLOs },
 ];
 
-function serviceToOption(service: Record<string, string>) {
-  return {
-    value: service,
-    label: service.Name,
-  };
-}
-
 export function ServiceQueryEditor({ query, onChange, datasource, range }: ServiceQueryEditorFormProps) {
-  const { serviceQueryType, service, region } = query;
+  const { serviceQueryType, serviceName, serviceString, region } = query;
   const styles = getStyles();
 
-  const accountIds = useAccountIds(datasource, query, range);
-  const accountIdOptions = (accountIds || []).map((accountId: string) => ({
+  const accountIds = useAccountIdsWithQuery(datasource, query, range);
+  const accountIdOptions: Array<SelectableValue<string>> = (accountIds || []).map((accountId: string) => ({
     value: accountId,
     label: accountId,
   }));
   accountIdOptions.push({ value: '', label: 'None' });
+  const variableOptionGroup = {
+    label: 'Template Variables',
+    options: datasource.getVariables().map(toOption),
+  };
+  accountIdOptions.push(variableOptionGroup);
   const hasStoredAccountIdFilter = !!(query.accountId && query.accountId.length);
   const showAccountIdDropdown =
     (config.featureToggles.cloudWatchCrossAccountQuerying || hasStoredAccountIdFilter) &&
     (serviceQueryType === ServicesQueryType.listServices || serviceQueryType === ServicesQueryType.listSLOs);
 
   const services = useServices(datasource, region, range, query.accountId);
-  const serviceOptions = (services || []).map(serviceToOption);
 
-  const operations = useOperations(datasource, serviceQueryType, region, range, service);
+  const operations = useOperations(datasource, serviceQueryType, region, range, serviceString);
   const operationOptions: Array<SelectableValue<string>> = (operations || []).map((operation) => ({
     label: operation,
     value: operation,
   }));
+  operationOptions.push(variableOptionGroup);
 
   return (
     <>
@@ -105,12 +104,13 @@ export function ServiceQueryEditor({ query, onChange, datasource, range }: Servi
             <EditorField label="Service" className="query-keyword" htmlFor="service">
               <Select
                 id="service"
-                options={serviceOptions}
-                value={query.service ? serviceToOption(query.service) : undefined}
+                options={services}
+                value={serviceName && serviceString ? serviceStringsToOption(serviceName, serviceString) : undefined}
                 onChange={(value) => {
                   onChange({
                     ...query,
-                    service: value.value,
+                    serviceName: value.label,
+                    serviceString: value.value,
                   });
                 }}
               />

@@ -16,11 +16,11 @@ import (
 )
 
 type ListServiceLevelObjectivesQueryData struct {
-	Region                string            `json:"region,omitempty"`
-	Service               map[string]string `json:"service,omitempty"`
-	OperationName         string            `json:"operationName,omitempty"`
-	IncludeLinkedAccounts bool              `json:"includeLinkedAccounts,omitempty"`
-	AccountId             string            `json:"accountId,omitempty"`
+	Region                string `json:"region,omitempty"`
+	ServiceString         string `json:"serviceString,omitempty"`
+	OperationName         string `json:"operationName,omitempty"`
+	IncludeLinkedAccounts bool   `json:"includeLinkedAccounts,omitempty"`
+	AccountId             string `json:"accountId,omitempty"`
 }
 
 func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -30,7 +30,7 @@ func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query back
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
-	if len(queryData.Service) == 0 {
+	if len(queryData.ServiceString) == 0 {
 		return backend.ErrorResponseWithErrorSource(backend.DownstreamErrorf("Service not set on query"))
 	}
 
@@ -39,9 +39,15 @@ func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query back
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
+	serviceMap := map[string]string{}
+	err = json.Unmarshal([]byte(queryData.ServiceString), &serviceMap)
+	if err != nil {
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
+	}
+
 	input := applicationsignals.ListServiceLevelObjectivesInput{
 		OperationName:         aws.String(queryData.OperationName),
-		KeyAttributes:         queryData.Service,
+		KeyAttributes:         serviceMap,
 		IncludeLinkedAccounts: queryData.IncludeLinkedAccounts,
 	}
 

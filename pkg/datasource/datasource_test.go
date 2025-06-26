@@ -844,14 +844,17 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("listServiceOperations query", func(t *testing.T) {
+		service := map[string]string{
+			"AwsAccountId": "569069006612",
+			"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
+			"Name":         "datasources-graphite-latest-07978676",
+			"Type":         "Service",
+		}
+		serviceStr, err := json.Marshal(service)
+		require.NoError(t, err)
 		response, err := queryDatasource(ds, "", map[string]interface{}{
 			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServiceOperations, "region": "us-east-1",
-			"Service": map[string]string{
-				"AwsAccountId": "569069006612",
-				"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
-				"Name":         "datasources-graphite-latest-07978676",
-				"Type":         "Service",
-			},
+			"ServiceString": string(serviceStr),
 		})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
@@ -872,14 +875,17 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("listServiceDependencies query", func(t *testing.T) {
+		service := map[string]string{
+			"AwsAccountId": "569069006612",
+			"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
+			"Name":         "datasources-graphite-latest-07978676",
+			"Type":         "Service",
+		}
+		serviceStr, err := json.Marshal(service)
+		require.NoError(t, err)
 		response, err := queryDatasource(ds, "", map[string]interface{}{
 			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServiceDependencies, "region": "us-east-1",
-			"Service": map[string]string{
-				"AwsAccountId": "569069006612",
-				"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
-				"Name":         "datasources-graphite-latest-07978676",
-				"Type":         "Service",
-			},
+			"ServiceString": string(serviceStr),
 		})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
@@ -902,14 +908,18 @@ func TestDatasource(t *testing.T) {
 	})
 
 	t.Run("listServiceLevelObjectives query", func(t *testing.T) {
+		service := map[string]string{
+			"AwsAccountId": "569069006612",
+			"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
+			"Name":         "datasources-graphite-latest-07978676",
+			"Type":         "Service",
+		}
+		serviceStr, err := json.Marshal(service)
+		require.NoError(t, err)
+
 		response, err := queryDatasource(ds, "", map[string]interface{}{
 			"queryMode": datasource.ModeServices, "serviceQueryType": datasource.QueryListServiceLevelObjectives, "region": "us-east-1",
-			"Service": map[string]string{
-				"AwsAccountId": "569069006612",
-				"Environment":  "eks:datasources-cluster-eksCluster-91305f0/amazon-cloudwatch",
-				"Name":         "datasources-graphite-latest-07978676",
-				"Type":         "Service",
-			},
+			"ServiceString": string(serviceStr),
 		})
 		require.NoError(t, err)
 		require.NoError(t, response.Responses["A"].Error)
@@ -941,6 +951,7 @@ func TestDatasource(t *testing.T) {
 		var data []*xraytypes.GroupSummary
 		err = json.Unmarshal(resp.Body, &data)
 		require.NoError(t, err)
+
 		require.Equal(t, 2, len(data))
 		require.Equal(t, "Default", *data[0].GroupName)
 		require.Equal(t, "GroupTest", *data[1].GroupName)

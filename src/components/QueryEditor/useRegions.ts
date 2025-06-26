@@ -1,5 +1,6 @@
+import { SelectableValue, toOption } from '@grafana/data';
 import { XrayDataSource } from '../../XRayDataSource';
-import { Region } from '../../types';
+import { Region } from 'types';
 
 /**
  * Use the static list of regions. aws-sdk-go-v2 has no simple replacement for the call
@@ -7,6 +8,15 @@ import { Region } from '../../types';
  */
 export function useRegions(datasource: XrayDataSource): Region[] | undefined {
   return defaultRegions;
+}
+
+export function useRegionOptions(datasource: XrayDataSource): Array<SelectableValue<string>> {
+  const variableOptionGroup = {
+    label: 'Template Variables',
+    options: datasource.getVariables().map(toOption),
+    Text: 'Template Variables',
+  };
+  return [...defaultRegions, variableOptionGroup];
 }
 
 export const defaultRegions = [

@@ -45,10 +45,29 @@ export interface XrayQuery extends DataQuery {
   queryMode?: QueryMode;
 
   // Used to get results by service for Application Signals queries
+  serviceName?: string;
+  serviceString?: string;
   service?: Record<string, string>;
 
   // Used to get results for List Service Level Objectives queries in Application Signals
   operationName?: string;
+}
+
+export enum VariableQueryType {
+  Regions = 'regions',
+  Groups = 'groups',
+  Accounts = 'accounts',
+  Services = 'services',
+  Operations = 'operations',
+}
+
+export interface XrayVariableQuery extends DataQuery {
+  queryType: VariableQueryType;
+  region?: string;
+  groupName?: string;
+  accountId?: string;
+  serviceName?: string;
+  serviceString?: string;
 }
 
 // Needs to match datasource Query* constants in backend code

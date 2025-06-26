@@ -11,8 +11,8 @@ import (
 )
 
 type ListServiceOperationsQueryData struct {
-	Region  string            `json:"region,omitempty"`
-	Service map[string]string `json:"service,omitempty"`
+	Region        string `json:"region,omitempty"`
+	ServiceString string `json:"serviceString,omitempty"`
 }
 
 func (ds *Datasource) ListServiceOperations(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -22,7 +22,7 @@ func (ds *Datasource) ListServiceOperations(ctx context.Context, query backend.D
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
-	if len(queryData.Service) == 0 {
+	if len(queryData.ServiceString) == 0 {
 		return backend.ErrorResponseWithErrorSource(backend.DownstreamErrorf("Service not set on query"))
 	}
 
@@ -31,10 +31,16 @@ func (ds *Datasource) ListServiceOperations(ctx context.Context, query backend.D
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
+	serviceMap := map[string]string{}
+	err = json.Unmarshal([]byte(queryData.ServiceString), &serviceMap)
+	if err != nil {
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
+	}
+
 	input := applicationsignals.ListServiceOperationsInput{
 		StartTime:     &query.TimeRange.From,
 		EndTime:       &query.TimeRange.To,
-		KeyAttributes: queryData.Service,
+		KeyAttributes: serviceMap,
 	}
 
 	var listServicesFrame = data.NewFrame(

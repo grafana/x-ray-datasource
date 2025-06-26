@@ -12,7 +12,7 @@ export function useOperations(
   serviceQueryType: ServicesQueryType = ServicesQueryType.listServices,
   region?: string,
   range?: TimeRange,
-  service?: Record<string, string>
+  service?: string
 ): string[] | undefined {
   const result = useAsync(async () => {
     if (serviceQueryType === ServicesQueryType.listSLOs && service) {

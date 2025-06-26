@@ -29,6 +29,7 @@ import {
 import { parseGraphResponse, transformTraceResponse } from 'utils/transform';
 import { XRayLanguageProvider } from 'language_provider';
 import { makeLinks } from './utils/links';
+import { XrayVariableSupport } from 'variables';
 
 export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonData> {
   private instanceSettings: DataSourceInstanceSettings<XrayJsonData>;
@@ -39,6 +40,7 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
 
     this.languageProvider = new XRayLanguageProvider(this);
     this.instanceSettings = instanceSettings;
+    this.variables = new XrayVariableSupport(this);
   }
 
   query(request: DataQueryRequest<XrayQuery>): Observable<DataQueryResponse> {
@@ -57,10 +59,11 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     );
   }
 
-  async getGroups(region?: string): Promise<Group[]> {
+  async getGroups(region?: string, scopedVars?: ScopedVars): Promise<Group[]> {
     let searchString = '';
     if (region) {
-      const params = new URLSearchParams({ region });
+      const actualRegion = getTemplateSrv().replace(this.getActualRegion(region), scopedVars);
+      const params = new URLSearchParams({ region: actualRegion });
       searchString = '?' + params.toString();
     }
     return this.getResource(`groups${searchString}`);
@@ -80,41 +83,52 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
     ];
   }
 
-  async getServices(region?: string, range?: TimeRange, accountId?: string): Promise<Array<Record<string, string>>> {
+  async getServices(
+    region?: string,
+    range?: TimeRange,
+    accountId?: string,
+    scopedVars?: ScopedVars
+  ): Promise<Array<Record<string, string>>> {
+    const actualRegion = this.getActualRegion(region);
     const params = new URLSearchParams({
-      region: region ?? '',
+      region: getTemplateSrv().replace(actualRegion, scopedVars),
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
-      accountId: accountId ?? '',
+      accountId: getTemplateSrv().replace(accountId ?? ''),
     });
     const searchString = '?' + params.toString();
     return this.getResource(`services${searchString}`);
   }
 
-  async getOperations(region?: string, range?: TimeRange, service?: Record<string, string>): Promise<string[]> {
+  async getOperations(
+    region?: string,
+    range?: TimeRange,
+    service?: string,
+    scopedVars?: ScopedVars
+  ): Promise<string[]> {
     const params = new URLSearchParams({
-      region: region ?? '',
+      region: getTemplateSrv().replace(this.getActualRegion(region), scopedVars),
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
     });
 
-    let body: Record<string, string> = {};
-    if (service) {
-      body = service;
+    if (!service) {
+      return [];
     }
 
+    const body = getTemplateSrv().replace(service);
     const searchString = '?' + params.toString();
     return this.postResource(`operations${searchString}`, body);
   }
 
-  async getAccountIds(range?: TimeRange, group?: Group): Promise<string[]> {
+  async getAccountIds(range?: TimeRange, group?: string, scopedVars?: ScopedVars): Promise<string[]> {
     if (!config.featureToggles.cloudWatchCrossAccountQuerying) {
       return [];
     }
     const params = new URLSearchParams({
       startTime: range ? range.from.toISOString() : '',
       endTime: range ? range.to.toISOString() : '',
-      group: group?.GroupName || 'Default',
+      group: getTemplateSrv().replace(group ?? 'Default', scopedVars),
     });
 
     const searchString = '?' + params.toString();
@@ -165,6 +179,20 @@ export class XrayDataSource extends DataSourceWithBackend<XrayQuery, XrayJsonDat
         '?' + urlQuery?.toString().replace(/\+/g, '%20').replace(/%3A/g, ':').replace(/%7E/g, '~')
       : '';
     return `${this.getXrayUrl(query.region)}#/${section}${queryParams}`;
+  }
+
+  // public
+  getVariables() {
+    return getTemplateSrv()
+      .getVariables()
+      .map((v) => `$${v.name}`);
+  }
+
+  getActualRegion(region?: string) {
+    if (region === 'default' || region === undefined || region === '') {
+      return this.instanceSettings.jsonData.defaultRegion ?? '';
+    }
+    return region;
   }
 
   interpolateVariablesInQueries(queries: XrayQuery[], scopedVars: ScopedVars): XrayQuery[] {
@@ -318,13 +346,23 @@ function parseServiceMapResponse(
   return [servicesFrame, edgesFrame];
 }
 
+export function migrateQuery(query: XrayQuery): XrayQuery {
+  let newQuery = {
+    ...query,
+  };
+
+  if (!newQuery.serviceString && newQuery.service) {
+    newQuery.serviceName = newQuery.service.Name;
+    newQuery.serviceString = JSON.stringify(newQuery.service);
+  }
+  return newQuery;
+}
+
 function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: TemplateSrv): DataQueryRequest<XrayQuery> {
   return {
     ...request,
     targets: request.targets.map((target) => {
-      let newTarget = {
-        ...target,
-      };
+      let newTarget = migrateQuery(target);
 
       // Handle interval => resolution mapping
       if (newTarget.queryType === XrayQueryType.getTimeSeriesServiceStatistics) {
@@ -336,6 +374,12 @@ function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: Templ
 
       // Variable interpolation
       newTarget.query = templateSrv.replace(newTarget.query, request.scopedVars);
+      newTarget.region = templateSrv.replace(newTarget.region, request.scopedVars);
+      newTarget.accountIds = newTarget.accountIds?.map((value) => templateSrv.replace(value, request.scopedVars));
+      newTarget.accountId = templateSrv.replace(newTarget.accountId, request.scopedVars);
+      newTarget.serviceString = templateSrv.replace(newTarget.serviceString, request.scopedVars);
+      newTarget.operationName = templateSrv.replace(newTarget.operationName, request.scopedVars);
+      // TODO: handle group interpolation
 
       // Add Group filter expression to the query filter expression. This seems to mimic what x-ray console is doing
       // as there are APIs that do not expect group just the filter expression. At the same time some APIs like Insights
