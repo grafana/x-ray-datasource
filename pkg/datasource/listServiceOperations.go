@@ -68,9 +68,9 @@ func (ds *Datasource) ListServiceOperations(ctx context.Context, query backend.D
 				dimensions := ""
 				for i, dimension := range metric.Dimensions {
 					if i > 0 {
-						dimensions += ", "
+						dimensions += " "
 					}
-					dimensions += *dimension.Name + ": " + *dimension.Value
+					dimensions += *dimension.Name + "=\"" + *dimension.Value + "\""
 				}
 				var dimensionsPtr *string
 				if len(dimensions) > 0 {
