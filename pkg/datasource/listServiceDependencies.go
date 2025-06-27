@@ -74,9 +74,9 @@ func (ds *Datasource) ListServiceDependencies(ctx context.Context, query backend
 				dimensions := ""
 				for i, dimension := range metric.Dimensions {
 					if i > 0 {
-						dimensions += ", "
+						dimensions += " "
 					}
-					dimensions += *dimension.Name + ": " + *dimension.Value
+					dimensions += *dimension.Name + "=\"" + *dimension.Value + "\""
 				}
 				var dimensionsPtr *string
 				if len(dimensions) > 0 {

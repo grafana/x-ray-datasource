@@ -838,6 +838,14 @@ func TestDatasource(t *testing.T) {
 				data.NewField("Telemetry.SDK", nil, []string{"", "sdk"}),
 				data.NewField("Telemetry.Agent", nil, []string{"", "agent"}),
 				data.NewField("Telemetry.Source", nil, []string{"", "source"}),
+				data.NewField("Dimensions", nil, []string{
+					`HostedIn.EKS.Cluster="app-signals-demo" HostedIn.K8s.Namespace="default" HostedIn.K8s.Workload="billing-service-python" HostedIn.EC2.AutoScalingGroup="scaling" HostedIn.EC2.InstanceId="id"`,
+					`HostedIn.K8s.Cluster="fake-resource" HostedIn.K8s.Namespace="default" HostedIn.K8s.Workload="allFields" HostedIn.K8s.Node="node" HostedIn.K8s.Pod="pod"`,
+				}),
+				data.NewField("KeyAttributes", nil, []string{
+					`{"Environment":"eks:app-signals-demo/default","Name":"billing-service-python","Type":"Service"}`,
+					`{"Environment":"environment","Identifier":"id","Name":"allFields","ResourceType":"SomeResource","Type":"Resource"}`,
+				}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)
@@ -868,7 +876,7 @@ func TestDatasource(t *testing.T) {
 				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
 				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
-				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+				data.NewField("Dimensions", nil, []*string{aws.String(`foo="bar" baz="tab"`), nil, aws.String(`foo="bar"`)}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)
@@ -901,7 +909,7 @@ func TestDatasource(t *testing.T) {
 				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
 				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
-				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+				data.NewField("Dimensions", nil, []*string{aws.String(`foo="bar" baz="tab"`), nil, aws.String(`foo="bar"`)}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)
