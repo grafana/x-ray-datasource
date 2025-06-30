@@ -838,9 +838,13 @@ func TestDatasource(t *testing.T) {
 				data.NewField("Telemetry.SDK", nil, []string{"", "sdk"}),
 				data.NewField("Telemetry.Agent", nil, []string{"", "agent"}),
 				data.NewField("Telemetry.Source", nil, []string{"", "source"}),
+				data.NewField("DimensionKeys", nil, []string{
+					`"HostedIn.EKS.Cluster","HostedIn.K8s.Namespace","Service"`,
+					`"HostedIn.K8s.Cluster","HostedIn.K8s.Namespace","Service"`,
+				}),
 				data.NewField("Dimensions", nil, []string{
-					`HostedIn.EKS.Cluster="app-signals-demo" HostedIn.K8s.Namespace="default" HostedIn.K8s.Workload="billing-service-python" HostedIn.EC2.AutoScalingGroup="scaling" HostedIn.EC2.InstanceId="id"`,
-					`HostedIn.K8s.Cluster="fake-resource" HostedIn.K8s.Namespace="default" HostedIn.K8s.Workload="allFields" HostedIn.K8s.Node="node" HostedIn.K8s.Pod="pod"`,
+					`HostedIn.EKS.Cluster="app-signals-demo" HostedIn.K8s.Namespace="default" Service="billing-service-python"`,
+					`HostedIn.K8s.Cluster="fake-resource" HostedIn.K8s.Namespace="default" Service="allFields"`,
 				}),
 				data.NewField("KeyAttributes", nil, []string{
 					`{"Environment":"eks:app-signals-demo/default","Name":"billing-service-python","Type":"Service"}`,

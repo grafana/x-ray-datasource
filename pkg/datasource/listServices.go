@@ -18,39 +18,31 @@ type ListServicesQueryData struct {
 	IncludeLinkedAccounts bool   `json:"includeLinkedAccounts,omitempty"`
 }
 
-func buildServiceDimensions(platformInfo map[string]string) string {
+// buildServiceDimensions returns the dimension keys and dimension values we need for cloudwatch metric searches
+func buildServiceDimensions(platformInfo map[string]string, service string, accountId string) (string, string) {
+	keys := ""
 	dimensions := ""
 
 	if cluster, ok := platformInfo["EKS.Cluster"]; ok {
+		keys += "\"HostedIn.EKS.Cluster\","
 		dimensions += "HostedIn.EKS.Cluster=\"" + cluster + "\" "
 	}
 	if cluster, ok := platformInfo["K8s.Cluster"]; ok {
+		keys += "\"HostedIn.K8s.Cluster\","
 		dimensions += "HostedIn.K8s.Cluster=\"" + cluster + "\" "
 	}
 	if namespace, ok := platformInfo["K8s.Namespace"]; ok {
+		keys += "\"HostedIn.K8s.Namespace\","
 		dimensions += "HostedIn.K8s.Namespace=\"" + namespace + "\" "
 	}
-	if workload, ok := platformInfo["K8s.Workload"]; ok {
-		dimensions += "HostedIn.K8s.Workload=\"" + workload + "\" "
-	}
-	if node, ok := platformInfo["K8s.Node"]; ok {
-		dimensions += "HostedIn.K8s.Node=\"" + node + "\" "
-	}
-	if pod, ok := platformInfo["K8s.Pod"]; ok {
-		dimensions += "HostedIn.K8s.Pod=\"" + pod + "\" "
-	}
-	if group, ok := platformInfo["EC2.AutoScalingGroup"]; ok {
-		dimensions += "HostedIn.EC2.AutoScalingGroup=\"" + group + "\" "
-	}
-	if instanceId, ok := platformInfo["EC2.InstanceId"]; ok {
-		dimensions += "HostedIn.EC2.InstanceId=\"" + instanceId + "\" "
+
+	keys += "\"Service\""
+	dimensions += "Service=\"" + service + "\""
+	if accountId != "" {
+		dimensions += " :aws.AccountId=\"" + accountId + "\""
 	}
 
-	// remove extra space
-	if len(dimensions) > 0 {
-		dimensions = dimensions[:len(dimensions)-1]
-	}
-	return dimensions
+	return keys, dimensions
 }
 
 func buildKeyAttributes(keyAttributes map[string]string) string {
@@ -112,6 +104,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 		data.NewField("Telemetry.SDK", nil, []string{}),
 		data.NewField("Telemetry.Agent", nil, []string{}),
 		data.NewField("Telemetry.Source", nil, []string{}),
+		data.NewField("DimensionKeys", nil, []string{}),
 		data.NewField("Dimensions", nil, []string{}),
 		data.NewField("KeyAttributes", nil, []string{}),
 	)
@@ -127,7 +120,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 		}
 
 		for _, summary := range output.ServiceSummaries {
-			var platformType, eksCluster, k8sCluster, namespace, workload, node, pod, autoScalingGroup, instanceId, host, dimensions string
+			var platformType, eksCluster, k8sCluster, namespace, workload, node, pod, autoScalingGroup, instanceId, host, dimensionKeys, dimensions string
 			var application, applicationArn string
 			var telemetrySDK, telemetryAgent, telemetrySource string
 			for _, currentMap := range summary.AttributeMaps {
@@ -142,7 +135,8 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 					autoScalingGroup = currentMap["EC2.AutoScalingGroup"]
 					instanceId = currentMap["EC2.InstanceId"]
 					host = currentMap["Host"]
-					dimensions = buildServiceDimensions(currentMap)
+
+					dimensionKeys, dimensions = buildServiceDimensions(currentMap, summary.KeyAttributes["Name"], queryData.AccountId)
 				}
 
 				if currentMap["AWS.Application"] != "" {
@@ -167,7 +161,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 				platformType, eksCluster, k8sCluster, namespace, workload, node, pod, autoScalingGroup, instanceId, host,
 				application, applicationArn,
 				telemetrySDK, telemetryAgent, telemetrySource,
-				dimensions, buildKeyAttributes(summary.KeyAttributes),
+				dimensionKeys, dimensions, buildKeyAttributes(summary.KeyAttributes),
 			)
 		}
 
