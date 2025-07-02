@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { GrafanaTheme2, QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import { GrafanaTheme2, QueryEditorProps, SelectableValue } from '@grafana/data';
 import { Select, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { Group, VariableQueryType, XrayJsonData, XrayQuery, XrayVariableQuery } from 'types';
@@ -15,22 +15,18 @@ export type Props = QueryEditorProps<XrayDataSource, XrayQuery, XrayJsonData, Xr
 
 const variableQueryOptions: Array<SelectableValue<VariableQueryType>> = [
   { label: 'Regions', value: VariableQueryType.Regions },
-  { label: 'Groups', value: VariableQueryType.Groups },
+  // 374: Add proper support for group
+  // { label: 'Groups', value: VariableQueryType.Groups },
   { label: 'Accounts', value: VariableQueryType.Accounts },
   { label: 'Services', value: VariableQueryType.Services },
   { label: 'Operations', value: VariableQueryType.Operations },
 ];
 
 function groupsToOptions(groups: Group[], datasource: XrayDataSource): Array<SelectableValue<string>> {
-  const variableOptionGroup = {
-    label: 'Template Variables',
-    options: datasource.getVariables().map(toOption),
-  };
   let groupOptions: Array<SelectableValue<string>> = groups.map((group: Group) => ({
     value: group.GroupName,
     label: group.GroupName,
   }));
-  groupOptions = [...groupOptions, variableOptionGroup];
   return groupOptions;
 }
 
