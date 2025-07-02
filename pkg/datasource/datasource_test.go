@@ -838,14 +838,6 @@ func TestDatasource(t *testing.T) {
 				data.NewField("Telemetry.SDK", nil, []string{"", "sdk"}),
 				data.NewField("Telemetry.Agent", nil, []string{"", "agent"}),
 				data.NewField("Telemetry.Source", nil, []string{"", "source"}),
-				data.NewField("DimensionKeys", nil, []string{
-					`"HostedIn.EKS.Cluster","HostedIn.K8s.Namespace","Service"`,
-					`"HostedIn.K8s.Cluster","HostedIn.K8s.Namespace","Service"`,
-				}),
-				data.NewField("Dimensions", nil, []string{
-					`HostedIn.EKS.Cluster="app-signals-demo" HostedIn.K8s.Namespace="default" Service="billing-service-python"`,
-					`HostedIn.K8s.Cluster="fake-resource" HostedIn.K8s.Namespace="default" Service="allFields"`,
-				}),
 				data.NewField("KeyAttributes", nil, []string{
 					`{"Environment":"eks:app-signals-demo/default","Name":"billing-service-python","Type":"Service"}`,
 					`{"Environment":"environment","Identifier":"id","Name":"allFields","ResourceType":"SomeResource","Type":"Resource"}`,
@@ -907,8 +899,8 @@ func TestDatasource(t *testing.T) {
 			Name: "ListServiceDependencies",
 			Fields: []*data.Field{
 				data.NewField("OperationName", nil, []*string{aws.String("InternalOperation"), aws.String("InternalOperation"), aws.String("ExternalOperation")}),
-				data.NewField("DependencyOperationName", nil, []*string{aws.String("PUT /eureka"), aws.String("PUT /eureka"), aws.String("GET /eureka")}),
 				data.NewField("DependencyKeyAttributes", nil, []*string{aws.String("Name:discovery-server:8761, Type:InternalService"), aws.String("Name:discovery-server:8761, Type:InternalService"), aws.String("Name:external-server:8761, Type:RemoteService")}),
+				data.NewField("DependencyOperationName", nil, []*string{aws.String("PUT /eureka"), aws.String("PUT /eureka"), aws.String("GET /eureka")}),
 				data.NewField("MetricName", nil, []*string{aws.String("Latency"), aws.String("Fault"), aws.String("Error")}),
 				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),

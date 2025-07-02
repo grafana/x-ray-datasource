@@ -49,8 +49,8 @@ func (ds *Datasource) ListServiceDependencies(ctx context.Context, query backend
 	var listServiceDependenciesFrame = data.NewFrame(
 		"ListServiceDependencies",
 		data.NewField("OperationName", nil, []*string{}),
-		data.NewField("DependencyOperationName", nil, []*string{}),
 		data.NewField("DependencyKeyAttributes", nil, []*string{}),
+		data.NewField("DependencyOperationName", nil, []*string{}),
 
 		data.NewField("MetricName", nil, []*string{}),
 		data.NewField("MetricType", nil, []*string{}),
@@ -105,8 +105,8 @@ func (ds *Datasource) ListServiceDependencies(ctx context.Context, query backend
 
 				listServiceDependenciesFrame.AppendRow(
 					dependency.OperationName,
-					dependency.DependencyOperationName,
 					dependencyKeyAttributesPtr,
+					dependency.DependencyOperationName,
 					metric.MetricName,
 					metric.MetricType,
 					metric.Namespace,
