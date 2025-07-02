@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { GrafanaTheme2, QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import { GrafanaTheme2, QueryEditorProps, SelectableValue } from '@grafana/data';
 import { Select, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { Group, VariableQueryType, XrayJsonData, XrayQuery, XrayVariableQuery } from 'types';
