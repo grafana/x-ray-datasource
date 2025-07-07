@@ -18,7 +18,7 @@ type ListServicesQueryData struct {
 	IncludeLinkedAccounts bool   `json:"includeLinkedAccounts,omitempty"`
 }
 
-func buildKeyAttributes(keyAttributes map[string]string) string {
+func buildKeyAttributes(keyAttributes map[string]string) (string, error) {
 	keys := []string{}
 	for key := range keyAttributes {
 		keys = append(keys, key)
@@ -27,10 +27,14 @@ func buildKeyAttributes(keyAttributes map[string]string) string {
 
 	keyStr := "{"
 	for _, k := range keys {
-		keyStr += fmt.Sprintf(`"%s":"%s",`, k, keyAttributes[k])
+		attributeBytes, err := json.Marshal(keyAttributes[k])
+		if err != nil {
+			return "", err
+		}
+		keyStr += fmt.Sprintf(`"%s":%s,`, k, attributeBytes)
 	}
 	keyStr = keyStr[:len(keyStr)-1] + "}"
-	return keyStr
+	return keyStr, nil
 }
 
 func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -119,6 +123,10 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 					telemetrySource = currentMap["Telemetry.Source"]
 				}
 			}
+			keyAttributes, err := buildKeyAttributes(summary.KeyAttributes)
+			if err != nil {
+				return backend.ErrorResponseWithErrorSource(backend.DownstreamError(err))
+			}
 
 			listServicesFrame.AppendRow(
 				summary.KeyAttributes["Type"],
@@ -130,7 +138,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 				platformType, eksCluster, k8sCluster, namespace, workload, node, pod, autoScalingGroup, instanceId, host,
 				application, applicationArn,
 				telemetrySDK, telemetryAgent, telemetrySource,
-				buildKeyAttributes(summary.KeyAttributes),
+				keyAttributes,
 			)
 		}
 
