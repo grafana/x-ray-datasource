@@ -838,6 +838,10 @@ func TestDatasource(t *testing.T) {
 				data.NewField("Telemetry.SDK", nil, []string{"", "sdk"}),
 				data.NewField("Telemetry.Agent", nil, []string{"", "agent"}),
 				data.NewField("Telemetry.Source", nil, []string{"", "source"}),
+				data.NewField("KeyAttributes", nil, []string{
+					`{"Environment":"eks:app-signals-demo/default","Name":"billing-service-python","Type":"Service"}`,
+					`{"Environment":"environment","Identifier":"id","Name":"allFields","ResourceType":"SomeResource","Type":"Resource"}`,
+				}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)
@@ -868,7 +872,7 @@ func TestDatasource(t *testing.T) {
 				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
 				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
-				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+				data.NewField("Dimensions", nil, []*string{aws.String(`foo="bar" baz="tab"`), nil, aws.String(`foo="bar"`)}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)
@@ -895,13 +899,13 @@ func TestDatasource(t *testing.T) {
 			Name: "ListServiceDependencies",
 			Fields: []*data.Field{
 				data.NewField("OperationName", nil, []*string{aws.String("InternalOperation"), aws.String("InternalOperation"), aws.String("ExternalOperation")}),
-				data.NewField("DependencyOperationName", nil, []*string{aws.String("PUT /eureka"), aws.String("PUT /eureka"), aws.String("GET /eureka")}),
 				data.NewField("DependencyKeyAttributes", nil, []*string{aws.String("Name:discovery-server:8761, Type:InternalService"), aws.String("Name:discovery-server:8761, Type:InternalService"), aws.String("Name:external-server:8761, Type:RemoteService")}),
+				data.NewField("DependencyOperationName", nil, []*string{aws.String("PUT /eureka"), aws.String("PUT /eureka"), aws.String("GET /eureka")}),
 				data.NewField("MetricName", nil, []*string{aws.String("Latency"), aws.String("Fault"), aws.String("Error")}),
 				data.NewField("MetricType", nil, []*string{aws.String("LATENCY"), aws.String("FAULT"), aws.String("ERROR")}),
 				data.NewField("Namespace", nil, []*string{aws.String("AppSignals"), aws.String("AppSignals"), aws.String("AppSignals")}),
 				data.NewField("AccountId", nil, []*string{aws.String("id"), nil, nil}),
-				data.NewField("Dimensions", nil, []*string{aws.String("foo: bar, baz: tab"), nil, aws.String("foo: bar")}),
+				data.NewField("Dimensions", nil, []*string{aws.String(`foo="bar" baz="tab"`), nil, aws.String(`foo="bar"`)}),
 			},
 		}
 		require.Equal(t, expectedFrame, *frame)

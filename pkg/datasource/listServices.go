@@ -3,6 +3,8 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"slices"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -14,6 +16,25 @@ type ListServicesQueryData struct {
 	Region                string `json:"region,omitempty"`
 	AccountId             string `json:"accountId,omitempty"`
 	IncludeLinkedAccounts bool   `json:"includeLinkedAccounts,omitempty"`
+}
+
+func buildKeyAttributes(keyAttributes map[string]string) (string, error) {
+	keys := []string{}
+	for key := range keyAttributes {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	keyStr := "{"
+	for _, k := range keys {
+		attributeBytes, err := json.Marshal(keyAttributes[k])
+		if err != nil {
+			return "", err
+		}
+		keyStr += fmt.Sprintf(`"%s":%s,`, k, attributeBytes)
+	}
+	keyStr = keyStr[:len(keyStr)-1] + "}"
+	return keyStr, nil
 }
 
 func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery, pluginContext backend.PluginContext) backend.DataResponse {
@@ -60,6 +81,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 		data.NewField("Telemetry.SDK", nil, []string{}),
 		data.NewField("Telemetry.Agent", nil, []string{}),
 		data.NewField("Telemetry.Source", nil, []string{}),
+		data.NewField("KeyAttributes", nil, []string{}),
 	)
 
 	pager := applicationsignals.NewListServicesPaginator(appSignalsClient, &input)
@@ -101,6 +123,10 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 					telemetrySource = currentMap["Telemetry.Source"]
 				}
 			}
+			keyAttributes, err := buildKeyAttributes(summary.KeyAttributes)
+			if err != nil {
+				return backend.ErrorResponseWithErrorSource(backend.DownstreamError(err))
+			}
 
 			listServicesFrame.AppendRow(
 				summary.KeyAttributes["Type"],
@@ -112,6 +138,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 				platformType, eksCluster, k8sCluster, namespace, workload, node, pod, autoScalingGroup, instanceId, host,
 				application, applicationArn,
 				telemetrySDK, telemetryAgent, telemetrySource,
+				keyAttributes,
 			)
 		}
 
