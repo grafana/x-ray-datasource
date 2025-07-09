@@ -55,7 +55,7 @@ func (ds *Datasource) ListServices(ctx context.Context, query backend.DataQuery,
 		EndTime:               &query.TimeRange.To,
 		IncludeLinkedAccounts: queryData.IncludeLinkedAccounts,
 	}
-	if len(queryData.AccountId) > 0 {
+	if queryData.AccountId != "" && queryData.AccountId != "all" {
 		input.AwsAccountId = &queryData.AccountId
 	}
 
