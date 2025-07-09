@@ -61,7 +61,7 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 			// filter out non matching account ids, if user has selected them
 			if len(queryData.AccountIds) > 0 {
 				// sometimes traces don't have accountId data, without knowing where it came from we have to filter it out
-				if service.AccountId == nil {
+				if service.AccountId == nil || *service.AccountId == "all" {
 					continue
 				}
 
