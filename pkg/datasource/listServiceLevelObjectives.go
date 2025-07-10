@@ -52,7 +52,10 @@ func (ds *Datasource) ListServiceLevelObjectives(ctx context.Context, query back
 	}
 
 	if input.IncludeLinkedAccounts {
-		input.KeyAttributes["AwsAccountId"] = queryData.AccountId
+		// only replace the value if accountId is set on the query
+		if queryData.AccountId != "" && queryData.AccountId != "all" {
+			input.KeyAttributes["AwsAccountId"] = queryData.AccountId
+		}
 	} else {
 		if input.KeyAttributes["AwsAccountId"] != "" {
 			// only include accountId attribute of the service if IncludeLinkedAccounts is true

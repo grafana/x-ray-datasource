@@ -55,7 +55,7 @@ func (ds *Datasource) GetServices(rw http.ResponseWriter, req *http.Request) {
 		EndTime:               &endTime,
 		IncludeLinkedAccounts: true,
 	}
-	if len(accountId) > 0 {
+	if accountId != "" && accountId != "all" {
 		input.AwsAccountId = &accountId
 	}
 

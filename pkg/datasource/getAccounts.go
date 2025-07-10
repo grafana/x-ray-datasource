@@ -66,7 +66,7 @@ func (ds *Datasource) GetAccounts(rw http.ResponseWriter, req *http.Request) {
 			break
 		}
 		for _, service := range page.Services {
-			if service.AccountId != nil {
+			if service.AccountId != nil && *service.AccountId != "all" {
 				account := Account{
 					Id: *service.AccountId,
 				}
