@@ -9,7 +9,7 @@
   "alerting": true,
   "executable": "gpx_x-ray-datasource",
   "info": {
-    "description": "Data source for AWS Application Signals Datasource",
+    "description": "Data source for AWS Application Signals",
     "author": {
       "name": "Grafana",
       "url": "grafana.com"
