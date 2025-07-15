@@ -73,7 +73,7 @@
     "glob": "^11.0.3",
     "identity-obj-proxy": "3.0.0",
     "imports-loader": "^5.0.0",
-    "jest": "^29.5.0",
+    "jest": "^30.0.0",
     "jest-environment-jsdom": "^29.5.0",
     "lefthook": "^1.11.13",
     "prettier": "^3.5.3",
