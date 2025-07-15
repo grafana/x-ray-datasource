@@ -74,7 +74,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "This dashboard helps visualize Application Signals information from AWS.\nFor more information about Application Signals and how to enable it, see the [AWS Application Signals docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html).\n\nTo get started with this dashboard, select the appropriate Application Signals data source, CloudWatch data source, and region in the variables above. You can use the account dropdown to further narrow down the list of services.\n\nUse the hyperlinks in the `List Services` panel to update the board with the Service you are examining, and you can use the links in the collapsed boards below to examine an Operation or Dependency of that service.",
+        "content": "This dashboard helps visualize Application Signals information from AWS.\nFor more information about Application Signals and how to enable it, see the [AWS Application Signals docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html).\n\nTo get started with this dashboard, select the appropriate `appSignalsDatasource`, `cloudwatchDatasource`, and `region` in the variables above. You can use the `account` dropdown to further narrow down the list of services.\n\nUse the hyperlinks in the `List Services` panel to update the board with the Service you are examining, and you can use the links in the collapsed boards below to examine an Operation or Dependency of that service.",
         "mode": "markdown"
       },
       "pluginVersion": "12.1.0-pre",
