@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "AWS X-Ray",
+  "name": "AWS Application Signals",
   "id": "grafana-x-ray-datasource",
   "category": "tracing",
   "metrics": true,
@@ -9,12 +9,12 @@
   "alerting": true,
   "executable": "gpx_x-ray-datasource",
   "info": {
-    "description": "Data source for AWS X-Ray",
+    "description": "Data source for AWS Application Signals",
     "author": {
       "name": "Grafana",
       "url": "grafana.com"
     },
-    "keywords": ["datasource", "aws", "amazon", "x-ray", "tracing", "cloud provider", "traces"],
+    "keywords": ["datasource", "aws", "amazon", "x-ray", "tracing", "cloud provider", "traces", "application signals"],
     "logos": {
       "small": "img/AWS-X-Ray.svg",
       "large": "img/AWS-X-Ray.svg"

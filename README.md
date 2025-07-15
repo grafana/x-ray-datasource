@@ -1,37 +1,37 @@
 # Compatibility
 
-Grafana AWS X-Ray data source plugin >=2.13.0 is not compatible with Grafana versions <10.4.x due to a breaking change in UI components.
+Grafana AWS Application Signals data source plugin >=2.13.0 is not compatible with Grafana versions <10.4.x due to a breaking change in UI components.
 
-# X-Ray data source
+# Application Signals data source
 
-X-Ray datasource plugin provides a support for [AWS X-Ray](https://aws.amazon.com/xray/). Add it as a data source, then you are ready to
-build dashboards or use Explore with X-Ray to look at traces, analytics, or insights.
+The Application Signals data source plugin provides a support for [AWS Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html) and [AWS X-Ray](https://aws.amazon.com/xray/). Add it as a data source, then you are ready to
+build dashboards or use Explore with Application Signals to look at traces, analytics, or insights.
 
 ## Add the data source
 
 1. In the side menu under the **Configuration** link, click on **Data Sources**.
 1. Click the **Add data source** button.
-1. Select **X-Ray** in the **Distributed tracing** section.
+1. Select **Application Signals** in the **Distributed tracing** section.
 
 > **Note:** If you have issues getting this data source to work and Grafana is giving you undescriptive errors, check your log file (/var/log/grafana/grafana.log).
 
-| Name                     | Description                                                                                                             |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Name                     | The data source name. This is how you refer to the data source in panels and queries.                                   |
-| Default                  | Default data source means that it will be pre-selected for new panels.                                                  |
-| Default Region           | Used in query editor to set region. (can be changed on per query basis)                                                 |
-| Auth Provider            | Specify the provider to get credentials.                                                                                |
-| Credentials profile name | Specify the name of the profile to use (if you use `~/.aws/credentials` file), leave blank for default.                 |
-| Assume Role Arn          | Specify the ARN of the role to assume.                                                                                  |
+| Name                     | Description                                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Name                     | The data source name. This is how you refer to the data source in panels and queries.                             |
+| Default                  | Default data source means that it will be pre-selected for new panels.                                            |
+| Default Region           | Used in query editor to set region. (can be changed on per query basis)                                           |
+| Auth Provider            | Specify the provider to get credentials.                                                                          |
+| Credentials profile name | Specify the name of the profile to use (if you use `~/.aws/credentials` file), leave blank for default.           |
+| Assume Role Arn          | Specify the ARN of the role to assume.                                                                            |
 | External ID              | If you are assuming a role in another account that was created with an external ID, specify the external ID here. |
 
 ## Authentication
 
-In this section we will go through the different type of authentication you can use for the AWS X-Ray data source.
+This section describes the different type of authentication you can use for the AWS Application Signals data source.
 
 ### IAM Roles
 
-Currently all access to X-Ray is done server-side by the Grafana backend using the official AWS SDK. If your Grafana
+All access to Application Signals is done server-side by the Grafana backend using the official AWS SDK. If your Grafana
 server is running on AWS you can use IAM Roles and authentication will be handled automatically.
 
 See the AWS documentation on [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
@@ -202,7 +202,7 @@ If you are using the Credentials file authentication type, use a config similar 
 apiVersion: 1
 
 datasources:
-  - name: X-Ray
+  - name: Application Signals
     type: grafana-x-ray-datasource
     jsonData:
       authType: credentials
@@ -215,7 +215,7 @@ datasources:
 apiVersion: 1
 
 datasources:
-  - name: X-Ray
+  - name: Application Signals
     type: grafana-x-ray-datasource
     jsonData:
       authType: keys
@@ -227,7 +227,7 @@ datasources:
 
 ## Cross-Account Observability
 
-The X-Ray plugin allows you to monitor traces across multiple AWS accounts within a region with the Cross-Account Observability feature. Using cross-account observability, you can seamlessly search, visualize and analyze AWS traces without worrying about account boundaries.
+The Application Signals plugin allows you to monitor traces across multiple AWS accounts within a region with the Cross-Account Observability feature. Using cross-account observability, you can seamlessly search, visualize and analyze AWS traces without worrying about account boundaries.
 
 ### Getting started
 
