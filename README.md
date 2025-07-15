@@ -27,11 +27,11 @@ build dashboards or use Explore with Application Signals to look at traces, anal
 
 ## Authentication
 
-In this section we will go through the different type of authentication you can use for the AWS Application Signals data source.
+This section describes the different type of authentication you can use for the AWS Application Signals data source.
 
 ### IAM Roles
 
-Currently all access to Application Signals is done server-side by the Grafana backend using the official AWS SDK. If your Grafana
+All access to Application Signals is done server-side by the Grafana backend using the official AWS SDK. If your Grafana
 server is running on AWS you can use IAM Roles and authentication will be handled automatically.
 
 See the AWS documentation on [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
@@ -202,7 +202,7 @@ If you are using the Credentials file authentication type, use a config similar 
 apiVersion: 1
 
 datasources:
-  - name: Application-Signals
+  - name: Application Signals
     type: grafana-x-ray-datasource
     jsonData:
       authType: credentials
@@ -215,7 +215,7 @@ datasources:
 apiVersion: 1
 
 datasources:
-  - name: Application-Signals
+  - name: Application Signals
     type: grafana-x-ray-datasource
     jsonData:
       authType: keys
