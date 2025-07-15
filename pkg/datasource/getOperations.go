@@ -30,6 +30,9 @@ func (ds *Datasource) GetOperations(rw http.ResponseWriter, req *http.Request) {
 	region := urlQuery.Get("region")
 
 	keyAttributes := map[string]string{}
+	if req.Body == nil {
+		return
+	}
 	b, err := io.ReadAll(req.Body)
 	if err != nil {
 		return
