@@ -52,7 +52,7 @@
     "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.17",
-    "@types/node": "^22.15.21",
+    "@types/node": "^22.16.4",
     "@types/prismjs": "1.26.5",
     "@types/semver": "^7.7.0",
     "@types/slate": "0.47.16",
