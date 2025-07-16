@@ -112,7 +112,7 @@ region = us-west-2
 
 There are two query modes, X-Ray and Services.
 
-### X-Ray Queries
+### X-Ray queries
 
 There are five X-Ray query types:
 
@@ -199,7 +199,7 @@ For more information about Service map, refer to the official [AWS X-ray documen
 
 Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
 
-### Service Queries
+### Service queries
 
 Service Queries allow you to fetch the services in your application to monitor current application health and long term performance.
 
@@ -228,7 +228,7 @@ List Service Dependencies returns a table of the CloudWatch Metrics for the serv
 
 List Service Operations returns a table of the SLOs for a selected service operation.
 
-## Application Signals: Services Dashboard
+## Application Signals: Services dashboard
 
 The `Application Signals: Services` dashboard can be imported from the datasource and is set up to fetch Services and the accompanied metrics for user selected Application Signals and CloudWatch data sources. This dashboard allows you to select Services, Service Operations, and Service Dependencies to display the associated CloudWatch metrics.
 
@@ -245,7 +245,7 @@ With AWS Application Signals the first 3 months of usage for each account are fr
 - 100GB data ingested for Application Signals including complete visibility into application transaction spans
 - 100 million Signals for Application Signals with no visibility into application transaction spans
 
-Please see the [CloudWatch pricing page](https://aws.amazon.com/cloudwatch/pricing/) for more details the pricing for these APIs.
+Refer to the [CloudWatch pricing page](https://aws.amazon.com/cloudwatch/pricing/) for more details the pricing for these APIs.
 
 ## Configure the data source with provisioning
 
