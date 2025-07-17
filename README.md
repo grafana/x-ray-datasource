@@ -51,6 +51,7 @@ Here is a basic policy example:
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "XrayPermissions",
       "Effect": "Allow",
       "Action": [
         "xray:BatchGetTraces",
@@ -62,6 +63,17 @@ Here is a basic policy example:
         "xray:GetInsight",
         "xray:GetServiceGraph",
         "ec2:DescribeRegions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ApplicationSignalsPermissions",
+      "Effect": "Allow",
+      "Action": [
+        "application-signals:ListServiceLevelObjectives",
+        "application-signals:ListServiceDependencies",
+        "application-signals:ListServiceOperations",
+        "application-signals:ListServices"
       ],
       "Resource": "*"
     }
@@ -98,7 +110,11 @@ region = us-west-2
 
 ## Query editor
 
-The most important field in the query editor is the query type. There are five query types:
+There are two query modes, X-Ray and Services.
+
+### X-Ray queries
+
+There are five X-Ray query types:
 
 - Trace List (Traces in AWS)
 - Trace Statistics
@@ -108,7 +124,7 @@ The most important field in the query editor is the query type. There are five q
 
 ![x-ray-query-editor](https://user-images.githubusercontent.com/13729989/93520935-8f3adc80-f92f-11ea-9399-e88f67f6aa07.png)
 
-### Trace List
+#### Trace List
 
 The Trace List type allows you to search for traces which are shown in a table. Clicking on the `trace id` in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or insert a single trace ID that will be shown in a trace view. You can find more detail about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
 
@@ -116,13 +132,13 @@ The Trace List type allows you to search for traces which are shown in a table. 
 
 > **Note:** The Trace List will only show the first 1000 traces.
 
-### Trace Statistics
+#### Trace Statistics
 
 In Trace Statistics you can see a graph and a table showing information about error, fault, throttle, success, and total count. You can use the `columns` field in the query editor to only see specified columns.
 
 ![x-ray-trace-statistics](https://user-images.githubusercontent.com/13729989/93521032-b691a980-f92f-11ea-894c-534a9e5093d5.png)
 
-### Trace Analytics
+#### Trace Analytics
 
 In Trace Analytics you can visualize the following tables:
 
@@ -142,11 +158,11 @@ In Trace Analytics you can visualize the following tables:
 - URL
 - HTTP Status Code
 
-### Insights
+#### Insights
 
 In Insights you can see the summary table for Insights. Clicking the `InsightId` will take you to AWS console.
 
-### Service map
+#### Service map
 
 Service map in Grafana enables customers to view a map of their applications built using microservices architecture. Each node on the map represents a service such as an AWS Lambda function or an API running on an API Gateway or DynamoDB table. With this map, customers can easily detect performance issues, or increase in error, fault or throttle rates in any of their services and dive deep into corresponding traces and root cause.
 
@@ -179,14 +195,57 @@ Click on the service or the edge to see a context menu with links additional lin
 
 For more information about Service map, refer to the official [AWS X-ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-insights.html).
 
-### Alerting
+#### Alerting
 
 Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
 
+### Service queries
+
+Service Queries allow you to fetch the services in your application to monitor current application health and long term performance.
+
+> The data source comes with the [Application Signals: Services dashboard](#application-signals-services-dashboard), which can be imported and is set up to fetch Services and the accompanied metrics for user selected Application Signals and CloudWatch data sources.
+
+There are 4 service query types:
+
+- List Services
+- List Service Operations
+- List Service Dependencies
+- List Service Level Objectives (SLO)
+
+#### List Services
+
+List Services returns a table of the services in your Application Signals datasource.
+
+#### List Service Operations
+
+List Service Operations returns a table of the CloudWatch Metrics for the service operations for a selected service.
+
+#### List Service Dependencies
+
+List Service Dependencies returns a table of the CloudWatch Metrics for the service dependencies for a selected service.
+
+#### List Service Level Objectives (SLO)
+
+List Service Operations returns a table of the SLOs for a selected service operation.
+
+## Application Signals: Services dashboard
+
+The `Application Signals: Services` dashboard can be imported from the datasource and is set up to fetch Services and the accompanied metrics for user selected Application Signals and CloudWatch data sources. This dashboard allows you to select Services, Service Operations, and Service Dependencies to display the associated CloudWatch metrics.
+
+To use this board you must have Application Signals enabled in your CloudWatch account and select the appropriate X-Ray and CloudWatch data sources and region in the dashboard variables.
+
+More information about Application Signals and enabling it in AWS can be found in the [AWS docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html).
+
 ## Pricing
 
-> With AWS X-Ray, there are no upfront fees or commitments. You pay only for what you use, based on the number of traces recorded, retrieved, and scanned. The first 1,000,000 traces retrieved or scanned each month are free. Beyond the free tier, traces scanned cost $0.50 per 1 million traces scanned ($0.0000005 per trace).
-> Please see the [X-Ray pricing page](https://aws.amazon.com/xray/pricing/) for more details.
+With AWS X-Ray, there are no upfront fees or commitments. You pay only for what you use, based on the number of traces recorded, retrieved, and scanned. The first 1,000,000 traces retrieved or scanned each month are free. Beyond the free tier, traces scanned cost $0.50 per 1 million traces scanned ($0.0000005 per trace).
+
+With AWS Application Signals the first 3 months of usage for each account are free or the limit is hit:
+
+- 100GB data ingested for Application Signals including complete visibility into application transaction spans
+- 100 million Signals for Application Signals with no visibility into application transaction spans
+
+Refer to the [CloudWatch pricing page](https://aws.amazon.com/cloudwatch/pricing/) for more details on the pricing for these APIs.
 
 ## Configure the data source with provisioning
 
