@@ -8,7 +8,7 @@ require (
 	github.com/grafana/grafana-aws-sdk v0.38.4
 	github.com/grafana/grafana-plugin-sdk-go v0.277.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sync v0.15.0
+	golang.org/x/sync v0.16.0
 	golang.org/x/text v0.26.0
 )
 
