@@ -245,7 +245,7 @@ With AWS Application Signals the first 3 months of usage for each account are fr
 - 100GB data ingested for Application Signals including complete visibility into application transaction spans
 - 100 million Signals for Application Signals with no visibility into application transaction spans
 
-Refer to the [CloudWatch pricing page](https://aws.amazon.com/cloudwatch/pricing/) for more details the pricing for these APIs.
+Refer to the [CloudWatch pricing page](https://aws.amazon.com/cloudwatch/pricing/) for more details on the pricing for these APIs.
 
 ## Configure the data source with provisioning
 
