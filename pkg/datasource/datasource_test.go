@@ -307,7 +307,7 @@ func makeTimeSeriesRow(index int, statsType StatsType) xraytypes.TimeSeriesServi
 	return stats
 }
 
-func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.XrayClient, error) {
+func xrayClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.XrayClient, error) {
 	return &XrayClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil
@@ -489,7 +489,7 @@ func (client *AppSignalsClientMock) ListServiceLevelObjectives(context.Context, 
 	}, nil
 }
 
-func appSignalsClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings, _ *awsds.SessionCache) (datasource.AppSignalsClient, error) {
+func appSignalsClientFactory(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.AppSignalsClient, error) {
 	return &AppSignalsClientMock{
 		queryCalledWithRegion: requestSettings.Region,
 	}, nil

@@ -122,7 +122,7 @@ func (client *XrayClientMock) GetGroups(_ context.Context, _ *xray.GetGroupsInpu
 }
 
 func getXrayClientFactory(client XrayClient) XrayClientFactory {
-	return func(context.Context, backend.PluginContext, RequestSettings, *awsds.SessionCache) (XrayClient, error) {
+	return func(context.Context, backend.PluginContext, RequestSettings) (XrayClient, error) {
 		return client, nil
 	}
 }

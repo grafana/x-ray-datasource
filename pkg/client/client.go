@@ -2,8 +2,9 @@ package client
 
 import (
 	"context"
-	"github.com/grafana/grafana-aws-sdk/pkg/awsauth"
 	"net/http"
+
+	"github.com/grafana/grafana-aws-sdk/pkg/awsauth"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/applicationsignals"
@@ -17,7 +18,7 @@ import (
 )
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
-func CreateXrayClient(ctx context.Context, settings awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, sessions *awsds.SessionCache) (*xray.Client, error) {
+func CreateXrayClient(ctx context.Context, settings awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings) (*xray.Client, error) {
 	cfg, err := getAWSConfig(ctx, settings, backendSettings)
 	if err != nil {
 		return nil, err
@@ -25,7 +26,7 @@ func CreateXrayClient(ctx context.Context, settings awsds.AWSDatasourceSettings,
 	return xray.NewFromConfig(cfg), nil
 }
 
-func CreateAppSignalsClient(ctx context.Context, settings awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings, sessions *awsds.SessionCache) (*applicationsignals.Client, error) {
+func CreateAppSignalsClient(ctx context.Context, settings awsds.AWSDatasourceSettings, backendSettings backend.DataSourceInstanceSettings) (*applicationsignals.Client, error) {
 	cfg, err := getAWSConfig(ctx, settings, backendSettings)
 	if err != nil {
 		return nil, err
