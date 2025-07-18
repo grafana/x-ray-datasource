@@ -11,7 +11,7 @@ export interface Props extends QueryEditorProps<XrayDataSource, XrayQuery, XrayJ
 }
 
 const apiModes: Array<SelectableValue<QueryMode>> = [
-  { label: 'X-Ray', value: QueryMode.xray },
+  { label: 'Traces', value: QueryMode.xray },
   { label: 'Services', value: QueryMode.services },
 ];
 

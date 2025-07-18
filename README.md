@@ -4,7 +4,7 @@ Grafana AWS Application Signals data source plugin >=2.13.0 is not compatible wi
 
 # Application Signals data source
 
-The Application Signals data source plugin provides a support for [AWS Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html) and [AWS X-Ray](https://aws.amazon.com/xray/). Add it as a data source, then you are ready to
+The Application Signals data source plugin provides a support for [AWS Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html) and [AWS X-Ray Traces](https://aws.amazon.com/xray/). This data source was formerly named the AWS X-Ray data source plugin. Add it as a data source, then you are ready to
 build dashboards or use Explore with Application Signals to look at traces, analytics, or insights.
 
 ## Add the data source
@@ -110,11 +110,11 @@ region = us-west-2
 
 ## Query editor
 
-There are two query modes, X-Ray and Services.
+There are two query modes, Traces and Services.
 
-### X-Ray queries
+### Traces queries
 
-There are five X-Ray query types:
+There are five X-Ray Traces query types:
 
 - Trace List (Traces in AWS)
 - Trace Statistics
@@ -126,7 +126,7 @@ There are five X-Ray query types:
 
 #### Trace List
 
-The Trace List type allows you to search for traces which are shown in a table. Clicking on the `trace id` in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or insert a single trace ID that will be shown in a trace view. You can find more detail about filter expressions in [AWS X-Ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
+The Trace List type allows you to search for traces which are shown in a table. Clicking on the `trace id` in the first column opens the trace on the right side. Notice the query field in the editor. You can write queries, filter expressions, or insert a single trace ID that will be shown in a trace view. You can find more detail about filter expressions in [AWS X-Ray Traces documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
 
 ![x-ray-trace-list](https://user-images.githubusercontent.com/13729989/93521002-ada0d800-f92f-11ea-9b8b-3f97cd55a763.png)
 
@@ -168,7 +168,7 @@ Service map in Grafana enables customers to view a map of their applications bui
 
 ![Service map](https://grafana.com/static/img/docs/node-graph/node-graph-7-4.png 'Service map')
 
-Service Map query type shows the same data as a service map inside X-ray console.
+The Service Map query type shows the same data as a Trace Map inside the Application Signals console.
 
 To display the service map:
 
@@ -180,24 +180,24 @@ You can pan and zoom the view with buttons or use your mouse. For details about 
 
 ![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif 'Service map navigation')
 
-Similar to X-ray root nodes, nodes in the service map representing the client application are on the left side of the map.
+Similar to Trace Map root nodes, nodes in the service map representing the client application are on the left side of the map.
 
 Each service in the map is represented as a circle. Numbers on the inside shows average time per transaction and transactions per minute.
 
-A colored circle around the service also matches colors and meaning from X-ray console representing percentage of requests.
+A colored circle around the service also matches colors and meaning from Application Signals console representing percentage of requests.
 
 - green = success
 - red = fault
 - yellow = errors
 - purple = throttled responses
 
-Click on the service or the edge to see a context menu with links additional links for quick navigation to other relevant information from X-ray. You can use the links to quickly navigate to a list of all error traces for a particular service and then continue to specific trace.
+Click on the service or the edge to see a context menu with links additional links for quick navigation to other relevant information from Application Signals. You can use the links to quickly navigate to a list of all error traces for a particular service and then continue to specific trace.
 
 For more information about Service map, refer to the official [AWS X-ray documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-insights.html).
 
 #### Alerting
 
-Since X-Ray queries can return numeric data, alerts are supported. See the [Alerting](docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
+Since Traces queries can return numeric data, alerts are supported. See the [Alerting](docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
 
 ### Service queries
 
@@ -232,7 +232,7 @@ List Service Operations returns a table of the SLOs for a selected service opera
 
 The `Application Signals: Services` dashboard can be imported from the datasource and is set up to fetch Services and the accompanied metrics for user selected Application Signals and CloudWatch data sources. This dashboard allows you to select Services, Service Operations, and Service Dependencies to display the associated CloudWatch metrics.
 
-To use this board you must have Application Signals enabled in your CloudWatch account and select the appropriate X-Ray and CloudWatch data sources and region in the dashboard variables.
+To use this board you must have Application Signals enabled in your CloudWatch account and select the appropriate Application Signals and CloudWatch data sources and region in the dashboard variables.
 
 More information about Application Signals and enabling it in AWS can be found in the [AWS docs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html).
 

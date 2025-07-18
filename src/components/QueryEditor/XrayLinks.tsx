@@ -25,8 +25,8 @@ export function XrayLinks({ datasource, query, range }: XrayLinksProps) {
   return (
     <div className={styles.container}>
       {[
-        ['To X-Ray service map', datasource.getServiceMapUrl(query.region)],
-        ['Open in X-Ray console', datasource.getXrayUrlForQuery(query, range)],
+        ['To Traces map', datasource.getServiceMapUrl(query.region)],
+        ['Open in X-Ray Traces console', datasource.getXrayUrlForQuery(query, range)],
       ].map(([text, href]) => {
         return (
           <a href={href} target="_blank" rel="noopener noreferrer" key={href}>
