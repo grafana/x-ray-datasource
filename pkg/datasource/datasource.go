@@ -18,8 +18,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
-type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (XrayClient, error)
-type AppSignalsClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (AppSignalsClient, error)
+type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
+type AppSignalsClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (AppSignalsClient, error)
 
 type Datasource struct {
 	Settings                awsds.AWSDatasourceSettings
@@ -27,7 +27,6 @@ type Datasource struct {
 	xrayClientFactory       XrayClientFactory
 	appSignalsClientFactory AppSignalsClientFactory
 
-	sessions     *awsds.SessionCache
 	authSettings awsds.AuthSettings
 }
 
@@ -53,7 +52,6 @@ func NewDatasource(ctx context.Context, xrayClientFactory XrayClientFactory, app
 
 	authSettings := awsds.ReadAuthSettings(ctx)
 	ds.authSettings = *authSettings
-	ds.sessions = awsds.NewSessionCache()
 	return ds
 }
 
@@ -132,14 +130,14 @@ type RequestSettings struct {
 }
 
 func (ds *Datasource) getClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
-	return ds.xrayClientFactory(ctx, pluginContext, requestSettings, ds.sessions)
+	return ds.xrayClientFactory(ctx, pluginContext, requestSettings)
 }
 
 func (ds *Datasource) getAppSignalsClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (AppSignalsClient, error) {
-	return ds.appSignalsClientFactory(ctx, pluginContext, requestSettings, ds.sessions)
+	return ds.appSignalsClientFactory(ctx, pluginContext, requestSettings)
 }
 
-func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (XrayClient, error) {
+func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (XrayClient, error) {
 	awsSettings, err := getDsSettings(*pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
@@ -150,14 +148,14 @@ func getXrayClient(ctx context.Context, pluginContext backend.PluginContext, req
 		awsSettings.Region = requestSettings.Region
 	}
 
-	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, *pluginContext.DataSourceInstanceSettings, sessions)
+	xrayClient, err := client.CreateXrayClient(ctx, awsSettings, *pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
 	return xrayClient, nil
 }
 
-func getAppSignalsClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings, sessions *awsds.SessionCache) (AppSignalsClient, error) {
+func getAppSignalsClient(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (AppSignalsClient, error) {
 	awsSettings, err := getDsSettings(*pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
@@ -168,7 +166,7 @@ func getAppSignalsClient(ctx context.Context, pluginContext backend.PluginContex
 		awsSettings.Region = requestSettings.Region
 	}
 
-	appSignalsClient, err := client.CreateAppSignalsClient(ctx, awsSettings, *pluginContext.DataSourceInstanceSettings, sessions)
+	appSignalsClient, err := client.CreateAppSignalsClient(ctx, awsSettings, *pluginContext.DataSourceInstanceSettings)
 	if err != nil {
 		return nil, err
 	}
