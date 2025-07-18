@@ -448,7 +448,7 @@ function renderEditorWithRegion(region: string, queryRegion: string) {
 }
 
 async function checkLinks(links: { console: string; serviceMap: string }) {
-  const serviceMapLink = (await screen.findByText(/service map/i)).closest('a');
+  const serviceMapLink = (await screen.findByText(/To Traces map/i)).closest('a');
   expect(serviceMapLink).toBeDefined();
   expect(serviceMapLink!.href).toBe(links.serviceMap);
 
