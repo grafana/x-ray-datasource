@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.16.0
+
+- Chore: Migrate to Github actions by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/370
+- Add variable editor for service variables by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/373
+- Remove Group variable until it is properly supported by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/378
+- Service Queries: Update queries to return dimensions correctly by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/376
+- Remove pr_commands by @kevinwcyu in https://github.com/grafana/x-ray-datasource/pull/379
+- Add support for auto-merging dependabot updates, by @kevinwcyu in https://github.com/grafana/x-ray-datasource/pull/371
+- Bump golang.org/x/text from 0.25.0 to 0.26.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/386
+- Bump sass from 1.89.0 to 1.89.2 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/387
+- Bump eslint-webpack-plugin from 5.0.1 to 5.0.2 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/391
+- Bump glob from 11.0.2 to 11.0.3 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/388
+- Bump the grafana-dependencies group with 4 updates by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/389
+- Rename plugin from X-Ray to App Signals by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/384
+- Bump jest from 29.7.0 to 30.0.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/394
+- Add app signals services dashboard by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/380
+- Bump prettier from 3.5.3 to 3.6.2 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/396
+- Bump @types/node from 22.15.21 to 22.16.4 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/400
+- Bump cspell from 9.0.2 to 9.1.5 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/398
+- Bump lefthook from 1.11.13 to 1.12.2 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/397
+- Bump @swc/core from 1.11.29 to 1.12.14 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/399
+- Bump github.com/aws/aws-sdk-go-v2/service/applicationsignals from 1.11.1 to 1.11.3 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/395
+- Bump golang.org/x/sync from 0.14.0 to 0.16.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/393
+- Bump github.com/grafana/grafana-plugin-sdk-go from 0.277.1 to 0.278.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/390
+- Bump github.com/aws/aws-sdk-go-v2/service/xray from 1.31.4 to 1.31.7 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/392
+- Bump @stylistic/eslint-plugin-ts from 4.4.0 to 4.4.1 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/401
+- Bump @eslint/js from 9.27.0 to 9.31.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/403
+- Bump jest and @types/jest by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/402
+- Bump jest-environment-jsdom from 29.7.0 to 30.0.4 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/405
+- Update docs for Application Signals services by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/382
+- Remove @types/glob by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/404
+- Bump @grafana/plugin-ui from 0.10.6 to 0.10.7 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/406
+- Bump @swc/jest from 0.2.38 to 0.2.39 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/408
+- Bump @types/lodash from 4.17.17 to 4.17.20 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/407
+- Bump @babel/core from 7.27.1 to 7.28.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/409
+- Bump @swc/core from 1.12.14 to 1.13.0 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/410
+- Bump github.com/grafana/grafana-aws-sdk from 0.38.4 to 1.0.5 by @dependabot[bot] in https://github.com/grafana/x-ray-datasource/pull/385
+- Cleanup the remaining X-rays by @iwysiu in https://github.com/grafana/x-ray-datasource/pull/411
+
 ## 2.15.0
 
 - Bump the all-go-dependencies group across 1 directory with 3 updates in [#360](https://github.com/grafana/x-ray-datasource/pull/360)
