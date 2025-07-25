@@ -172,11 +172,8 @@ The Service Map query type shows the same data as a Trace Map inside the Applica
 
 To display the service map:
 
-- Use the [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/) visualization in Grafana 7.4 plus.
-- Use [Explore](/docs/grafana/latest/explore/) in Grafana version 7.4 and later.
+- Use the [Node graph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/) visualization. For details on how to navigate the visualization, see [Node graph panel navigation](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/node-graph/#node-graph-navigation).
 - Show the data in a simple table. This is the only option if the Node graph panel is unavailable.
-
-You can pan and zoom the view with buttons or use your mouse. For details about the visualization, see [Node graph panel](/docs/grafana/latest/panels/visualizations/node-graph/).
 
 ![Service map navigation](https://storage.googleapis.com/integration-artifacts/grafana-x-ray-datasource/screenshots/x-ray-service-map-nav.gif 'Service map navigation')
 
@@ -197,7 +194,7 @@ For more information about Service map, refer to the official [AWS X-ray documen
 
 #### Alerting
 
-Since Traces queries can return numeric data, alerts are supported. See the [Alerting](docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
+Since Traces queries can return numeric data, alerts are supported. See the [Alerting](https://grafana.com/docs/grafana/latest/alerting/) documentation for more on Grafana alerts.
 
 ### Service queries
 
@@ -249,7 +246,7 @@ Refer to the [CloudWatch pricing page](https://aws.amazon.com/cloudwatch/pricing
 
 ## Configure the data source with provisioning
 
-You can configure data sources using config files with Grafana's provisioning system. For more information regarding how it works and all available settings, see [Provision Grafana](/docs/grafana/latest/administration/provisioning/).
+You can configure data sources using config files with Grafana's provisioning system. For more information regarding how it works and all available settings, see [Provision Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/).
 
 Here are some provisioning examples for this data source.
 
@@ -290,12 +287,22 @@ The Application Signals plugin allows you to monitor traces across multiple AWS 
 
 ### Getting started
 
-To enable cross-account observability, first enable the feature in AWS using the official [CloudWatch docs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html), then add [two API actions](/docs/grafana/latest/datasources/aws-cloudwatch/#cross-account-observability-permissions) to the IAM policy attached to the role/user running the plugin.
+To enable cross-account observability, first enable the feature in AWS using the official [CloudWatch docs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html), then add 
 
-This feature is currently behind the `cloudWatchCrossAccountQuerying` feature toggle.
+```json 
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["oam:ListSinks", "oam:ListAttachedLinks"],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+```
 
-> You can enable feature toggles through configuration file or environment variables. See configuration [docs]({{< relref "../setup-grafana/configure-grafana/#feature_toggles" >}}) for details.
-> Grafana Cloud users can access this feature by [opening a support ticket in the Cloud Portal](https://grafana.com/profile/org#support).
+to the IAM policy attached to the role/user running the plugin.
 
 ## Filtering Traces by Account Id
 
