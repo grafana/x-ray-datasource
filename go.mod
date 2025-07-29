@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.5
 	github.com/aws/aws-sdk-go-v2/service/xray v1.31.7
-	github.com/grafana/grafana-aws-sdk v1.0.5
+	github.com/grafana/grafana-aws-sdk v1.0.6
 	github.com/grafana/grafana-plugin-sdk-go v0.278.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.16.0
@@ -58,7 +58,7 @@ require (
 	github.com/grafana/dataplane/sdata v0.0.9 // indirect
 	github.com/grafana/otel-profiling-go v0.5.1 // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.8 // indirect
-	github.com/grafana/sqlds/v4 v4.2.3 // indirect
+	github.com/grafana/sqlds/v4 v4.2.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
