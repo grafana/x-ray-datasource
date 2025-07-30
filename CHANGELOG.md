@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## 2.16.1
 
-- Chore: Add donwstream error for unsupported query types
+- Chore: Add downstream error for unsupported query types
 
 ## 2.16.0
 
