@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.16.1
+
+- Chore: Add donwstream error for unsupported query types
+
 ## 2.16.0
 
 - Chore: Migrate to Github actions by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/370
