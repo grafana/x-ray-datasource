@@ -82,7 +82,7 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			case QueryListServiceLevelObjectives:
 				currentRes = ds.ListServiceLevelObjectives(ctx, query, req.PluginContext)
 			default:
-				currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType), false)
+				currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType), false)
 			}
 		case "":
 			fallthrough
@@ -114,7 +114,7 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
         currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query type: %s", query.QueryType, false)
 			}
 		default:
-			currentRes.Error = errorsource.PluginError(fmt.Errorf("unknown query mode: %s", model.QueryMode), false)
+			currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query mode: %s", model.QueryMode), false)
 		}
 		res.Responses[query.RefID] = currentRes
 	}
