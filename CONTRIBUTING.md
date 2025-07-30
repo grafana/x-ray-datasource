@@ -10,16 +10,10 @@ To build X-Ray data source locally you should follow the steps below.
 yarn install
 ```
 
-2. Build plugin in development mode or run in watch mode
+2. Build plugin in development mode with watch
 
 ```BASH
 yarn dev
-```
-
-or
-
-```BASH
-yarn watch
 ```
 
 3. Build plugin in production mode
@@ -30,10 +24,10 @@ yarn build
 
 ## Backend
 
-1. Update [Grafana plugin SDK for Go](https://grafana.com/docs/grafana/latest/developers/plugins/backend/grafana-plugin-sdk-for-go/) dependency to the latest minor version:
+1. Update the dependency files:
 
-```bash
-go get -u github.com/grafana/grafana-plugin-sdk-go
+```BASH
+go mod tidy
 ```
 
 2. Build backend plugin binaries for Linux, Windows and Darwin:
