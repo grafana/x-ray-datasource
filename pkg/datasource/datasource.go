@@ -111,7 +111,7 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			case QueryGetServiceMap:
 				currentRes = ds.getSingleServiceMap(ctx, query, req.PluginContext)
 			default:
-        currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query type: %s", query.QueryType, false)
+				currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query type: %s", query.QueryType), false)
 			}
 		default:
 			currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query mode: %s", model.QueryMode), false)
