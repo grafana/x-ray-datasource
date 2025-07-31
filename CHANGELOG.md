@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## 2.16.1
 
-- Chore: Add downstream error for unsupported query types
+- Chore: Use CI/CD actions for e2e and update grafana version in plugin.json by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/421
+- Chore: Update contributing and readme by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/422
+- Chore: Add downstream error for unsupported query types by @ktw4071 in https://github.com/grafana/x-ray-datasource/pull/428
 
 ## 2.16.0
 
