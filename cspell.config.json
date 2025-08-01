@@ -122,6 +122,7 @@
     "applicationsignals",
     "zizmor",
     "dompurify",
-    "awsauth"
+    "awsauth",
+    "Rspack"
   ]
 }
