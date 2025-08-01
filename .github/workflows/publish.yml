@@ -24,7 +24,7 @@ permissions: {}
 
 jobs:
   cd:
-    name: CD
+    name: CD-plugins
     uses: grafana/plugin-ci-workflows/.github/workflows/cd.yml@main # zizmor: ignore[unpinned-uses]
     permissions:
       contents: write
