@@ -35,10 +35,9 @@ jobs:
       environment: ${{ github.event.inputs.environment }}
       docs-only: ${{ fromJSON(github.event.inputs.docs-only) }}
       golangci-lint-version: '2.1.6'
-      run-playwright: false
-      # playwright-secrets: |
-      #   AWS_ACCESS_KEY_ID=e2e:accessKey
-      #   AWS_SECRET_ACCESS_KEY=e2e:secretKey
+      playwright-secrets: |
+        AWS_ACCESS_KEY_ID=e2e:accessKey
+        AWS_SECRET_ACCESS_KEY=e2e:secretKey
 
       # Scope for the plugin published to the catalog. Setting this to "grafana_cloud" will make it visible only in Grafana Cloud
       # (and hide it for on-prem). This is required for some provisioned plugins.
