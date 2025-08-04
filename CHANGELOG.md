@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 - Chore: Use CI/CD actions for e2e and update grafana version in plugin.json by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/421
 - Chore: Update contributing and readme by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/422
 - Chore: Add downstream error for unsupported query types by @ktw4071 in https://github.com/grafana/x-ray-datasource/pull/428
+- Tweak dependabot schedule in [#432](https://github.com/grafana/x-ray-datasource/pull/432)
+- Dependencies: Bump grafana dependencies and run create-plugin update in [#429](https://github.com/grafana/x-ray-datasource/pull/429)
+- Bump eslint from 9.27.0 to 9.30.1 in [#418](https://github.com/grafana/x-ray-datasource/pull/418)
+- Bump eslint-config-prettier from 10.1.5 to 10.1.8 in [#415](https://github.com/grafana/x-ray-datasource/pull/415)
+- Bump webpack from 5.99.9 to 5.100.1 in [#423](https://github.com/grafana/x-ray-datasource/pull/423)
+- Bump @types/node from 22.16.4 to 22.16.5 in [#430](https://github.com/grafana/x-ray-datasource/pull/430)
+- Bump @grafana/eslint-config from 8.0.0 to 8.1.0 in [#416](https://github.com/grafana/x-ray-datasource/pull/416)
 
 ## 2.16.0
 
