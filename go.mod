@@ -33,7 +33,7 @@ require (
 	github.com/apache/arrow-go/v18 v18.3.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.7 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.11.4
+	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.15.6
 	github.com/aws/smithy-go v1.23.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
