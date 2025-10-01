@@ -305,3 +305,7 @@ to the IAM policy attached to the role/user running the plugin.
 Once the feature is enabled, you will be able to display traces across multiple accounts and filter those traces by account ID. When you select the `Service Map` query type in Grafana, an account dropdown displays and populates with the account IDs shown in the traces returned in the selected time frame.
 
 You can also add account ID as part of a query filter expression in the Trace List query type.
+
+### Plugin repository
+
+You can request new features, report issues, or contribute code directly through the [Application Signals Github repository](https://github.com/grafana/x-ray-datasource/)
