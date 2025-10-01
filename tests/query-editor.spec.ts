@@ -70,7 +70,7 @@ test('data query is successful when `Service Map` query is valid', async ({ page
   await expect(panelEditPage.refreshPanel()).toBeOK();
   await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
   await expect(panelEditPage.panel.fieldNames).toHaveText([
-    'id',
+    /^(nodes )?id$/i,
     'Name',
     'Type',
     'Average response time',
