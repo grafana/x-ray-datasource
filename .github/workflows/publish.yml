@@ -38,6 +38,7 @@ jobs:
       playwright-secrets: |
         AWS_ACCESS_KEY_ID=e2e:accessKey
         AWS_SECRET_ACCESS_KEY=e2e:secretKey
+      github-draft-release: false # publish the github release directly, skipping the draft step
 
       # Scope for the plugin published to the catalog. Setting this to "grafana_cloud" will make it visible only in Grafana Cloud
       # (and hide it for on-prem). This is required for some provisioned plugins.
