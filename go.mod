@@ -3,7 +3,7 @@ module github.com/grafana/x-ray-datasource
 go 1.24.4
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.39.0
+	github.com/aws/aws-sdk-go-v2 v1.39.1
 	github.com/aws/aws-sdk-go-v2/service/xray v1.36.2
 	github.com/grafana/grafana-aws-sdk v1.2.0
 	github.com/grafana/grafana-plugin-sdk-go v0.278.0
