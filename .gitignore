@@ -45,3 +45,12 @@ __debug_bin
 # ignore all provisioning files except for e2e placeholders.
 provisioning/datasources/*
 !provisioning/datasources/*.e2e.yaml
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
