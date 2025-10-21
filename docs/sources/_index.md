@@ -1,3 +1,17 @@
+---
+description: Learn about the Application Signals data source in Grafana
+labels:
+  products:
+    - oss
+    - enterprise
+keywords:
+  - data source
+  - plugin
+menuTitle: Application Signals data source
+title: Application Signals data source
+weight: 10
+---
+
 # Application Signals data source
 
 The Application Signals data source plugin provides a support for [AWS Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html) and [AWS X-Ray Traces](https://aws.amazon.com/xray/). This data source was formerly named the AWS X-Ray data source plugin. Add it as a data source, then you are ready to
@@ -93,7 +107,9 @@ See [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/v1/d
 
 Create a file at `~/.aws/credentials`. That is the `HOME` path for users running grafana-server.
 
-> **Note:** If the credentials file is in the correct directory, but it is not working, try moving your .aws file to '/usr/share/grafana/'. Make sure your credentials file has at most 0644 permissions.
+{{< admonition type="note" >}}
+If the credentials file is in the correct directory, but it is not working, try moving your .aws file to '/usr/share/grafana/'. Make sure your credentials file has at most 0644 permissions.
+{{< /admonition >}}
 
 Example credential file:
 
