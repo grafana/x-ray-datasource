@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.16.2
+
+- Upgrade yarn to v4.10.3 [#503](https://github.com/grafana/x-ray-datasource/pull/503)
+- Update gitignore for yarn files [#510](https://github.com/grafana/x-ray-datasource/pull/510)
+- Chore: Move docs do docs/sources in order to publish to website [#502](https://github.com/grafana/x-ray-datasource/pull/502)
+- CD: Publish Github release directly, skipping draft step [#501](https://github.com/grafana/x-ray-datasource/pull/501)
+- Fix dependabot ignore location for npm dependencies [#436](https://github.com/grafana/x-ray-datasource/pull/436)
+- Update workflows and templates [#486](https://github.com/grafana/x-ray-datasource/pull/486)
+- Update dependabot groups [#485](https://github.com/grafana/x-ray-datasource/pull/485)
+- Bump golang.org/x/text from 0.27.0 to 0.29.0 [#496](https://github.com/grafana/x-ray-datasource/pull/496)
+- Bump golang.org/x/sync from 0.16.0 to 0.17.0 [#495](https://github.com/grafana/x-ray-datasource/pull/495)
+- Bump github.com/stretchr/testify from 1.10.0 to 1.11.1 [#493](https://github.com/grafana/x-ray-datasource/pull/493)
+- Bump github.com/grafana/grafana-aws-sdk from 1.0.5 to 1.2.0 [#494](https://github.com/grafana/x-ray-datasource/pull/494)
+- Bump github.com/aws/aws-sdk-go-v2/service/xray from 1.31.7 to 1.36.2 [#492](https://github.com/grafana/x-ray-datasource/pull/492)
+- Bump @playwright/test from 1.52.0 to 1.54.1 [#434](https://github.com/grafana/x-ray-datasource/pull/434)
+- Bump github.com/aws/aws-sdk-go-v2/service/applicationsignals from 1.11.3 to 1.11.4 [#424](https://github.com/grafana/x-ray-datasource/pull/424)
+- Bump @typescript-eslint/parser from 8.32.1 to 8.38.0 [#439](https://github.com/grafana/x-ray-datasource/pull/439)
+- Bump @swc/core from 1.13.0 to 1.13.3 [#442](https://github.com/grafana/x-ray-datasource/pull/442)
+- Bump golang.org/x/text from 0.26.0 to 0.27.0 [#419](https://github.com/grafana/x-ray-datasource/pull/419)
+
 ## 2.16.1
 
 - Chore: Use CI/CD actions for e2e and update grafana version in plugin.json by @idastambuk in https://github.com/grafana/x-ray-datasource/pull/421
