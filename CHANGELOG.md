@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.16.3
+
+- Bump transitive dep brace-expansion to 1.1.12 and 2.0.2 in [#525](https://github.com/grafana/x-ray-datasource/pull/525)
+- Docs: Added missing front matter in [#523](https://github.com/grafana/x-ray-datasource/pull/523)
+
 ## 2.16.2
 
 - Upgrade yarn to v4.10.3 [#503](https://github.com/grafana/x-ray-datasource/pull/503)
