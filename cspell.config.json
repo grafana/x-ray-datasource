@@ -2,6 +2,7 @@
   "ignorePaths": [
     ".config/**",
     ".github/**",
+    ".yarn/**",
     "node_modules/**",
     "dist/**",
     "cypress/**",
@@ -123,6 +124,7 @@
     "zizmor",
     "dompurify",
     "awsauth",
-    "Rspack"
+    "Rspack",
+    "npmPreapprovedPackages"
   ]
 }
