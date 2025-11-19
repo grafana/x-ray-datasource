@@ -1,6 +1,6 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "2.16.3",
+  "version": "2.16.4",
   "description": "AWS Application Signals data source",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
