@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.16.4
+
+- Publish to every environment on Cloud and Add On-Prem promotion in [#529](https://github.com/grafana/x-ray-datasource/pull/529)
+- Bump the aws-sdk-go-v2 group with 3 updates in [#500](https://github.com/grafana/x-ray-datasource/pull/500)
+- Bump actions/checkout from 4 to 5 in [#454](https://github.com/grafana/x-ray-datasource/pull/454)
+- Bump transitive dep brace-expansion to 1.1.12 and 2.0.2 in [#525](https://github.com/grafana/x-ray-datasource/pull/525)
+
 ## 2.16.3
 
 - Bump transitive dep brace-expansion to 1.1.12 and 2.0.2 in [#525](https://github.com/grafana/x-ray-datasource/pull/525)
