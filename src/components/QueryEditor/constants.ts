@@ -126,5 +126,19 @@ export const columnNames: { [key: string]: string } = {
   'Computed.AverageResponseTime': 'Average Response Time',
 };
 
+// Column names for Trace List (getTraceSummaries) query type
+export const traceSummaryColumnNames: { [key: string]: string } = {
+  Id: 'Id',
+  StartTime: 'Start Time',
+  Method: 'Method',
+  Response: 'Response',
+  ResponseTime: 'Response Time',
+  Duration: 'Duration',
+  URL: 'URL',
+  ClientIP: 'Client IP',
+  Annotations: 'Annotations',
+  AnnotationsJSON: 'Annotations JSON',
+};
+
 // Dummy group that can be selected only in insights;
 export const dummyAllGroup = { GroupName: 'All', GroupARN: 'All' };

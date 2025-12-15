@@ -125,6 +125,7 @@
     "dompurify",
     "awsauth",
     "Rspack",
-    "npmPreapprovedPackages"
+    "npmPreapprovedPackages",
+    "Serialise"
   ]
 }

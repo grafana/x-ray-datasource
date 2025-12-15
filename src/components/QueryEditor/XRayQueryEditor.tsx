@@ -6,6 +6,7 @@ import { Group, XrayJsonData, XrayQuery, XrayQueryType } from '../../types';
 import {
   QueryTypeOption,
   columnNames,
+  traceSummaryColumnNames,
   dummyAllGroup,
   insightsOption,
   queryTypeOptions,
@@ -223,6 +224,37 @@ export function XRayQueryEditor({
                 }))}
                 value={(query.columns || []).map((c) => ({
                   label: columnNames[c],
+                  value: c,
+                }))}
+                onChange={(values) => onChange({ ...query, columns: values.map((v) => v.value!) })}
+                closeMenuOnSelect={false}
+                isClearable={true}
+                placeholder="All columns"
+                menuPlacement="bottom"
+              />
+            </EditorField>
+          </EditorFieldGroup>
+        </EditorRow>
+      )}
+
+      {selectedOptions[0] === traceListOption && (
+        <EditorRow>
+          <EditorFieldGroup>
+            <EditorField
+              label="Columns"
+              className={`query-keyword ${styles.formFieldStyles}`}
+              htmlFor="traceListColumns"
+              data-testid="trace-list-column-filter"
+            >
+              <MultiSelect
+                inputId="traceListColumns"
+                allowCustomValue={false}
+                options={Object.keys(traceSummaryColumnNames).map((c) => ({
+                  label: traceSummaryColumnNames[c],
+                  value: c,
+                }))}
+                value={(query.columns || []).map((c) => ({
+                  label: traceSummaryColumnNames[c],
                   value: c,
                 }))}
                 onChange={(values) => onChange({ ...query, columns: values.map((v) => v.value!) })}
