@@ -1577,14 +1577,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/e2e-selectors@npm:^12.2.0-255920":
-  version: 12.2.0-17681690154
-  resolution: "@grafana/e2e-selectors@npm:12.2.0-17681690154"
+"@grafana/e2e-selectors@npm:12.4.0-20165274911":
+  version: 12.4.0-20165274911
+  resolution: "@grafana/e2e-selectors@npm:12.4.0-20165274911"
   dependencies:
     semver: "npm:^7.7.0"
     tslib: "npm:2.8.1"
     typescript: "npm:5.9.2"
-  checksum: 10c0/63fd9c317ba55a9713b961d677104ad0d0c20d48c0437da4f1bf61550ff40cfc520933e06f16c014b36005ff82c00b00ec7976e2ddb63149052b772cb2ec7cb7
+  checksum: 10c0/d60ac95fa0c7488270728214708dd6d9c60d7d1e899ca1c7ed4814b8cf30595aabb4ac03459aafe236c75a231a2d559190de78b6577009e624a389bde2506f77
   languageName: node
   linkType: hard
 
@@ -1644,17 +1644,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/plugin-e2e@npm:^2.1.13":
-  version: 2.1.13
-  resolution: "@grafana/plugin-e2e@npm:2.1.13"
+"@grafana/plugin-e2e@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@grafana/plugin-e2e@npm:3.1.0"
   dependencies:
-    "@grafana/e2e-selectors": "npm:^12.2.0-255920"
+    "@grafana/e2e-selectors": "npm:12.4.0-20165274911"
     semver: "npm:^7.5.4"
-    uuid: "npm:^11.0.2"
+    uuid: "npm:^13.0.0"
     yaml: "npm:^2.3.4"
   peerDependencies:
     "@playwright/test": ^1.52.0
-  checksum: 10c0/677c56c282c63f6223f2ac564105d300d0e68e472b08262911ad8a7aa96409a70a209cabb17b165379f3c41e6ede2b0022c2567e068028a5ee97499ff169e6c4
+  checksum: 10c0/3cb8324f7a410dd5c25d639b77076b4f9e8a0a810fc52fa04e3e28f6989040d6b5079f7343acee18175cd5768949040bb8be737fe99fe120616e47bb6b47aec7
   languageName: node
   linkType: hard
 
@@ -7707,7 +7707,7 @@ __metadata:
     "@grafana/aws-sdk": "npm:0.7.1"
     "@grafana/data": "npm:^12.1.0"
     "@grafana/eslint-config": "npm:^8.1.0"
-    "@grafana/plugin-e2e": "npm:^2.1.13"
+    "@grafana/plugin-e2e": "npm:^3.1.0"
     "@grafana/plugin-ui": "npm:^0.10.7"
     "@grafana/runtime": "npm:^12.1.0"
     "@grafana/schema": "npm:^12.1.0"
@@ -13621,12 +13621,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:11.1.0, uuid@npm:^11.0.0, uuid@npm:^11.0.2":
+"uuid@npm:11.1.0, uuid@npm:^11.0.0":
   version: 11.1.0
   resolution: "uuid@npm:11.1.0"
   bin:
     uuid: dist/esm/bin/uuid
   checksum: 10c0/34aa51b9874ae398c2b799c88a127701408cd581ee89ec3baa53509dd8728cbb25826f2a038f9465f8b7be446f0fbf11558862965b18d21c993684297628d4d3
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "uuid@npm:13.0.0"
+  bin:
+    uuid: dist-node/bin/uuid
+  checksum: 10c0/950e4c18d57fef6c69675344f5700a08af21e26b9eff2bf2180427564297368c538ea11ac9fb2e6528b17fc3966a9fd2c5049361b0b63c7d654f3c550c9b3d67
   languageName: node
   linkType: hard
 
