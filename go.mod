@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.41.0
 	github.com/aws/aws-sdk-go-v2/service/xray v1.36.16
 	github.com/grafana/grafana-aws-sdk v1.4.2
-	github.com/grafana/grafana-plugin-sdk-go v0.283.0
+	github.com/grafana/grafana-plugin-sdk-go v0.284.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.19.0
 	golang.org/x/text v0.32.0
