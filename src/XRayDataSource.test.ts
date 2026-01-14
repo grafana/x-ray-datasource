@@ -88,7 +88,7 @@ describe('XrayDataSource', () => {
       );
       expect(response.data.length).toBe(1);
       const df: DataFrame = response.data[0];
-      expect(df.fields.length).toBe(2);
+      expect(df.fields.length).toBe(10);
       expect(df.fields[0].values.length).toBe(2);
       expect(df.fields[0].config.links?.length).toBe(1);
       expect(df.fields[0].config.links?.[0].internal?.datasourceUid).toBe('xrayUid');
@@ -505,9 +505,57 @@ function makeTraceSummariesResponse(): DataFrame {
         config: {},
       },
       {
+        name: 'Start Time',
+        type: FieldType.time,
+        values: [1734220800000, 1734220801000],
+        config: {},
+      },
+      {
+        name: 'Method',
+        type: FieldType.string,
+        values: ['GET', 'POST'],
+        config: {},
+      },
+      {
+        name: 'Response',
+        type: FieldType.number,
+        values: [200, 500],
+        config: {},
+      },
+      {
+        name: 'Response Time',
+        type: FieldType.number,
+        values: [0.6, 0.8],
+        config: { unit: 's' },
+      },
+      {
         name: 'Duration',
         type: FieldType.number,
-        values: [10, 20],
+        values: [10.5, 20.3],
+        config: { unit: 's' },
+      },
+      {
+        name: 'URL',
+        type: FieldType.string,
+        values: ['/api/test', '/api/other'],
+        config: {},
+      },
+      {
+        name: 'Client IP',
+        type: FieldType.string,
+        values: ['1.2.3.4', '5.6.7.8'],
+        config: {},
+      },
+      {
+        name: 'Annotations',
+        type: FieldType.number,
+        values: [2, 0],
+        config: {},
+      },
+      {
+        name: 'Annotations JSON',
+        type: FieldType.string,
+        values: ['{"key":"value"}', null],
         config: {},
       },
     ],
