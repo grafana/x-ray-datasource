@@ -3432,7 +3432,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:*, @testing-library/jest-dom@npm:6.9.1":
+"@testing-library/jest-dom@npm:6.9.1":
   version: 6.9.1
   resolution: "@testing-library/jest-dom@npm:6.9.1"
   dependencies:
@@ -3779,15 +3779,6 @@ __metadata:
   version: 6.15.3
   resolution: "@types/systemjs@npm:6.15.3"
   checksum: 10c0/922a006446eff5263a3073af24691fc71519c72e334f7746a3a602d8d2bdf983f467042001b4bda1e6468a0a5bcf9905fcce570c3cb8ab84176815bc495e4e25
-  languageName: node
-  linkType: hard
-
-"@types/testing-library__jest-dom@npm:6.0.0":
-  version: 6.0.0
-  resolution: "@types/testing-library__jest-dom@npm:6.0.0"
-  dependencies:
-    "@testing-library/jest-dom": "npm:*"
-  checksum: 10c0/824950dc82752ddb656fa7ca851bf454804332f7a7a8571231abfc3553902198c6b96de209bb3dd1f1a15ee6a269a1efa56866041f5692ee0129308772e658e0
   languageName: node
   linkType: hard
 
@@ -7483,7 +7474,6 @@ __metadata:
     "@types/prismjs": "npm:1.26.5"
     "@types/semver": "npm:^7.7.0"
     "@types/slate": "npm:0.47.16"
-    "@types/testing-library__jest-dom": "npm:6.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.52.0"
     "@typescript-eslint/parser": "npm:^8.38.0"
     copy-webpack-plugin: "npm:^13.0.0"
