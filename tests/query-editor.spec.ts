@@ -32,7 +32,7 @@ test('data query is successful when `Trace Statistics` query is valid', async ({
   await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
   await page.getByRole('button', { name: 'Trace List' }).click();
   await page.getByRole('menuitemcheckbox', { name: 'Trace Statistics' }).click();
-  await page.keyboard.press('Escape'); // Make sure the dropdown is closed
+  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click(); // Make sure the dropdown is closed
   await page.getByRole('combobox', { name: 'Columns' }).click();
   await page.getByText('Total Count').click();
   await page.keyboard.press('Escape');
