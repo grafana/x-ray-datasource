@@ -62,13 +62,16 @@ func makeSummary(region string) xraytypes.TraceSummary {
 
 	annotations := make(map[string][]xraytypes.ValueWithServiceIds)
 	annotations["foo"] = []xraytypes.ValueWithServiceIds{{
-		ServiceIds: []xraytypes.ServiceId{},
+		AnnotationValue: &xraytypes.AnnotationValueMemberStringValue{Value: "foo-value"},
+		ServiceIds:      []xraytypes.ServiceId{},
 	}, {
-		ServiceIds: []xraytypes.ServiceId{},
+		AnnotationValue: &xraytypes.AnnotationValueMemberStringValue{Value: "foo-value-2"},
+		ServiceIds:      []xraytypes.ServiceId{},
 	}}
 
 	annotations["bar"] = []xraytypes.ValueWithServiceIds{{
-		ServiceIds: []xraytypes.ServiceId{},
+		AnnotationValue: &xraytypes.AnnotationValueMemberNumberValue{Value: 42.5},
+		ServiceIds:      []xraytypes.ServiceId{},
 	}}
 
 	traceId := "id1"
@@ -77,11 +80,12 @@ func makeSummary(region string) xraytypes.TraceSummary {
 	}
 
 	return xraytypes.TraceSummary{
-		Annotations: annotations,
-		Duration:    aws.Float64(10.5),
-		StartTime:   aws.Time(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
-		Http:        http,
-		Id:          aws.String(traceId),
+		Annotations:  annotations,
+		Duration:     aws.Float64(10.5),
+		ResponseTime: aws.Float64(0.6),
+		StartTime:    aws.Time(time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC)),
+		Http:         http,
+		Id:           aws.String(traceId),
 		ErrorRootCauses: []xraytypes.ErrorRootCause{
 			{
 				ClientImpacting: nil,
@@ -710,8 +714,23 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, "id1", *frame.Fields[0].At(0).(*string))
 		require.Equal(t, time.Date(2023, time.January, 1, 12, 0, 0, 0, time.UTC), *frame.Fields[1].At(0).(*time.Time))
 		require.Equal(t, "GET", *frame.Fields[2].At(0).(*string))
-		require.Equal(t, 10.5, *frame.Fields[4].At(0).(*float64))
-		require.Equal(t, int64(3), *frame.Fields[7].At(0).(*int64))
+
+		// Test ResponseTime field (field 4)
+		require.Equal(t, 0.6, *frame.Fields[4].At(0).(*float64))
+
+		// Test Duration field (field 5)
+		require.Equal(t, 10.5, *frame.Fields[5].At(0).(*float64))
+
+		// Test Annotations count field (field 8)
+		require.Equal(t, int64(3), *frame.Fields[8].At(0).(*int64))
+
+		// Test Annotations JSON field (field 9) - should contain foo and bar annotations
+		annotationsJSON := frame.Fields[9].At(0).(*string)
+		require.NotNil(t, annotationsJSON)
+		require.Contains(t, *annotationsJSON, "foo")
+		require.Contains(t, *annotationsJSON, "bar")
+		require.Contains(t, *annotationsJSON, "foo-value")
+		require.Contains(t, *annotationsJSON, "42.5")
 	})
 	t.Run("getTraceSummaries query with region", func(t *testing.T) {
 		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{Query: "", Region: "us-east-1"})
@@ -720,6 +739,44 @@ func TestDatasource(t *testing.T) {
 
 		frame := response.Responses["A"].Frames[0]
 		require.Equal(t, "id-us-east-1", *frame.Fields[0].At(0).(*string))
+	})
+
+	t.Run("getTraceSummaries query with column filter", func(t *testing.T) {
+		// Request only Id, ResponseTime, and AnnotationsJSON columns
+		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{
+			Query:   "",
+			Columns: []string{"Id", "ResponseTime", "AnnotationsJSON"},
+		})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		// Should only have 3 fields instead of 10
+		require.Equal(t, 3, len(frame.Fields))
+		require.Equal(t, "Id", frame.Fields[0].Name)
+		require.Equal(t, "Response Time", frame.Fields[1].Name)
+		require.Equal(t, "Annotations JSON", frame.Fields[2].Name)
+
+		// Verify data is correct
+		require.Equal(t, "id1", *frame.Fields[0].At(0).(*string))
+		require.Equal(t, 0.6, *frame.Fields[1].At(0).(*float64))
+		annotationsJSON := frame.Fields[2].At(0).(*string)
+		require.NotNil(t, annotationsJSON)
+		require.Contains(t, *annotationsJSON, "foo-value")
+	})
+
+	t.Run("getTraceSummaries query with empty columns returns all", func(t *testing.T) {
+		// Empty columns array should return all columns
+		response, err := queryDatasource(ds, datasource.QueryGetTraceSummaries, datasource.GetTraceSummariesQueryData{
+			Query:   "",
+			Columns: []string{},
+		})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		// Should have all 10 fields
+		require.Equal(t, 10, len(frame.Fields))
 	})
 
 	t.Run("getServiceMap query", func(t *testing.T) {

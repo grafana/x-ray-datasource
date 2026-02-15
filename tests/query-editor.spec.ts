@@ -17,9 +17,11 @@ test('data query is successful when `Trace List` query is valid', async ({ page,
     'Method',
     'Response',
     'Response Time',
+    'Duration',
     'URL',
     'Client IP',
     'Annotations',
+    'Annotations JSON',
   ]);
 });
 
