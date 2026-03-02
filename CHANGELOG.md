@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## 2.16.6
 
+- chore(deps): update grafana/plugin-ci-workflows/ci-cd-workflows action to v6.1.1 in [#616](https://github.com/grafana/x-ray-datasource/pull/616)
 - fix(deps): update module github.com/grafana/grafana-plugin-sdk-go to v0.290.0 in [#562](https://github.com/grafana/x-ray-datasource/pull/562)
 - chore(deps): update dependency lefthook to ^2.1.1 in [#595](https://github.com/grafana/x-ray-datasource/pull/595)
 - fix(deps): update module golang.org/x/text to v0.34.0 in [#609](https://github.com/grafana/x-ray-datasource/pull/609)
