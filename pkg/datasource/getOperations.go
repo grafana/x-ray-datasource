@@ -12,7 +12,6 @@ import (
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 func (ds *Datasource) GetOperations(rw http.ResponseWriter, req *http.Request) {
@@ -103,7 +102,7 @@ func getOperationsFromAppSignals(ctx context.Context, appSignalsClient AppSignal
 		}
 	}
 	if pagerError != nil {
-		pagerError = errorsource.DownstreamError(pagerError, false)
+		pagerError = backend.DownstreamError(pagerError)
 	}
 	return operations, pagerError
 }

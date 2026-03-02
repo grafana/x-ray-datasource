@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type XrayClientFactory = func(ctx context.Context, pluginContext backend.PluginContext, requestSettings RequestSettings) (XrayClient, error)
@@ -82,7 +81,7 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			case QueryListServiceLevelObjectives:
 				currentRes = ds.ListServiceLevelObjectives(ctx, query, req.PluginContext)
 			default:
-				currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType), false)
+				currentRes.Error = backend.DownstreamError(fmt.Errorf("unknown service query type: %s", model.ServiceQueryType))
 			}
 		case "":
 			fallthrough
@@ -111,10 +110,10 @@ func (ds *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReque
 			case QueryGetServiceMap:
 				currentRes = ds.getSingleServiceMap(ctx, query, req.PluginContext)
 			default:
-				currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query type: %s", query.QueryType), false)
+				currentRes.Error = backend.DownstreamError(fmt.Errorf("unknown query type: %s", query.QueryType))
 			}
 		default:
-			currentRes.Error = errorsource.DownstreamError(fmt.Errorf("unknown query mode: %s", model.QueryMode), false)
+			currentRes.Error = backend.DownstreamError(fmt.Errorf("unknown query mode: %s", model.QueryMode))
 		}
 		res.Responses[query.RefID] = currentRes
 	}

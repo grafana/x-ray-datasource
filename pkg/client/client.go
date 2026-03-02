@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 // CreateXrayClient creates a new session and xray client and sets tracking header on that client
@@ -61,13 +60,13 @@ func getHTTPClient(ctx context.Context, backendSettings backend.DataSourceInstan
 	httpClientProvider := httpclient.NewProvider()
 	httpClientOptions, err := backendSettings.HTTPClientOptions(ctx)
 	if err != nil {
-		return nil, errorsource.PluginError(err, false)
+		return nil, backend.PluginError(err)
 	}
 
 	httpClient, err := httpClientProvider.New(httpClientOptions)
 	if err != nil {
 		backend.Logger.Error("failed to create HTTP client", "error", err.Error())
-		return nil, errorsource.PluginError(err, false)
+		return nil, backend.PluginError(err)
 	}
 	return httpClient, nil
 

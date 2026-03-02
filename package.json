@@ -34,12 +34,13 @@
     "tslib": "2.8.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.1",
     "@babel/core": "^7.28.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.31.0",
     "@grafana/aws-sdk": "0.10.1",
     "@grafana/eslint-config": "^9.0.0",
-    "@grafana/plugin-e2e": "3.3.2",
+    "@grafana/plugin-e2e": "3.4.1",
     "@grafana/tsconfig": "^2.0.0",
     "@playwright/test": "1.58.2",
     "@stylistic/eslint-plugin-ts": "^4.4.1",

@@ -8,9 +8,9 @@ import (
 	"net/url"
 
 	"github.com/aws/aws-sdk-go-v2/service/xray"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 func (ds *Datasource) getGroups(rw http.ResponseWriter, req *http.Request) {
@@ -81,7 +81,7 @@ func getGroupsFromXray(ctx context.Context, xrayClient XrayClient) ([]xraytypes.
 
 	}
 	if pagerError != nil {
-		pagerError = errorsource.DownstreamError(pagerError, false)
+		pagerError = backend.DownstreamError(pagerError)
 	}
 	return groups, pagerError
 }

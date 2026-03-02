@@ -16,7 +16,6 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -34,7 +33,7 @@ func (ds *Datasource) getSingleAnalyticsQueryResult(ctx context.Context, query b
 
 	if err != nil {
 		log.DefaultLogger.Debug("getSingleAnalyticsResult", "error", err)
-		return errorsource.Response(errorsource.DownstreamError(err, false))
+		return backend.ErrorResponseWithErrorSource(backend.DownstreamError(err))
 	}
 
 	log.DefaultLogger.Debug("getSingleAnalyticsResult", "len(traces)", len(traces))
@@ -50,12 +49,12 @@ func (ds *Datasource) getTraceSummariesData(ctx context.Context, query backend.D
 	queryData := &GetAnalyticsQueryData{}
 	err := json.Unmarshal(query.JSON, queryData)
 	if err != nil {
-		return nil, errorsource.PluginError(err, false)
+		return nil, backend.PluginError(err)
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return nil, errorsource.PluginError(err, false)
+		return nil, backend.PluginError(err)
 	}
 
 	log.DefaultLogger.Debug("getTraceSummariesData", "query", queryData.Query)
@@ -200,7 +199,7 @@ func runRequests(ctx context.Context, xrayClient XrayClient, requests []*xray.Ge
 			group.Go(func() error {
 				resp, err := getTraceSummaries(groupCtx, xrayClient, req)
 				if err != nil {
-					return errorsource.DownstreamError(err, false)
+					return backend.DownstreamError(err)
 				}
 				responses[index] = resp
 				return nil
@@ -217,7 +216,7 @@ func runRequests(ctx context.Context, xrayClient XrayClient, requests []*xray.Ge
 func getTraceSummaries(ctx context.Context, xrayClient XrayClient, request xray.GetTraceSummariesInput) (*xray.GetTraceSummariesOutput, error) {
 	resp, err := xrayClient.GetTraceSummaries(ctx, &request)
 	if err != nil {
-		return nil, errorsource.DownstreamError(err, false)
+		return nil, backend.DownstreamError(err)
 	}
 	log.DefaultLogger.Debug("getTraceSummaries", "from", request.StartTime, "to", request.EndTime, "len(traces)", len(resp.TraceSummaries))
 	return resp, nil
@@ -254,7 +253,7 @@ func getTracesCount(ctx context.Context, xrayClient XrayClient, from time.Time, 
 	}
 
 	if pagerError != nil {
-		pagerError = errorsource.DownstreamError(pagerError, false)
+		pagerError = backend.DownstreamError(pagerError)
 	}
 	return count, pagerError
 }
