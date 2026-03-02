@@ -114,7 +114,6 @@
     "lefthook",
     "gofmt",
     "jackspeak",
-    "errorsource",
     "nolint",
     "staticcheck",
     "xraytypes",

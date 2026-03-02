@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/grafana/grafana-plugin-sdk-go/experimental/errorsource"
 )
 
 type GetTraceQueryData struct {
@@ -40,12 +39,12 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	err := json.Unmarshal(query.JSON, queryData)
 
 	if err != nil {
-		return errorsource.Response(err)
+		return backend.ErrorResponseWithErrorSource(err)
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
-		return errorsource.Response(err)
+		return backend.ErrorResponseWithErrorSource(err)
 	}
 
 	// Handle W3C format trace IDs by converting to X-Ray format
@@ -106,19 +105,19 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	wg.Wait()
 
 	if tracesError != nil {
-		return errorsource.Response(errorsource.DownstreamError(tracesError, false))
+		return backend.ErrorResponseWithErrorSource(backend.DownstreamError(tracesError))
 	}
 
 	if len(tracesResponse.Traces) == 0 {
-		return errorsource.Response(errorsource.DownstreamError(fmt.Errorf("trace not found"), false))
+		return backend.ErrorResponseWithErrorSource(backend.DownstreamError(fmt.Errorf("trace not found")))
 	}
 
 	// We assume only single trace at this moment is returned from the API call
 	trace := tracesResponse.Traces[0]
 	traceBytes, err := json.Marshal(trace)
 	if err != nil {
-		return errorsource.Response(
-			errorsource.DownstreamError(fmt.Errorf("failed to json.Marshal trace \"%s\" :%w", *trace.Id, err), false),
+		return backend.ErrorResponseWithErrorSource(
+			backend.DownstreamError(fmt.Errorf("failed to json.Marshal trace \"%s\" :%w", *trace.Id, err)),
 		)
 	}
 
@@ -132,7 +131,7 @@ func (ds *Datasource) getSingleTrace(ctx context.Context, query backend.DataQuer
 	if traceGraphError == nil {
 		frames = append(frames, traceGraphFrame)
 	} else {
-		response = errorsource.Response(errorsource.DownstreamError(traceGraphError, false))
+		response = backend.ErrorResponseWithErrorSource(backend.DownstreamError(traceGraphError))
 	}
 	// TODO not sure what will this show if we have both data and error
 	response.Frames = frames
