@@ -19,7 +19,7 @@
     "description": "Data source for AWS Application Signals",
     "author": {
       "name": "Grafana",
-      "url": "grafana.com"
+      "url": "https://grafana.com"
     },
     "keywords": ["datasource", "aws", "amazon", "x-ray", "tracing", "cloud provider", "traces", "application signals"],
     "logos": {
