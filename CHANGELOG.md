@@ -2,8 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## 2.16.5
+## 2.16.6
 
+- chore(deps): update grafana/plugin-ci-workflows/ci-cd-workflows action to v6.1.1 in [#616](https://github.com/grafana/x-ray-datasource/pull/616)
+- fix(deps): update module github.com/grafana/grafana-plugin-sdk-go to v0.290.0 in [#562](https://github.com/grafana/x-ray-datasource/pull/562)
+- chore(deps): update dependency lefthook to ^2.1.1 in [#595](https://github.com/grafana/x-ray-datasource/pull/595)
+- fix(deps): update module golang.org/x/text to v0.34.0 in [#609](https://github.com/grafana/x-ray-datasource/pull/609)
+- chore(deps): update grafana monorepo to v12.3.3 in [#606](https://github.com/grafana/x-ray-datasource/pull/606)
+- chore(deps): update dependency semver to v7.7.4 in [#605](https://github.com/grafana/x-ray-datasource/pull/605)
+- chore(deps): update dependency sass-loader to v16.0.7 in [#598](https://github.com/grafana/x-ray-datasource/pull/598)
+- chore(deps): update dependency @types/prismjs to v1.26.6 in [#603](https://github.com/grafana/x-ray-datasource/pull/603)
+- chore(deps): update module go.opentelemetry.io/otel/sdk to v1.40.0 [security] in [#607](https://github.com/grafana/x-ray-datasource/pull/607)
+- chore(deps): update dependency @types/node to v24.10.13 in [#594](https://github.com/grafana/x-ray-datasource/pull/594)
+- chore(deps): update dependency @grafana/plugin-ui to v0.13.1 in [#602](https://github.com/grafana/x-ray-datasource/pull/602)
+- chore(deps): update actions/stale digest to b5d41d4 in [#601](https://github.com/grafana/x-ray-datasource/pull/601)
+- chore: add pull-requests: read permission to publish workflow in [#604](https://github.com/grafana/x-ray-datasource/pull/604)
 - chore: support React 19 readiness in [#599](https://github.com/grafana/x-ray-datasource/pull/599)
 - chore(deps): update dependency semver to ^7.7.3 in [#597](https://github.com/grafana/x-ray-datasource/pull/597)
 - fix(deps): update dependency @grafana/plugin-ui to ^0.13.0 in [#593](https://github.com/grafana/x-ray-datasource/pull/593)
@@ -62,6 +75,10 @@ All notable changes to this project will be documented in this file.
 - Update to use self-hosted renovate and remove dependabot in [#542](https://github.com/grafana/x-ray-datasource/pull/542)
 - update ci-cd workflows to v4.3.0 in [#537](https://github.com/grafana/x-ray-datasource/pull/537)
 - revert skip dev image for e2e tests in [#536](https://github.com/grafana/x-ray-datasource/pull/536)
+
+## 2.16.5
+
+- Skipped: this version failed to publish.
 
 ## 2.16.4
 
