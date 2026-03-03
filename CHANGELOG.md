@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## 2.16.6
+## 2.16.7
+
+- fix: use valid URI for plugin author URL in [#617](https://github.com/grafana/x-ray-datasource/pull/617)
 
 - chore(deps): update grafana/plugin-ci-workflows/ci-cd-workflows action to v6.1.1 in [#616](https://github.com/grafana/x-ray-datasource/pull/616)
 - fix(deps): update module github.com/grafana/grafana-plugin-sdk-go to v0.290.0 in [#562](https://github.com/grafana/x-ray-datasource/pull/562)
@@ -75,6 +77,10 @@ All notable changes to this project will be documented in this file.
 - Update to use self-hosted renovate and remove dependabot in [#542](https://github.com/grafana/x-ray-datasource/pull/542)
 - update ci-cd workflows to v4.3.0 in [#537](https://github.com/grafana/x-ray-datasource/pull/537)
 - revert skip dev image for e2e tests in [#536](https://github.com/grafana/x-ray-datasource/pull/536)
+
+## 2.16.6
+
+- Skipped: this version failed to publish.
 
 ## 2.16.5
 
