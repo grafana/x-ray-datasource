@@ -47,6 +47,7 @@ func getAWSConfig(ctx context.Context, settings awsds.AWSDatasourceSettings, bac
 		LegacyAuthType:     settings.AuthType,
 		AccessKey:          settings.AccessKey,
 		SecretKey:          settings.SecretKey,
+		SessionToken:       settings.SessionToken,
 		Region:             region,
 		CredentialsProfile: settings.Profile,
 		AssumeRoleARN:      settings.AssumeRoleARN,
