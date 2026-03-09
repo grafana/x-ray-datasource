@@ -36,6 +36,7 @@
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",
     "@babel/core": "7.29.0",
+    "@eslint/compat": "^2.0.2",
     "@eslint/eslintrc": "3.3.4",
     "@eslint/js": "10.0.1",
     "@grafana/aws-sdk": "0.10.1",
