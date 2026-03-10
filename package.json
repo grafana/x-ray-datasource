@@ -39,7 +39,7 @@
     "@eslint/compat": "^2.0.2",
     "@eslint/eslintrc": "3.3.4",
     "@eslint/js": "10.0.1",
-    "@grafana/aws-sdk": "0.10.1",
+    "@grafana/aws-sdk": "0.10.2",
     "@grafana/eslint-config": "9.0.0",
     "@grafana/plugin-e2e": "3.4.5",
     "@grafana/tsconfig": "2.0.1",
