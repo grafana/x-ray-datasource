@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.0
+
+- Add sessionToken handling to support Grafana Assume Role in [#628](https://github.com/grafana/x-ray-datasource/pull/628)
+- chore(deps): update dependency @grafana/plugin-e2e to v3.4.3 in [#627](https://github.com/grafana/x-ray-datasource/pull/627)
+- chore(deps): pin dependencies in [#623](https://github.com/grafana/x-ray-datasource/pull/623)
+- fix(deps): update backend dependencies in [#624](https://github.com/grafana/x-ray-datasource/pull/624)
+- chore(deps): pin grafana/grafana-enterprise docker tag to 582fc54 in [#622](https://github.com/grafana/x-ray-datasource/pull/622)
+- chore(deps): lock file maintenance in [#611](https://github.com/grafana/x-ray-datasource/pull/611)
+- chore(deps): update dependency @grafana/plugin-e2e to v3.4.2 in [#621](https://github.com/grafana/x-ray-datasource/pull/621)
+- chore(deps): pin actions/create-github-app-token action to 29824e6 in [#513](https://github.com/grafana/x-ray-datasource/pull/513)
+- Update renovate config to use data-sources base preset in [#619](https://github.com/grafana/x-ray-datasource/pull/619)
+
 ## 2.16.7
 
 - fix: use valid URI for plugin author URL in [#617](https://github.com/grafana/x-ray-datasource/pull/617)
