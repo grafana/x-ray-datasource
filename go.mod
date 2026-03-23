@@ -3,8 +3,8 @@ module github.com/grafana/x-ray-datasource
 go 1.25.7
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.41.3
-	github.com/aws/aws-sdk-go-v2/service/xray v1.36.19
+	github.com/aws/aws-sdk-go-v2 v1.41.4
+	github.com/aws/aws-sdk-go-v2/service/xray v1.36.20
 	github.com/grafana/grafana-aws-sdk v1.4.3
 	github.com/grafana/grafana-plugin-sdk-go v0.290.1
 	github.com/stretchr/testify v1.11.1
@@ -42,9 +42,9 @@ require (
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/apache/arrow-go/v18 v18.5.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.19 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.19 // indirect
-	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.18.6
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.20 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.20 // indirect
+	github.com/aws/aws-sdk-go-v2/service/applicationsignals v1.18.7
 	github.com/aws/smithy-go v1.24.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
