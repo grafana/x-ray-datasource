@@ -41,7 +41,7 @@
     "@eslint/js": "10.0.1",
     "@grafana/aws-sdk": "0.10.2",
     "@grafana/eslint-config": "9.0.0",
-    "@grafana/plugin-e2e": "3.4.11",
+    "@grafana/plugin-e2e": "3.4.13",
     "@grafana/tsconfig": "2.0.1",
     "@openfeature/web-sdk": "1.7.3",
     "@playwright/test": "1.58.2",
