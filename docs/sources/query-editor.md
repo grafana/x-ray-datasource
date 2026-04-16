@@ -25,7 +25,9 @@ review_date: 2026-04-16
 
 # AWS Application Signals query editor
 
-This document explains how to use the AWS Application Signals query editor to explore X-Ray traces and Application Signals services.
+The AWS Application Signals query editor is where you turn raw telemetry into the answers your team needs during an incident. Use it to pull up a single trace by ID, chart fault and latency trends, surface auto-detected insights, and map service dependencies across accounts — all without leaving your Grafana dashboard.
+
+This document walks through every query mode, shows the exact fields each one exposes, and collects ready-to-paste filter expressions and end-to-end query examples so you can go from a blank panel to a working visualization in minutes.
 
 ## Before you begin
 
@@ -66,30 +68,40 @@ The Traces mode supports the following query types. Select a query type from the
 
 ### Trace list
 
-Use Trace list to search for traces matching a filter expression. Results are shown in a table; clicking the trace ID in the first column opens the trace view.
+Use Trace list to search for traces. Results appear in a table; click the trace ID in the first column to open the trace view.
 
-You can enter:
+The **Query** field placeholder reads `Enter service name, annotation, trace ID.` You can enter:
 
-- A single trace ID to open that trace directly.
-- A [filter expression](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html) such as `service("frontend") { fault = true }`.
-- A leading `#` followed by a group name to scope the query to an X-Ray group.
+- A [filter expression](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html), for example `service("frontend") { fault = true }`.
+- A single trace ID in one of two formats. The query editor detects the ID and opens the trace directly:
+  - X-Ray format: `1-xxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx` (for example, `1-5f160a8b-83190adad07f429219c0e259`).
+  - 32-character hex format from W3C Trace Context (for example, `5f160a8b83190adad07f429219c0e259`). The plugin converts this to the X-Ray format automatically.
 
-{{< admonition type="caution" >}}
-Trace list results are capped at the first 1000 traces returned by the X-Ray API. If you need more data, narrow the time range or add filters to make the result set more specific.
-{{< /admonition >}}
-
-### Trace statistics
-
-Trace statistics returns a time-series graph and table of error, fault, throttle, success, and total counts. Use it for numeric dashboards and alerts.
+To scope a query to a saved X-Ray group, select the group from the **Group** drop-down — group filtering isn't supported inline in the query field.
 
 The following fields are available:
 
 | Field | Description |
 |-------|-------------|
-| **Query** | An X-Ray filter expression that narrows the trace population. |
+| **Query** | A trace ID or filter expression. Leave empty to return all traces in the time range. |
+| **Group** | An optional X-Ray group whose filter expression narrows the query. |
+
+{{< admonition type="caution" >}}
+Trace list results are capped at the first 1000 traces returned by the X-Ray API. If you need more data, narrow the time range or tighten the filter expression to make the result set more specific.
+{{< /admonition >}}
+
+### Trace statistics
+
+Trace statistics returns a time-series graph and table of error, fault, throttle, success, and total counts plus an average response time. Use it for numeric dashboards and alerts.
+
+The following fields are available:
+
+| Field | Description |
+|-------|-------------|
+| **Query** | An X-Ray filter expression that narrows the trace population. Leave empty to aggregate across all traces in the time range. |
 | **Group** | An optional X-Ray group to apply. |
-| **Resolution** | Time bucket granularity: **Auto**, **60s**, or **300s**. Auto chooses the value appropriate for the current time range. |
-| **Columns** | A multi-select of which statistic columns to return. Leave empty to return all columns. |
+| **Resolution** | Time bucket granularity: **auto**, **60s**, or **300s**. Auto chooses the value appropriate for the current time range. |
+| **Columns** | A multi-select of which statistic columns to return. Leave empty to return all columns. Available values are **Throttle Count**, **Error Count**, **Fault Count**, **Success Count**, **Total Count**, and **Average Response Time**. |
 
 ### Trace analytics
 
@@ -114,13 +126,13 @@ Each sub-type returns a table summarizing the top contributors to response time,
 
 ### Insights
 
-Insights returns a table of correlated anomalies detected by X-Ray. Clicking the **InsightId** takes you to the AWS console.
+Insights returns a table of correlated anomalies detected by X-Ray. Click the **InsightId** to jump to the corresponding page in the AWS console.
 
 The following fields are available:
 
 | Field | Description |
 |-------|-------------|
-| **Group** | Required. The X-Ray group to scope the insights to. |
+| **Group** | The X-Ray group to scope the insights to. When Insights is the selected query type, the drop-down also offers an **All** option that returns insights across every group. |
 | **State** | Filter insights by state: **All**, **Active**, or **Closed**. Defaults to **All**. |
 
 ### Service map
@@ -173,9 +185,9 @@ The following fields are available:
 |-------|-------------|
 | **Service** | The service whose dependencies to list. Required. |
 
-### List service level objectives (SLOs)
+### List Service Level Objectives (SLO)
 
-Returns a table of SLOs associated with a given service operation.
+Returns a table of SLOs associated with a given service operation. This query type appears in the UI as **List Service Level Objectives (SLO)**.
 
 The following fields are available:
 
@@ -184,12 +196,116 @@ The following fields are available:
 | **Service** | The service that exposes the operation. Required. |
 | **Operation** | The service operation whose SLOs to list. Required. |
 
+## Filter expression reference
+
+Filter expressions are the query language X-Ray uses to narrow down which traces are returned. They apply to **Trace list** and **Trace statistics** queries and to the optional filter expression on an X-Ray **Group**.
+
+### Common attributes
+
+The following keywords can appear in a filter expression. For the complete specification, refer to the [AWS X-Ray filter expressions documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html).
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `ok` | Boolean | Response status code was 2xx success. |
+| `error` | Boolean | Response status code was 4xx client error. |
+| `fault` | Boolean | Response status code was 5xx server error. |
+| `partial` | Boolean | Request has incomplete segments. |
+| `responsetime` | Number | Time the server took to send a response, in seconds. |
+| `duration` | Number | Total request duration including all downstream calls, in seconds. |
+| `http.status` | Number | Response status code. |
+| `http.url` | String | Request URL. |
+| `http.method` | String | Request method. |
+| `http.useragent` | String | Request user agent string. |
+| `http.clientip` | String | Requester's IP address. |
+| `user` | String | Value of the `user` field on any segment in the trace. |
+| `annotation.<key>` | Any | Value of the X-Ray trace annotation with the given `<key>`. |
+| `service(<name>) { ... }` | Complex | Segments produced by the service named `<name>`. The optional curly braces contain a sub-expression applied only to those segments. |
+| `edge(<source>, <destination>) { ... }` | Complex | Calls from `<source>` to `<destination>`. The optional curly braces contain a sub-expression applied only to segments on that connection. |
+
+### Filter expression examples
+
+The following expressions match the examples in the in-product cheat sheet. You can paste any of them into the **Query** field of a Trace list or Trace statistics query.
+
+- Traces whose response time was more than 5 seconds:
+
+  ```text
+  responsetime > 5
+  ```
+
+- Traces whose total duration was between 5 and 8 seconds:
+
+  ```text
+  duration > 5 AND duration < 8
+  ```
+
+- Traces that called `api.example.com` and carry an annotation named `account` with the value `12345`:
+
+  ```text
+  service("api.example.com") AND annotation.account = "12345"
+  ```
+
+- Traces where `api.example.com` made a call to `backend.example.com` that failed with a fault:
+
+  ```text
+  edge("api.example.com", "backend.example.com")
+  ```
+
+- Traces whose URL starts with `http://api.example.com/` and contains `/v2/`, but didn't reach a service named `api.example.com`:
+
+  ```text
+  http.url BEGINSWITH "http://api.example.com/" AND http.url CONTAINS "/v2/" AND !service("api.example.com")
+  ```
+
+- Traces that completed successfully in under 3 seconds, including all downstream calls:
+
+  ```text
+  ok !partial duration < 3
+  ```
+
+- When two services share the same name but have different types, you can disambiguate them with the `id` function:
+
+  ```text
+  service(id(name: "api.example.com", type: "AWS::EC2::Instance"))
+  ```
+
+### Query examples per query type
+
+The following examples show how to wire up common query types end to end.
+
+**Trace list — open a single trace by ID.** Paste a trace ID into the **Query** field; no other configuration is needed:
+
+```text
+1-5f160a8b-83190adad07f429219c0e259
+```
+
+**Trace list — all faulting requests hitting a service in the last 6 hours.** Set the dashboard time range to `now-6h`, choose **Trace List**, and enter:
+
+```text
+service("checkout-api") { fault = true }
+```
+
+**Trace statistics — fault rate on a specific endpoint.** Choose **Trace Statistics**, set **Resolution** to `60s`, leave **Columns** empty, and enter:
+
+```text
+http.url CONTAINS "/v2/checkout" AND fault = true
+```
+
+Use the resulting **Fault Count** series in a time-series panel, or build an alert on it (refer to [Alerting with the AWS Application Signals data source](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/alerting/)).
+
+**Service map — scoped to a group and linked accounts.** Choose **Service Map**, select the **checkout** group from the **Group** drop-down, and in the **AccountId** multi-select pick the linked accounts you want to include. Visualize the results with the [Node graph](https://grafana.com/docs/grafana/<GRAFANA_VERSION>/panels-visualizations/visualizations/node-graph/) panel.
+
+**Services — list operations for a specific service.** Switch the mode to **Services**, pick **List service operations** from the **Query Type** drop-down, and select the service you want from the **Service** drop-down.
+
+**Services — list SLOs for a linked-account operation.** Switch to **Services**, pick **List Service Level Objectives (SLO)**, turn on **Include Linked Accounts**, choose the **AccountId**, then pick the **Service** and **Operation**.
+
 ## Filter by account ID
 
-When [cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability) is enabled on the data source, the query editor shows an account-ID control:
+When [cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability) is configured on the monitoring account and the Grafana `cloudWatchCrossAccountQuerying` feature toggle is enabled, the query editor exposes account-ID controls:
 
-- **Service Map (Traces mode):** An **AccountId** multi-select that filters the returned graph to the selected accounts. The drop-down populates with account IDs discovered from traces in the current time range.
-- **Services mode:** An **Include linked accounts** toggle and an **AccountId** drop-down that filters services, operations, dependencies, and SLOs by account.
+- **Service Map (Traces mode):** An **AccountId** multi-select filters the returned graph to the selected accounts. The drop-down populates with account IDs discovered from traces in the current time range.
+- **List services and List Service Level Objectives (SLO):** An **Include Linked Accounts** toggle combined with an **AccountId** drop-down filters results to the chosen linked account. The drop-down isn't shown for **List service operations** or **List service dependencies** because those APIs don't accept an account filter.
+
+If a query was previously saved with an `accountId` set, the controls remain visible regardless of the feature-toggle state so the saved query keeps working.
 
 You can also reference an account ID directly in a Trace list filter expression, for example:
 
