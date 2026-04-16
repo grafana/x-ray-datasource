@@ -69,7 +69,7 @@ The following settings are available in the data source configuration page:
 |---------|-------------|
 | **Name** | The display name for this data source. This name is shown in panels and queries. |
 | **Default** | Toggle to make this the default data source for new panels. |
-| **Default region** | The AWS region used when a query doesn't specify its own region. You can override this per-query in the query editor. |
+| **Default Region** | The AWS region used when a query doesn't specify its own region. You can override this per-query in the query editor. |
 
 ## Choose an authentication method
 
@@ -77,12 +77,11 @@ The AWS Application Signals data source uses the shared Grafana AWS SDK authenti
 
 | Authentication method | Best for | Requirements |
 |-----------------------|----------|--------------|
-| **AWS SDK Default** | Grafana instances running on AWS with an attached role, or environments that set standard AWS SDK variables. | No additional credentials; the SDK uses the default provider chain. |
-| **Access and secret key** | Local development, simple setups, or when you want to provision explicit keys. | An IAM user with an access key and secret key. |
+| **AWS SDK Default** | Grafana instances running on AWS with an attached role (EC2, ECS, EKS with IRSA, or Amazon Managed Grafana workspaces), or environments that set standard AWS SDK variables. | No additional credentials; the SDK uses the default provider chain, including the **Amazon Managed Grafana workspace IAM role** when present. |
+| **Access and secret key** | Local development, simple setups, or when you want to provision explicit keys. | An IAM user with an access key and secret key, optionally with a session token. |
 | **Credentials file** | Self-hosted Grafana with credentials in `~/.aws/credentials` on the Grafana host. | A credentials file readable by the `grafana` user. |
-| **EC2 IAM role** | Grafana running on an EC2 instance. | An IAM role attached to the EC2 instance. |
-| **Workspace IAM role** | Amazon Managed Grafana workspaces. | A workspace IAM role provided by Amazon Managed Grafana. |
-| **Grafana Assume Role** | Cross-account access where Grafana assumes a role in another AWS account. | A trust policy on the target role that allows your Grafana identity to assume it. |
+| **EC2 IAM role** | Grafana explicitly configured to use only the EC2 instance's role. | An IAM role attached to the EC2 instance. |
+| **Grafana Assume Role** | Cross-account access where Grafana assumes a role in another AWS account, including Grafana Cloud with a shared trust policy. | A trust policy on the target role that allows your Grafana identity to assume it. |
 
 After selecting an authentication method, fill in the following fields as needed:
 
@@ -108,7 +107,7 @@ To use Grafana Assume Role:
 1. In the Grafana data source settings, select **Grafana Assume Role** as the authentication provider.
 1. Enter the **Assume Role ARN** and, if used, the **External ID**.
 
-Session tokens are supported for temporary credentials, which are refreshed automatically.
+Grafana automatically refreshes the temporary session credentials returned by `sts:AssumeRole`, so you don't need to rotate them. This behavior requires plugin version `2.17.0` or later.
 
 ### Credentials file
 
@@ -121,19 +120,25 @@ aws_secret_access_key = <SECRET_KEY>
 region = us-east-1
 ```
 
+In the data source settings, enter the profile name in the **Credentials Profile Name** field. Leave it blank to use the `[default]` profile.
+
 {{< admonition type="note" >}}
 If the credentials file is in the correct directory but isn't picked up, try moving the `.aws` directory to `/usr/share/grafana/`. The credentials file must have permissions no broader than `0644`.
 {{< /admonition >}}
 
-If the auth provider is **Credentials file**, Grafana obtains credentials in the following order:
+### AWS SDK Default
 
-1. Hard-coded credentials.
-1. Environment variables (`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`).
-1. The existing default AWS config files.
-1. `~/.aws/credentials`.
-1. IAM role for Amazon EC2.
+When the authentication method is **AWS SDK Default**, Grafana uses the standard AWS SDK credential provider chain. The SDK looks for credentials in this order:
 
-For more information, refer to [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html) in the AWS documentation.
+1. Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_SESSION_TOKEN`).
+1. Shared credentials file (`~/.aws/credentials`), using the profile named by `AWS_PROFILE` or the `[default]` profile.
+1. Shared configuration file (`~/.aws/config`).
+1. IAM role for an ECS task, if running as an ECS task.
+1. IAM role for an EC2 instance, via instance metadata.
+
+This method is the right choice when Grafana runs on AWS infrastructure that already provides credentials (EC2, ECS, EKS with IRSA, or Amazon Managed Grafana's workspace IAM role) and when you don't need to assume a role.
+
+For more information, refer to [Configuring the AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/v2/developer-guide/configure-gosdk.html) in the AWS documentation.
 
 ## IAM policy
 
@@ -287,7 +292,7 @@ datasources:
     jsonData:
       authType: grafana_assume_role
       defaultRegion: us-east-1
-      assumeRoleArn: <ROLE_ARN>
+      assumeRoleARN: <ROLE_ARN>
       externalId: <EXTERNAL_ID>
 ```
 
@@ -379,7 +384,7 @@ resource "grafana_data_source" "application_signals" {
   json_data_encoded = jsonencode({
     authType      = "grafana_assume_role"
     defaultRegion = "us-east-1"
-    assumeRoleArn = "<ROLE_ARN>"
+    assumeRoleARN = "<ROLE_ARN>"
     externalId    = "<EXTERNAL_ID>"
   })
 }

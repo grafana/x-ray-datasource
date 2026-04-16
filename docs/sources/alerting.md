@@ -17,7 +17,7 @@ labels:
     - oss
 menuTitle: Alerting
 title: Alerting with the AWS Application Signals data source
-weight: 350
+weight: 450
 review_date: 2026-04-16
 ---
 
