@@ -412,5 +412,6 @@ For more information about the Grafana Terraform provider, refer to the [provide
 ## Next steps
 
 - [Query AWS Application Signals](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/query-editor/)
+- [Build alert rules](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/alerting/)
 - [Use template variables](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/template-variables/)
 - [Troubleshoot issues](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/troubleshooting/)

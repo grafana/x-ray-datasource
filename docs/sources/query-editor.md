@@ -40,7 +40,7 @@ This document explains how to use the AWS Application Signals query editor to ex
 | **Trace** | The end-to-end record of a request as it passes through services and resources in your application. |
 | **Trace ID** | A unique identifier for a trace. Pasting a trace ID into the query field opens that trace directly. |
 | **Segment** | A unit of work within a trace. Each service a request touches creates one or more segments. |
-| **Annotation** | A key-value pair attached to a segment that you can filter on with X-Ray filter expressions. |
+| **Annotation** (X-Ray) | A key-value pair attached to a trace segment by the AWS X-Ray SDK that you can filter on with X-Ray filter expressions. Not the same as [Grafana dashboard annotations](https://grafana.com/docs/grafana/<GRAFANA_VERSION>/dashboards/build-dashboards/annotate-visualizations/), which this data source doesn't support. |
 | **Filter expression** | A query language used by X-Ray to narrow down which traces are returned. Refer to the [AWS X-Ray filter expressions documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html). |
 | **Group** | A named, reusable filter expression defined in X-Ray that narrows the scope of Trace queries. |
 | **Service map** | A visual representation of how services and resources in your application interact, including latency and error rates. |
@@ -211,9 +211,9 @@ Reference variables with the standard Grafana syntax, for example `$region`, `${
 
 ## Alerting
 
-Because Trace Statistics queries return numeric time-series data, you can build Grafana alerts on top of them. For example, alert when the fault count on your frontend service exceeds a threshold over five minutes.
+Trace Statistics queries return numeric time-series data, so you can build Grafana alert rules on top of them to notify on fault rates, error counts, throttled responses, and latency trends.
 
-For details, refer to the [Grafana Alerting documentation](https://grafana.com/docs/grafana/<GRAFANA_VERSION>/alerting/).
+For step-by-step examples — including fault-rate, throttling, and cross-account alerts — refer to [Alerting with the AWS Application Signals data source](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/alerting/).
 
 ## Use cases
 
@@ -226,5 +226,6 @@ The following use cases show how Grafana users combine the query types above in 
 
 ## Next steps
 
+- [Build alert rules](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/alerting/)
 - [Use template variables](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/template-variables/)
 - [Troubleshoot query issues](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/troubleshooting/)
