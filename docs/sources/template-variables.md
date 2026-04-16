@@ -20,7 +20,9 @@ review_date: 2026-04-16
 
 # AWS Application Signals template variables
 
-Use template variables to build dynamic, reusable dashboards that let viewers change regions, accounts, services, and operations without editing queries.
+Template variables turn a static X-Ray dashboard into an on-call superpower: one dashboard, many services, many accounts, many regions — all driven by drop-downs at the top of the page. Use them to let viewers swap the AWS region, pivot to a linked account, zoom in on a specific service and operation, or combine those selections in filter expressions without rewriting a single query.
+
+This document lists every variable type the data source supports, shows the exact fields each one exposes, and walks through cascading-variable setups, multi-value filters, and the subtle formatting rules you need to keep filter expressions valid.
 
 ## Before you begin
 
@@ -47,18 +49,33 @@ When you create a query variable, the data source exposes the following query ty
 
 | Query type | Description | Required fields |
 |------------|-------------|-----------------|
-| **Regions** | Returns the list of AWS regions available to the data source. | None |
-| **Accounts** | Returns AWS account IDs discovered through CloudWatch cross-account observability. | **Group** |
-| **Services** | Returns Application Signals services. | **AccountId** |
-| **Operations** | Returns service operations for a selected service. | **Service** |
+| **Regions** | Returns a fixed list of AWS regions recognized by the plugin, including the `us-gov-*`, `cn-*`, and `us-iso-*` partitions. The list is static because the AWS Go SDK no longer exposes a dynamic regions API. | None |
+| **Accounts** | Returns AWS account IDs discovered through CloudWatch cross-account observability plus a synthetic **All** entry. | **Region**, **Group** |
+| **Services** | Returns Application Signals services. | **Region**, **AccountId** |
+| **Operations** | Returns service operations for a selected service. | **Region**, **Service** |
 
 {{< admonition type="note" >}}
-The **Accounts** query type only returns values when cross-account observability is configured on your AWS account and the data source's IAM identity has the `oam:ListSinks` and `oam:ListAttachedLinks` permissions. Refer to [Cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability).
+The **Accounts** query type only returns values when cross-account observability is configured on your AWS account and the data source's IAM identity has the `oam:ListSinks` and `oam:ListAttachedLinks` permissions. Refer to [Cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability). The synthetic **All** value resolves to the string `all` and can be passed to the data source's account-ID selectors to mean "all linked accounts".
 {{< /admonition >}}
 
 {{< admonition type="note" >}}
-A **Groups** query type exists in the plugin internals but isn't currently exposed in the variable editor. If you need to filter by group, define the group name as a **Custom** or **Text box** variable and use it in the **Group** field of your queries.
+A **Groups** query type exists in the plugin internals but isn't currently exposed in the variable editor. If you need to drive the **Group** field of an Accounts variable (or of a Traces query) from a drop-down, define the group name as a **Custom** or **Text box** variable.
 {{< /admonition >}}
+
+### The Service variable's value is a JSON blob
+
+The **Service** query type returns each option as an object with two parts:
+
+- A display `text` set to the service's `Name` (for example, `checkout-api`).
+- A `value` set to the full service descriptor serialized as JSON (for example, `{"Type":"Service","Name":"checkout-api","Environment":"eks:prod/default"}`).
+
+The JSON value is what the **List service operations**, **List service dependencies**, and **List SLOs** APIs require, so the variable works out of the box when you reference it in those Services-mode drop-downs. However, the JSON form breaks X-Ray filter expressions. When you use the **Service** variable in a Trace list or Trace statistics filter expression, always append the `:text` format to get the display name:
+
+```text
+service("${service:text}")
+```
+
+Referencing it as `$service` inlines the JSON blob and produces an invalid filter expression.
 
 ## Create a query variable
 
@@ -69,11 +86,25 @@ To create a query variable:
 1. Set **Select variable type** to **Query**.
 1. In **Data source**, select your AWS Application Signals data source.
 1. Select a **Query type** (for example, **Services**).
-1. Fill in any required fields, such as **AccountId** for the **Services** query type.
-1. Optionally set **Refresh** to **On dashboard load** or **On time range change**.
+1. Fill in the required fields. Every non-**Regions** query type requires a **Region**, either typed in or provided by another variable.
+1. Optionally set **Refresh** to **On dashboard load** or **On time range change**. For cascading variables that depend on the time range, use **On time range change**.
 1. Click **Apply**.
 
-Cascading variables let viewers pick a service, then see only that service's operations. Define them in dependency order: for example, a `region` variable first, then `accountId` (depends on nothing in this plugin), then `service` (depends on `accountId`), then `operation` (depends on `service`).
+### Cascading variable setup
+
+Define variables in dependency order so each drop-down filters the next. The following sequence is the recommended cascade for the AWS Application Signals data source:
+
+| Order | Variable name | Type | Query type | Fields | Depends on |
+|-------|---------------|------|------------|--------|------------|
+| 1 | `region` | Query | Regions | None | — |
+| 2 | `group` | Custom or Text box | — | Free-form value such as `Default` | — |
+| 3 | `accountId` | Query | Accounts | Region: `$region`, Group: `$group` | `region`, `group` |
+| 4 | `service` | Query | Services | Region: `$region`, AccountId: `$accountId` | `region`, `accountId` |
+| 5 | `operation` | Query | Operations | Region: `$region`, Service: `$service` | `region`, `service` |
+
+Set **Refresh** to **On time range change** on `accountId`, `service`, and `operation` so they re-fetch when users adjust the dashboard time range.
+
+If you don't use cross-account observability, skip the `group` and `accountId` variables — leave **AccountId** blank on the `service` variable to query the data source's own account.
 
 ## Use variables in queries
 
@@ -93,17 +124,60 @@ ${service}
 [[accountId]]
 ```
 
-Example Trace list filter expression using a variable for the service name:
+### Format modifiers you're likely to need
+
+Grafana supports [variable format modifiers](https://grafana.com/docs/grafana/<GRAFANA_VERSION>/dashboards/variables/variable-syntax/#advanced-variable-format-options) that control how a variable's value is rendered at query time. The following are the most relevant modifiers for this data source:
+
+| Syntax | Behavior | When to use |
+|--------|----------|-------------|
+| `${var:text}` | Emits the variable's display text instead of its value. | Always use this when a **Service** variable is referenced inside a filter expression. |
+| `${var:raw}` | Emits the raw value without any escaping. | When you've pre-escaped a value yourself and don't want Grafana to double-quote it. |
+| `${var:csv}` | Joins a multi-value variable with commas. | Multi-value **AccountIds** used in filter expressions. |
+| `${var:doublequote}` | Wraps each multi-value item in double quotes and joins with commas. | Multi-value lists where each item must be quoted. |
+
+### Example — filter by selected service (correct form)
+
+Because the **Service** variable's value is JSON (see [The Service variable's value is a JSON blob](#the-service-variables-value-is-a-json-blob)), use `:text` to filter a Trace list or Trace statistics query by service name:
 
 ```text
-service("$service")
+service("${service:text}")
 ```
 
-Example Trace list filter expression that restricts results to a selected account:
+### Example — filter by service and a single account
+
+Combine the `service` and `accountId` variables in a filter expression. `accountId` is a plain string, so no format modifier is needed:
 
 ```text
-service("$service") { account.id = "$accountId" }
+service("${service:text}") { account.id = "$accountId" }
 ```
+
+### Example — multi-value AccountIds in Service Map
+
+The Service Map query type exposes a first-class **AccountId** multi-select, which is the easiest way to work with multiple accounts. Define an **AccountIds** variable with **Multi-value** enabled (for example, populated from the **Accounts** query type), then select it from the Service Map **AccountId** drop-down. The plugin sends every selected value to the API without requiring any format modifier on your end.
+
+For Trace list and Trace statistics queries, X-Ray filter expressions don't have a documented list operator for `account.id`, so driving them from a multi-value variable isn't reliable. Use one of these approaches instead:
+
+- Set the dashboard account selector to a single value and use `account.id = "$accountId"` in the filter expression.
+- Switch to a Service Map query and use its built-in **AccountId** multi-select.
+
+### Example — drive Services-mode drop-downs with variables
+
+In **Services** mode, template variables can populate the plugin's own drop-downs. Select a template variable from the **Service** or **Operation** drop-down instead of a literal value:
+
+- **Region**: `$region`
+- **AccountId**: `$accountId` (use the literal `all` value from the **Accounts** query type's synthetic **All** entry to query every linked account)
+- **Service**: `$service` — the JSON value is exactly what the underlying APIs expect, so no format modifier is required in these drop-downs.
+- **Operation**: `$operation`
+
+### Example — alert on a per-service fault rate
+
+Cascading variables are especially useful for alert rules. Create a Trace statistics panel with the query below and build an alert on it to get one rule per service without hand-maintaining a rule per team:
+
+```text
+service("${service:text}") AND fault = true
+```
+
+Pair this with the `accountId` variable when you run alerts across linked accounts. Refer to [Alerting with the AWS Application Signals data source](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/alerting/) for end-to-end guidance.
 
 ## Next steps
 
