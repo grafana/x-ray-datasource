@@ -55,12 +55,12 @@ This document walks through every query mode, shows the exact fields each one ex
 
 ## Query modes
 
-The query editor header lets you choose between two modes:
+Every query starts with two drop-downs in the editor header:
 
-- **Traces:** Query X-Ray traces, trace statistics, analytics, insights, and the service map.
-- **Services:** Query Application Signals services, operations, dependencies, and SLOs.
-
-The header also includes a **Region** drop-down that overrides the data source default region for the current query.
+- **Region** — the AWS region to run this query against. If unset, the query uses the data source's default region.
+- **Mode** — the set of APIs to query. Choose between:
+  - **Traces** — X-Ray traces, trace statistics, analytics, insights, and the service map.
+  - **Services** — Application Signals services, operations, dependencies, and SLOs.
 
 ## Trace queries
 
@@ -105,24 +105,32 @@ The following fields are available:
 
 ### Trace analytics
 
-Trace analytics surfaces the most common response-time, error, and fault contributors. Choose from the following sub-types in the cascader:
+Trace analytics fetches up to 10,000 trace summaries for the time range and groups them by a dimension you choose in the cascader. Every result is a three-column table: the grouping dimension, **Count**, and **Percent** of the sampled traces. Traces with no matching root cause are bucketed under `-`.
 
-- **Root Cause > Response Time**
-  - **Root Cause Service** — the last service in each path
-  - **Path** — multiple paths
-- **Root Cause > Error**
-  - **Root Cause Service**
-  - **Path**
-  - **Error Message**
-- **Root Cause > Fault**
-  - **Root Cause Service**
-  - **Path**
-  - **Error Message**
-- **End user impact**
-- **URL**
-- **HTTP status code**
+The cascader exposes the following structure. The dimension column header in the result table is shown in parentheses.
 
-Each sub-type returns a table summarizing the top contributors to response time, errors, or faults in your trace data.
+- **Root Cause**
+  - **Response Time**
+    - **Root Cause** (`Response Time Root Cause`) — last service in each `ResponseTimeRootCauses` chain, formatted as `name (type)`.
+    - **Path** (`Response Time Root Cause Path`) — full chain of services and their entity paths, joined with `->` within a service and `=>` between services.
+  - **Error**
+    - **Root Cause** (`Error Root Cause`) — last service in each `ErrorRootCauses` chain.
+    - **Path** (`Error Root Cause Path`) — services in each error chain, with exception names appended along each service's entity path.
+    - **Error Message** (`Error Root Cause Message`) — first non-empty exception message found in the error root cause.
+  - **Fault**
+    - **Root Cause** (`Fault Root Cause`) — last service in each `FaultRootCauses` chain.
+    - **Path** (`Fault Root Cause Path`) — services in each fault chain, with exception names appended along each service's entity path.
+    - **Error Message** (`Fault Root Cause Message`) — first non-empty exception message found in the fault root cause.
+- **End user impact** (`User`) — `Users[].UserName` from each trace summary.
+- **URL** (`URL`) — `Http.HttpURL` from each trace summary.
+- **HTTP status code** (`Status Code`) — `Http.HttpStatus` from each trace summary.
+
+The following fields are available:
+
+| Field | Description |
+|-------|-------------|
+| **Query** | An X-Ray filter expression that narrows the trace population before grouping. Leave empty to include all traces in the time range. |
+| **Group** | An optional X-Ray group to apply. |
 
 ### Insights
 
@@ -154,6 +162,13 @@ Each service appears as a circle. The numbers inside show average latency per tr
 | Purple | Throttled response |
 
 Click a node or edge to open a context menu with links that navigate to related traces in the current data source or the Application Signals console.
+
+The following fields are available:
+
+| Field | Description |
+|-------|-------------|
+| **Group** | An optional X-Ray group whose filter expression narrows the graph. |
+| **AccountId** | A multi-select of linked account IDs to include in the graph. Only shown when [cross-account observability](#filter-by-account-id) is configured and the `cloudWatchCrossAccountQuerying` feature toggle is enabled. |
 
 For more information, refer to the [AWS X-Ray service map documentation](https://docs.aws.amazon.com/xray/latest/devguide/xray-console-servicemap.html).
 
@@ -303,7 +318,7 @@ Use the resulting **Fault Count** series in a time-series panel, or build an ale
 When [cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability) is configured on the monitoring account and the Grafana `cloudWatchCrossAccountQuerying` feature toggle is enabled, the query editor exposes account-ID controls:
 
 - **Service Map (Traces mode):** An **AccountId** multi-select filters the returned graph to the selected accounts. The drop-down populates with account IDs discovered from traces in the current time range.
-- **List services and List Service Level Objectives (SLO):** An **Include Linked Accounts** toggle combined with an **AccountId** drop-down filters results to the chosen linked account. The drop-down isn't shown for **List service operations** or **List service dependencies** because those APIs don't accept an account filter.
+- **List services and List Service Level Objectives (SLO):** An **Include Linked Accounts** toggle combined with an **AccountId** drop-down filters results to the chosen linked account. For **List services**, the **AccountId** drop-down is always active when visible. For **List Service Level Objectives (SLO)**, the **AccountId** drop-down is disabled until **Include Linked Accounts** is turned on. The drop-down isn't shown for **List service operations** or **List service dependencies** because those APIs don't accept an account filter.
 
 If a query was previously saved with an `accountId` set, the controls remain visible regardless of the feature-toggle state so the saved query keeps working.
 
