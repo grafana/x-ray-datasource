@@ -22,9 +22,9 @@ review_date: 2026-04-16
 
 # Troubleshoot AWS Application Signals data source issues
 
-When a dashboard suddenly goes red or a new alert fires **No Data**, this page is where you start. It walks through the failure modes we see most often with the AWS Application Signals data source — from IAM denials at **Save & test** to empty trace lists, silent template variables, and alert rules that can't reduce a time series — and shows how to diagnose and fix each one.
+This document covers common failure modes in the AWS Application Signals data source and how to resolve them. Use the page navigation to jump to the symptom you're seeing.
 
-Use the page navigation to jump straight to the symptoms you're seeing. The sections are grouped by where the problem shows up:
+Sections are grouped by where the problem appears:
 
 - **Authentication errors** — what happens when Grafana can't get AWS credentials.
 - **Connection errors** — DNS, networking, regions, and endpoints.
@@ -34,8 +34,6 @@ Use the page navigation to jump straight to the symptoms you're seeing. The sect
 - **Performance issues** — throttling, slow queries, and quota limits.
 - **Enable debug logging** — how to capture plugin and SDK diagnostics.
 - **Get additional help** — community and support channels.
-
-For configuration instructions, refer to [Configure the data source](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/).
 
 ## Authentication errors
 
