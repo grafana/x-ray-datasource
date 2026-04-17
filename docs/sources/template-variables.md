@@ -50,16 +50,12 @@ When you create a query variable, the data source exposes the following query ty
 | Query type | Description | Required fields |
 |------------|-------------|-----------------|
 | **Regions** | Returns a fixed list of AWS regions recognized by the plugin, including the `us-gov-*`, `cn-*`, and `us-iso-*` partitions. The list is static because the AWS Go SDK no longer exposes a dynamic regions API. | None |
-| **Accounts** | Returns AWS account IDs discovered through CloudWatch cross-account observability plus a synthetic **All** entry. | **Region**, **Group** |
+| **Accounts** | Returns AWS account IDs discovered through CloudWatch cross-account observability, plus a synthetic **All** entry whose value is the literal string `all`. Pass `all` to any of the data source's account-ID selectors to mean "all linked accounts." | **Region**, **Group** |
 | **Services** | Returns Application Signals services. | **Region**, **AccountId** |
 | **Operations** | Returns service operations for a selected service. | **Region**, **Service** |
 
 {{< admonition type="note" >}}
-The **Accounts** query type only returns values when cross-account observability is configured on your AWS account and the data source's IAM identity has the `oam:ListSinks` and `oam:ListAttachedLinks` permissions. Refer to [Cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability). The synthetic **All** value resolves to the string `all` and can be passed to the data source's account-ID selectors to mean "all linked accounts".
-{{< /admonition >}}
-
-{{< admonition type="note" >}}
-A **Groups** query type exists in the plugin internals but isn't currently exposed in the variable editor. If you need to drive the **Group** field of an Accounts variable (or of a Traces query) from a drop-down, define the group name as a **Custom** or **Text box** variable.
+The **Accounts** query type only returns values when cross-account observability is configured on your AWS account and the data source's IAM identity has the `oam:ListSinks` and `oam:ListAttachedLinks` permissions. Refer to [Cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability).
 {{< /admonition >}}
 
 ### The Service variable's value is a JSON blob
