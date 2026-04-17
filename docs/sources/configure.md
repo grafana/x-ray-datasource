@@ -32,7 +32,7 @@ This document explains how to configure the AWS Application Signals data source 
 
 Before you configure the data source, ensure you have:
 
-- **Grafana permissions:** The `Admin` role in your Grafana organization so you can add and edit data sources. For provisioning, you need access to the Grafana configuration directory on the host.
+- **Grafana permissions:** The `Oraganization Administrator` role in your Grafana organization so you can add and edit data sources. For provisioning, you need access to the Grafana configuration directory on the host.
 - **AWS account:** Access to an AWS account with [AWS X-Ray](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) and/or [AWS Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Sections.html) enabled.
 - **IAM credentials:** An IAM identity (user or role) with read access to X-Ray and Application Signals. See [IAM policy](#iam-policy).
 - **Grafana version:** Grafana `10.4.0` or later.
