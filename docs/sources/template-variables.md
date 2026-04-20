@@ -71,7 +71,7 @@ The JSON value is what the **List service operations**, **List service dependenc
 service("${service:text}")
 ```
 
-Referencing it as `$service` inlines the JSON blob and produces an invalid filter expression.
+Referencing it as `$service` inserts the raw JSON blob and produces an invalid filter expression.
 
 ## Create a query variable
 

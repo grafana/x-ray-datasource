@@ -25,7 +25,7 @@ review_date: 2026-04-16
 
 Use [Grafana Alerting](https://grafana.com/docs/grafana/<GRAFANA_VERSION>/alerting/) with the AWS Application Signals data source to notify your team about fault rates, latency regressions, throttling, and error spikes before they become incidents.
 
-The primary alerting target is the **Trace Statistics** query type, which returns per-bucket counts for errors, faults, throttled responses, successes, and totals, plus a computed **Average Response Time**. This page walks through every alertable query type, gives you copy-paste-ready recipes for the four most common patterns (fault rate, error-and-fault count, throttling, latency), shows how to scope alerts to a linked AWS account, and collects the gotchas to watch for when you put rules into production.
+The primary alerting target is the **Trace Statistics** query type, which returns per-bucket counts for errors, faults, throttled responses, successes, and totals, plus a computed **Average Response Time**. This page covers which query types can drive alerts, copy-paste-ready recipes for the four most common patterns (fault rate, error-and-fault count, throttling, latency), how to scope alerts to a linked AWS account, and the gotchas to watch for when you put rules into production.
 
 ## Before you begin
 
@@ -37,7 +37,7 @@ The primary alerting target is the **Trace Statistics** query type, which return
 
 Not every query type returns data Grafana can alert on. Use this table to choose the right query type.
 
-| Query type | Returns numeric time series | Alertable | Notes |
+| Query type | Returns numeric time series | Supports alerting | Notes |
 |------------|-----------------------------|-----------|-------|
 | **Trace Statistics** | Yes | Yes | Primary alerting target. Returns **Throttle Count**, **Error Count**, **Fault Count**, **Success Count**, **Total Count**, and **Average Response Time** per time bucket. |
 | **Trace List** | No | No | Returns a trace table, not numeric series. Use a Trace Statistics query with the same filter expression instead. |
