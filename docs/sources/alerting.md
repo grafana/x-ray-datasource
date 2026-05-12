@@ -270,7 +270,7 @@ When [cross-account observability](https://grafana.com/docs/plugins/grafana-x-ra
 |-------|-------|
 | Query Type | Trace Statistics |
 | Region | `us-east-1` |
-| Query | `service("frontend") { account.id = "123456789012" }` |
+| Query | `service(id(account.id: "123456789012"))` |
 | Resolution | `60s` |
 | Columns | **Fault Count** |
 
