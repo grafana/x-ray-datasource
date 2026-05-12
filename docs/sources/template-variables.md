@@ -153,7 +153,7 @@ The Service Map query type exposes a first-class **AccountId** multi-select, whi
 
 For Trace list and Trace statistics queries, X-Ray filter expressions don't have a documented list operator for `account.id`, so driving them from a multi-value variable isn't reliable. Use one of these approaches instead:
 
-- Set the dashboard account selector to a single value and use `account.id = "$accountId"` in the filter expression.
+- Set the dashboard account selector to a single value and use `service("${service:text}") AND service(id(account.id: "$accountId"))` in the filter expression.
 - Switch to a Service Map query and use its built-in **AccountId** multi-select.
 
 ### Example — drive Services-mode drop-downs with variables
