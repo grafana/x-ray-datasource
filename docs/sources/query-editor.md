@@ -325,7 +325,7 @@ If a query was previously saved with an `accountId` set, the controls remain vis
 You can also reference an account ID directly in a Trace list filter expression, for example:
 
 ```text
-service("frontend") { account.id = "123456789012" }
+service("frontend") AND service(id(account.id: "123456789012"))
 ```
 
 ## Use template variables in queries
