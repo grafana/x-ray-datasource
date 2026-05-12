@@ -123,7 +123,9 @@ A Trace Statistics query returns one series per selected column, so a Reduce exp
 | Field | Value |
 |-------|-------|
 | Type | Math |
-| Expression | `$D == 0 ? 0 : $C / $D` |
+| Expression | `$C / ($D + ($D == 0))` |
+
+Grafana Math expressions don't support `if`/`else` or the ternary operator (`?:`), so the guard uses the boolean-multiplication trick: relational operators return `1` for true and `0` for false. When `$D == 0`, the divisor becomes `0 + 1 = 1` and the result is `$C / 1`. Because `$C` (fault count) can't exceed `$D` (total count), `$C` is also `0` in that window, so the expression evaluates to `0` instead of `NaN`. When `$D` is non-zero, the `($D == 0)` term is `0` and the expression reduces to `$C / $D`.
 
 **Expression F — threshold**
 

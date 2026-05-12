@@ -279,11 +279,13 @@ Dividing by a zero **Total Count** produces `NaN` or infinity, which can either 
 
 **Solution:**
 
-Add a guard expression before the threshold. For example, add an intermediate Math expression that returns `0` when the total count is zero:
+Add a guard expression before the threshold. Grafana Math expressions don't support `if`/`else` or the ternary operator (`?:`), so use the boolean-multiplication trick. Relational operators return `1` for true and `0` for false, so adding `($TotalCount == 0)` to the denominator makes it `1` instead of `0` in quiet windows:
 
 ```text
-$TotalCount == 0 ? 0 : $FaultCount / $TotalCount
+$FaultCount / ($TotalCount + ($TotalCount == 0))
 ```
+
+When `$TotalCount` is `0`, the divisor becomes `1` and the result is `$FaultCount / 1`. Because `$FaultCount` can't exceed `$TotalCount`, the result is `0`. When `$TotalCount` is non-zero, the expression reduces to `$FaultCount / $TotalCount` as expected.
 
 Or require a minimum traffic volume before the ratio alert can fire — for example, alert only when `TotalCount > 100` and `FaultCount / TotalCount > 0.01`.
 
