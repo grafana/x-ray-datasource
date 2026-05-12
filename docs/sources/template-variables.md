@@ -144,7 +144,7 @@ service("${service:text}")
 Combine the `service` and `accountId` variables in a filter expression. `accountId` is a plain string, so no format modifier is needed:
 
 ```text
-service("${service:text}") { account.id = "$accountId" }
+service("${service:text}") AND service(id(account.id: "$accountId"))
 ```
 
 ### Example — multi-value AccountIds in Service Map
