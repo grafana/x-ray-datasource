@@ -262,7 +262,7 @@ Then reduce each query and divide them exactly as in the [fault rate example](#e
 
 ## Example: cross-account fault rate
 
-When [cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability) is configured, scope an alert to a specific linked account with the `account.id` attribute inside a `service()` filter expression.
+When [cross-account observability](https://grafana.com/docs/plugins/grafana-x-ray-datasource/latest/configure/#cross-account-observability) is configured, scope an alert to a specific linked account with the `id(account.id: "...")` selector.
 
 **Query A — fault count in a linked account**
 
