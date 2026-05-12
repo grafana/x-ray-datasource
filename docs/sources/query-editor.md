@@ -353,7 +353,7 @@ The following use cases show how Grafana users combine the query types above in 
 - **Latency investigation:** Pair Trace statistics (for a time-series view of p95 latency and fault rate) with Trace analytics Response Time Root Cause to identify which service or path is responsible for slow requests.
 - **Error triage across microservices:** Use Service Map with an account-ID filter for a fleet-wide view, then drill into Trace list for the failing service to inspect individual traces.
 - **SLO burn tracking:** List services, then list SLOs for critical operations to monitor SLO attainment alongside CloudWatch metrics in the bundled **X-Ray App Signals** dashboard.
-- **Anomaly response:** Surface X-Ray Insights on a dashboard, alert on **Active** insights, and link from the InsightId to the Application Signals console for deep investigation.
+- **Anomaly response:** Surface X-Ray Insights on a dashboard, review **Active** insights, and link from the InsightId to the Application Signals console for deep investigation. To be notified when X-Ray detects new insights, configure X-Ray insight notifications in AWS.
 
 ## Next steps
 
