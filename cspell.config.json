@@ -126,6 +126,7 @@
     "awsauth",
     "Rspack",
     "npmPreapprovedPackages",
-    "openfeature"
+    "openfeature",
+    "jsonencode"
   ]
 }
