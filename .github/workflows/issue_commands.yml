@@ -16,10 +16,11 @@ jobs:
         with:
           repository: 'grafana/grafana-github-actions'
           path: ./actions
-          ref: main
+          ref: 3c62d35c5a66e730186a338e45aeb8fa784e2d56
           persist-credentials: false
       - name: Install Actions
-        run: npm install --production --prefix ./actions
+        working-directory: ./actions
+        run: corepack yarn install --immutable --mode=skip-build
       - name: Get GitHub App token
         id: get-github-app-token
         uses: grafana/shared-workflows/actions/create-github-app-token@259ba21cb3ff07724f331e26d926d655d24b317b # create-github-app-token/v0.2.3
