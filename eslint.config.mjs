@@ -1,8 +1,12 @@
-const { fixupConfigRules } = require('@eslint/compat');
-const grafanaConfig = require('@grafana/eslint-config/flat');
-const path = require('path');
+import { fixupConfigRules } from '@eslint/compat';
+import grafanaConfig from '@grafana/eslint-config/flat.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-module.exports = [
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default [
   {
     ignores: ['dist/', '.config/'],
   },
