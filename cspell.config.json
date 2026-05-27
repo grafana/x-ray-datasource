@@ -127,6 +127,7 @@
     "Rspack",
     "npmPreapprovedPackages",
     "openfeature",
-    "jsonencode"
+    "jsonencode",
+    "trufflehogignore"
   ]
 }

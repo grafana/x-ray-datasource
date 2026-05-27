@@ -1,29 +1,37 @@
+import { fixupConfigRules } from '@eslint/compat';
+import grafanaConfig from '@grafana/eslint-config/flat.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
+
 export default [
   {
-    ignores: ['**/node_modules', '**/build', '**/dist', '**/playwright-report', '**/test-results'],
+    ignores: ['dist/', '.config/'],
   },
-  ...compat.extends('./.config/.eslintrc'),
+  ...fixupConfigRules(grafanaConfig),
   {
     rules: {
-      'deprecation/deprecation': 'off',
+      'react/prop-types': 'off',
+      'react-hooks/immutability': 'off',
     },
   },
   {
-    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    files: ['src/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-deprecated': 'warn',
+    },
+    languageOptions: {
+      parserOptions: {
+        project: path.join(__dirname, 'tsconfig.json'),
+      },
+    },
+  },
+  {
+    files: ['tests/**/*'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
     },
   },
 ];
