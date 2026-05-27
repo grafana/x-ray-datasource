@@ -1506,7 +1506,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/data@npm:12.4.3, @grafana/data@npm:^12.1.0":
+"@grafana/data@npm:12.4.3":
   version: 12.4.3
   resolution: "@grafana/data@npm:12.4.3"
   dependencies:
@@ -1642,7 +1642,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/plugin-ui@npm:^0.13.0":
+"@grafana/plugin-ui@npm:0.13.1, @grafana/plugin-ui@npm:^0.13.0":
   version: 0.13.1
   resolution: "@grafana/plugin-ui@npm:0.13.1"
   dependencies:
@@ -1674,7 +1674,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/runtime@npm:^12.1.0":
+"@grafana/runtime@npm:12.4.3":
   version: 12.4.3
   resolution: "@grafana/runtime@npm:12.4.3"
   dependencies:
@@ -1700,7 +1700,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/schema@npm:12.4.3, @grafana/schema@npm:^12.1.0":
+"@grafana/schema@npm:12.4.3":
   version: 12.4.3
   resolution: "@grafana/schema@npm:12.4.3"
   dependencies:
@@ -1716,7 +1716,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/ui@npm:12.4.3, @grafana/ui@npm:^12.1.0":
+"@grafana/ui@npm:12.4.3":
   version: 12.4.3
   resolution: "@grafana/ui@npm:12.4.3"
   dependencies:
@@ -3920,7 +3920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.3.0":
+"@types/react-dom@npm:18.3.7":
   version: 18.3.7
   resolution: "@types/react-dom@npm:18.3.7"
   peerDependencies:
@@ -3956,7 +3956,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.3.0":
+"@types/react@npm:18.3.29":
   version: 18.3.29
   resolution: "@types/react@npm:18.3.29"
   dependencies:
@@ -7473,14 +7473,14 @@ __metadata:
     "@eslint/eslintrc": "npm:3.3.5"
     "@eslint/js": "npm:10.0.1"
     "@grafana/aws-sdk": "npm:0.10.2"
-    "@grafana/data": "npm:^12.1.0"
+    "@grafana/data": "npm:12.4.3"
     "@grafana/eslint-config": "npm:9.0.0"
     "@grafana/plugin-e2e": "npm:3.7.1"
-    "@grafana/plugin-ui": "npm:^0.13.0"
-    "@grafana/runtime": "npm:^12.1.0"
-    "@grafana/schema": "npm:^12.1.0"
+    "@grafana/plugin-ui": "npm:0.13.1"
+    "@grafana/runtime": "npm:12.4.3"
+    "@grafana/schema": "npm:12.4.3"
     "@grafana/tsconfig": "npm:2.1.0"
-    "@grafana/ui": "npm:^12.1.0"
+    "@grafana/ui": "npm:12.4.3"
     "@openfeature/web-sdk": "npm:1.8.0"
     "@playwright/test": "npm:1.59.1"
     "@stylistic/eslint-plugin-ts": "npm:4.4.1"
@@ -7494,8 +7494,8 @@ __metadata:
     "@types/lodash": "npm:4.17.24"
     "@types/node": "npm:24.12.3"
     "@types/prismjs": "npm:1.26.6"
-    "@types/react": "npm:^18.3.0"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:18.3.29"
+    "@types/react-dom": "npm:18.3.7"
     "@types/semver": "npm:7.7.1"
     "@types/slate": "npm:0.47.16"
     "@typescript-eslint/eslint-plugin": "npm:8.59.2"
