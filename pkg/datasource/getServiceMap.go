@@ -3,6 +3,7 @@ package datasource
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/xray"
 	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
@@ -25,6 +26,10 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 
 	if err != nil {
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
+	}
+
+	if queryData.Group == nil {
+		return backend.ErrorResponseWithErrorSource(backend.PluginError(fmt.Errorf("group is required")))
 	}
 
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
