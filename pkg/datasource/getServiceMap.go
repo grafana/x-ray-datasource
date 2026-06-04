@@ -3,8 +3,8 @@ package datasource
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/xray"
 	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
@@ -28,10 +28,6 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
 	}
 
-	if queryData.Group == nil {
-		return backend.ErrorResponseWithErrorSource(backend.PluginError(fmt.Errorf("group is required")))
-	}
-
 	xrayClient, err := ds.getClient(ctx, pluginContext, RequestSettings{Region: queryData.Region})
 	if err != nil {
 		return backend.ErrorResponseWithErrorSource(backend.PluginError(err))
@@ -43,10 +39,15 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 	)
 
 	log.DefaultLogger.Debug("getSingleServiceMap", "RefID", query.RefID)
+	groupName := aws.String("Default")
+	if queryData.Group != nil && queryData.Group.GroupName != nil {
+		groupName = queryData.Group.GroupName
+	}
+
 	input := &xray.GetServiceGraphInput{
 		StartTime: &query.TimeRange.From,
 		EndTime:   &query.TimeRange.To,
-		GroupName: queryData.Group.GroupName,
+		GroupName: groupName,
 	}
 
 	accountIdsToFilterBy := make(map[string]bool)

@@ -21,9 +21,12 @@ import (
 
 type XrayClientMock struct {
 	queryCalledWithRegion string
+	getServiceGraphInput  *xray.GetServiceGraphInput
 }
 
-func (client *XrayClientMock) GetServiceGraph(_ context.Context, _ *xray.GetServiceGraphInput, _ ...func(*xray.Options)) (*xray.GetServiceGraphOutput, error) {
+func (client *XrayClientMock) GetServiceGraph(_ context.Context, input *xray.GetServiceGraphInput, _ ...func(*xray.Options)) (*xray.GetServiceGraphOutput, error) {
+	client.getServiceGraphInput = input
+
 	serviceName := "mockServiceName"
 	if client.queryCalledWithRegion != "" {
 		serviceName = serviceName + "-" + client.queryCalledWithRegion
@@ -730,6 +733,23 @@ func TestDatasource(t *testing.T) {
 		// Bit simplistic test but right now we just send each service as a json to frontend and do transform there.
 		frame := response.Responses["A"].Frames[0]
 		require.Equal(t, 2, frame.Fields[0].Len()) // 2 because of the 2 services added to the mock
+	})
+
+	t.Run("getServiceMap query defaults missing group", func(t *testing.T) {
+		xrayMock := &XrayClientMock{}
+		ds := datasource.NewDatasource(
+			context.Background(),
+			func(context.Context, backend.PluginContext, datasource.RequestSettings) (datasource.XrayClient, error) {
+				return xrayMock, nil
+			},
+			appSignalsClientFactory,
+			settings,
+		)
+
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+		require.Equal(t, "Default", aws.ToString(xrayMock.getServiceGraphInput.GroupName))
 	})
 
 	t.Run("getServiceMap query with region", func(t *testing.T) {
