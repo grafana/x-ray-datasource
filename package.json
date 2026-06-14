@@ -40,7 +40,7 @@
     "@eslint/eslintrc": "3.3.5",
     "@eslint/js": "10.0.1",
     "@grafana/aws-sdk": "0.10.2",
-    "@grafana/eslint-config": "9.0.0",
+    "@grafana/eslint-config": "10.0.0",
     "@grafana/plugin-e2e": "3.7.1",
     "@grafana/sign-plugin": "^3.2.2",
     "@grafana/tsconfig": "2.1.0",
