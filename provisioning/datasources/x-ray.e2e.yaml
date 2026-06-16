@@ -1,0 +1,19 @@
+# config file version
+apiVersion: 1
+
+deleteDatasources:
+  - name: AWS X-Ray E2E
+    orgId: 1
+
+datasources:
+  - name: AWS X-Ray E2E
+    type: grafana-x-ray-datasource
+    uid: x-ray-e2e
+    access: proxy
+    jsonData:
+      authType: keys
+      defaultRegion: us-east-2
+    secureJsonData:
+      accessKey: ${AWS_ACCESS_KEY_ID}
+      secretKey: ${AWS_SECRET_ACCESS_KEY}
+    version: 1

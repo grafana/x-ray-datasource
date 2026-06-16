@@ -1,0 +1,47 @@
+{
+  "type": "datasource",
+  "name": "AWS Application Signals",
+  "id": "grafana-x-ray-datasource",
+  "category": "tracing",
+  "metrics": true,
+  "tracing": true,
+  "backend": true,
+  "alerting": true,
+  "executable": "gpx_x-ray-datasource",
+  "includes": [
+    {
+      "type": "dashboard",
+      "name": "X-Ray App Signals",
+      "path": "dashboards/xray-app-signals.json"
+    }
+  ],
+  "info": {
+    "description": "Data source for AWS Application Signals",
+    "author": {
+      "name": "Grafana",
+      "url": "https://grafana.com"
+    },
+    "keywords": ["datasource", "aws", "amazon", "x-ray", "tracing", "cloud provider", "traces", "application signals"],
+    "logos": {
+      "small": "img/AWS-X-Ray.svg",
+      "large": "img/AWS-X-Ray.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/grafana/x-ray-datasource"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/grafana/x-ray-datasource/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=10.4.0-0",
+    "plugins": []
+  }
+}
