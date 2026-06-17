@@ -51,8 +51,9 @@ export const XrayVariableQueryEditor = ({ query, datasource, onChange, range }: 
           value={queryType}
           options={variableQueryOptions}
           onChange={(value) => {
-            //TODO remove any
-            onChange({ ...query, queryType: value.value } as any);
+            if (value.value) {
+              onChange({ ...query, queryType: value.value });
+            }
           }}
         />
       </EditorField>
