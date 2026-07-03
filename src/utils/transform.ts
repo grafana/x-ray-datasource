@@ -42,7 +42,7 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
 
     if (!parentSpan) {
       parentSpan = {
-        // TODO: maybe the duration should be the min(startTime) - max(endTime) of all child spans
+        // Duration is recomputed from the child spans once they are all known, see below.
         duration: 0,
         logs: [],
         operationName: segment.Document.origin ?? segment.Document.name,
@@ -58,6 +58,18 @@ export function transformTraceResponse(data: XrayTraceData): DataFrame {
 
     return transformSegmentDocument(segment.Document, serviceName, serviceTags, parentSpan.spanID);
   });
+
+  // Artificial parent spans have no duration of their own: stretch each one to
+  // cover its child spans so it does not render as a 0µs span in the trace view.
+  for (const parentSpan of parentSpans) {
+    const children = segmentSpans.filter((span) => span.parentSpanID === parentSpan.spanID);
+    if (children.length) {
+      const startTime = Math.min(...children.map((child) => child.startTime));
+      const endTime = Math.max(...children.map((child) => child.startTime + child.duration));
+      parentSpan.startTime = startTime;
+      parentSpan.duration = endTime - startTime;
+    }
+  }
 
   const frame = new MutableDataFrame({
     fields: [
