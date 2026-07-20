@@ -14,19 +14,19 @@ To build X-Ray data source locally you should follow the steps below.
 1. Install dependencies
 
 ```BASH
-yarn install
+npm install
 ```
 
 2. Build plugin in development mode with watch
 
 ```BASH
-yarn dev
+npm run dev
 ```
 
 3. Build plugin in production mode
 
 ```BASH
-yarn build
+npm run build
 ```
 
 ## Backend
@@ -64,16 +64,16 @@ bra run
 2. Start the server
 
 ```sh
-yarn server
+npm run server
 ```
 
 3. Run the tests
 
 ```sh
-yarn e2e
+npm run e2e
 
 # Optionally show the report, the report automatically shows if any tests fail
-yarn e2e:report
+npm run e2e:report
 
 ```
 
@@ -82,7 +82,7 @@ yarn e2e:report
 You need to have commit rights to the GitHub repository to publish a release.
 
 1. Update the version number in the `package.json` file.
-2. Update the `CHANGELOG.md` by copy and pasting the relevant PRs from [Github's Release drafter interface](https://github.com/grafana/x-ray-datasource/releases/new) or by running `yarn generate-release-notes` (you'll need to install the [gh cli](https://cli.github.com/) and [jq](https://jqlang.github.io/jq/) to run this command).
+2. Update the `CHANGELOG.md` by copy and pasting the relevant PRs from [Github's Release drafter interface](https://github.com/grafana/x-ray-datasource/releases/new) or by running `npm run generate-release-notes` (you'll need to install the [gh cli](https://cli.github.com/) and [jq](https://jqlang.github.io/jq/) to run this command).
 3. PR the changes.
 4. Once merged, follow the release process that you can find [here](https://enghub.grafana-ops.net/docs/default/component/grafana-plugins-platform/plugins-ci-github-actions/010-plugins-ci-github-actions/#cd_1)
 
