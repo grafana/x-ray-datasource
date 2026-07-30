@@ -15,7 +15,8 @@
     "mage_output_file.go",
     "playwright-report",
     "test-results",
-    ".gitignore"
+    ".gitignore",
+    "jest.config.js"
   ],
   "words": [
     "awsds",
