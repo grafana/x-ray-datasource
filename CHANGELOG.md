@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.1
+
+- Fix out of SLO CVEs in [#721](https://github.com/grafana/x-ray-datasource/pull/721)
+- chore(deps): bump tar from 7.5.20 to 7.5.21 in [#718](https://github.com/grafana/x-ray-datasource/pull/718)
+- chore(deps-dev): bump @babel/core from 7.29.0 to 7.29.6 in [#719](https://github.com/grafana/x-ray-datasource/pull/719)
+- chore(deps): bump google.golang.org/grpc from 1.79.3 to 1.82.1 in [#716](https://github.com/grafana/x-ray-datasource/pull/716)
+- Bump dependencies in [#715](https://github.com/grafana/x-ray-datasource/pull/715)
+- Bump grafana/* dependencies in [#714](https://github.com/grafana/x-ray-datasource/pull/714)
+- ci: use shared reusable add-to-project workflow in [#713](https://github.com/grafana/x-ray-datasource/pull/713)
+- ci: use shared reusable stale workflow in [#712](https://github.com/grafana/x-ray-datasource/pull/712)
+- ci: add stale issue and PR workflow in [#709](https://github.com/grafana/x-ray-datasource/pull/709)
+- Update workflow names to be consistent in [#710](https://github.com/grafana/x-ray-datasource/pull/710)
+- chore: use shared data-sources Renovate base preset in [#708](https://github.com/grafana/x-ray-datasource/pull/708)
+- Add add-to-project workflow and remove issue_commands in [#703](https://github.com/grafana/x-ray-datasource/pull/703)
+- chore(deps): update node.js to v24.16.0 in [#689](https://github.com/grafana/x-ray-datasource/pull/689)
+- docs: add signed commits requirement to CONTRIBUTING.md in [#702](https://github.com/grafana/x-ray-datasource/pull/702)
+- Updating plugin-ci-workflows in [#701](https://github.com/grafana/x-ray-datasource/pull/701)
+- chore: make grafanaDependency prerelease-inclusive in [#697](https://github.com/grafana/x-ray-datasource/pull/697)
+- chore: auto-audit hygiene fixes in [#688](https://github.com/grafana/x-ray-datasource/pull/688)
+- dependency management hardening in [#677](https://github.com/grafana/x-ray-datasource/pull/677)
+- Use GATB in GitHub workflows in [#675](https://github.com/grafana/x-ray-datasource/pull/675)
+- Docs: Overhaul of AWS Application Signals (formerly X-Ray) data source docs in [#663](https://github.com/grafana/x-ray-datasource/pull/663)
+- set enable scripts false in .yarnrc.yml in [#669](https://github.com/grafana/x-ray-datasource/pull/669)
+- chore(deps): update actions/create-github-app-token action to v3 in [#641](https://github.com/grafana/x-ray-datasource/pull/641)
+- chore(deps): update frontend dependencies in [#656](https://github.com/grafana/x-ray-datasource/pull/656)
+- Update codeowners in [#653](https://github.com/grafana/x-ray-datasource/pull/653)
+- chore(deps): update dependency @grafana/plugin-e2e to v3.4.11 in [#654](https://github.com/grafana/x-ray-datasource/pull/654)
+- chore(deps): update grafana/shared-workflows/ action to in [#651](https://github.com/grafana/x-ray-datasource/pull/651)
+- chore(deps): update grafana/shared-workflows/ action to in [#650](https://github.com/grafana/x-ray-datasource/pull/650)
+- chore(deps): update dependency @grafana/plugin-e2e to v3.4.10 in [#648](https://github.com/grafana/x-ray-datasource/pull/648)
+- chore(deps): lock file maintenance in [#647](https://github.com/grafana/x-ray-datasource/pull/647)
+- fix(deps): update backend dependencies in [#646](https://github.com/grafana/x-ray-datasource/pull/646)
+- chore(deps): update frontend dependencies in [#645](https://github.com/grafana/x-ray-datasource/pull/645)
+- chore(deps): update dependency webpack-cli to v7 in [#644](https://github.com/grafana/x-ray-datasource/pull/644)
+
 ## v2.17.0
 
 - Add sessionToken handling to support Grafana Assume Role in [#628](https://github.com/grafana/x-ray-datasource/pull/628)

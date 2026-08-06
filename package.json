@@ -1,6 +1,6 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "2.17.0",
+  "version": "2.17.1",
   "description": "AWS Application Signals data source",
   "private": true,
   "scripts": {
