@@ -130,6 +130,7 @@
     "npmPreapprovedPackages",
     "openfeature",
     "jsonencode",
-    "trufflehogignore"
+    "trufflehogignore",
+    "dsconfig"
   ]
 }
