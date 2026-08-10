@@ -131,6 +131,8 @@
     "openfeature",
     "jsonencode",
     "trufflehogignore",
-    "dsconfig"
+    "dsconfig",
+    "struct",
+    "Struct"
   ]
 }
