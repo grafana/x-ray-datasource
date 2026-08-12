@@ -2,7 +2,7 @@ name: Scheduled Cloud E2E tests
 
 on:
   schedule:
-    - cron: '0 9 * * *' # Daily at 09:00 UTC
+    - cron: '0 6 * * *' # Daily at 06:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   playwright-cloud:
-    uses: grafana/data-sources-ci-workflows/.github/workflows/playwright-cloud.yml@30b5f942cd28a87dc2c4556956604c60bd096900 # main
+    uses: grafana/data-sources-ci-workflows/.github/workflows/playwright-cloud.yml@main
     secrets: inherit
     permissions:
       contents: read
