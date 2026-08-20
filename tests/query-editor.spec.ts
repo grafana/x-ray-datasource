@@ -1,5 +1,10 @@
 import { test, expect } from '@grafana/plugin-e2e';
 
+const isCloudRun = !!process.env.GRAFANA_URL;
+const DATA_SOURCE_NAME = isCloudRun ? '[managed_data_source] - X-Ray (PDC)' : 'AWS X-Ray E2E';
+
+test.describe.configure({ mode: 'serial', timeout: 60_000 });
+
 // Disable the new dashboard layouts so plugin-e2e's addPanel() helper uses the
 // stable "Add panel" flow instead of the sidebar/edit-pane path.
 //
@@ -14,91 +19,107 @@ import { test, expect } from '@grafana/plugin-e2e';
 // bundled @grafana/e2e-selectors includes the Grafana 13.2.0 sidebar selectors.
 test.use({ featureToggles: { dashboardNewLayouts: false } });
 
-test('data query is successful when `Trace List` query is valid', async ({ page, panelEditPage, selectors }) => {
-  await panelEditPage.datasource.set('AWS X-Ray E2E');
-  await panelEditPage.setVisualization('Table');
+test(
+  'data query is successful when `Trace List` query is valid',
+  { tag: '@aws' },
+  async ({ page, panelEditPage, selectors }) => {
+    await panelEditPage.datasource.set(DATA_SOURCE_NAME);
+    await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
-  await page.keyboard.insertText('service("PetSite")');
-  await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
+    await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
+    await page.keyboard.insertText('service("PetSite")');
+    await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
 
-  await expect(page.getByRole('button', { name: 'Trace List' })).toBeVisible();
-  await expect(panelEditPage.refreshPanel()).toBeOK();
-  await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
-  await expect(panelEditPage.panel.fieldNames).toHaveText([
-    'Id',
-    'Start Time',
-    'Method',
-    'Response',
-    'Response Time',
-    'URL',
-    'Client IP',
-    'Annotations',
-  ]);
-});
+    await expect(page.getByRole('button', { name: 'Trace List' })).toBeVisible();
+    await expect(panelEditPage.refreshPanel()).toBeOK();
+    await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
+    await expect(panelEditPage.panel.fieldNames).toHaveText([
+      'Id',
+      'Start Time',
+      'Method',
+      'Response',
+      'Response Time',
+      'URL',
+      'Client IP',
+      'Annotations',
+    ]);
+  }
+);
 
-test('data query is successful when `Trace Statistics` query is valid', async ({ page, panelEditPage, selectors }) => {
-  await panelEditPage.datasource.set('AWS X-Ray E2E');
-  await panelEditPage.setVisualization('Table');
+test(
+  'data query is successful when `Trace Statistics` query is valid',
+  { tag: '@aws' },
+  async ({ page, panelEditPage, selectors }) => {
+    await panelEditPage.datasource.set(DATA_SOURCE_NAME);
+    await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
-  await page.keyboard.insertText('service("PetSite")');
-  await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
-  await page.getByRole('button', { name: 'Trace List' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'Trace Statistics' }).click();
-  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click(); // Make sure the dropdown is closed
-  await page.getByRole('combobox', { name: 'Columns' }).click();
-  await page.getByText('Total Count').click();
-  await page.keyboard.press('Escape');
+    await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
+    await page.keyboard.insertText('service("PetSite")');
+    await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
+    await page.getByRole('button', { name: 'Trace List' }).click();
+    await page.getByRole('menuitemcheckbox', { name: 'Trace Statistics' }).click();
+    await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click(); // Make sure the dropdown is closed
+    await page.getByRole('combobox', { name: 'Columns' }).click();
+    await page.getByText('Total Count').click();
+    await page.keyboard.press('Escape');
 
-  await expect(panelEditPage.refreshPanel()).toBeOK();
-  await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
-  await expect(panelEditPage.panel.fieldNames).toHaveText(['Time', 'Total Count']);
-});
+    await expect(panelEditPage.refreshPanel()).toBeOK();
+    await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
+    await expect(panelEditPage.panel.fieldNames).toHaveText(['Time', 'Total Count']);
+  }
+);
 
-test('data query is successful when `Trace Analytics` query is valid', async ({ page, panelEditPage, selectors }) => {
-  await panelEditPage.datasource.set('AWS X-Ray E2E');
-  await panelEditPage.setVisualization('Table');
+test(
+  'data query is successful when `Trace Analytics` query is valid',
+  { tag: '@aws' },
+  async ({ page, panelEditPage, selectors }) => {
+    await panelEditPage.datasource.set(DATA_SOURCE_NAME);
+    await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
-  await page.keyboard.insertText('service("PetSite")');
-  await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
-  await page.getByRole('button', { name: 'Trace List' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'Trace Analytics' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'HTTP status code' }).click();
+    await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
+    await page.keyboard.insertText('service("PetSite")');
+    await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
+    await page.getByRole('button', { name: 'Trace List' }).click();
+    await page.getByRole('menuitemcheckbox', { name: 'Trace Analytics' }).click();
+    await page.getByRole('menuitemcheckbox', { name: 'HTTP status code' }).click();
 
-  await expect(panelEditPage.refreshPanel()).toBeOK();
-  await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
-  await expect(panelEditPage.panel.fieldNames).toHaveText(['Status Code', 'Count', 'Percent']);
-});
+    await expect(panelEditPage.refreshPanel()).toBeOK();
+    await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
+    await expect(panelEditPage.panel.fieldNames).toHaveText(['Status Code', 'Count', 'Percent']);
+  }
+);
 
-test('data query is successful when `Service Map` query is valid', async ({ page, panelEditPage, selectors }) => {
-  await panelEditPage.datasource.set('AWS X-Ray E2E');
-  await panelEditPage.setVisualization('Table');
+test(
+  'data query is successful when `Service Map` query is valid',
+  { tag: '@aws' },
+  async ({ page, panelEditPage, selectors }) => {
+    await panelEditPage.datasource.set(DATA_SOURCE_NAME);
+    await panelEditPage.setVisualization('Table');
 
-  await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
-  await page.keyboard.insertText('service("PetSite")');
-  await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
-  await page.getByRole('button', { name: 'Trace List' }).click();
-  await page.getByRole('menuitemcheckbox', { name: 'Service Map' }).click();
+    await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();
+    await page.keyboard.insertText('service("PetSite")');
+    await page.waitForTimeout(500); // Waits for query to update because <QueryField /> debounces onChange
+    await page.getByRole('button', { name: 'Trace List' }).click();
+    await page.getByRole('menuitemcheckbox', { name: 'Service Map' }).click();
 
-  await expect(panelEditPage.refreshPanel()).toBeOK();
-  await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
-  await expect(panelEditPage.panel.fieldNames).toHaveText([
-    /^(nodes )?id$/i,
-    'Name',
-    'Type',
-    'Average response time',
-    'Transactions per minute',
-    'Success',
-    'Fault',
-    'Error',
-    'Throttled',
-  ]);
-});
+    await expect(panelEditPage.refreshPanel()).toBeOK();
+    await expect(panelEditPage.panel.getErrorIcon()).not.toBeVisible();
+    await expect(panelEditPage.panel.fieldNames).toHaveText([
+      /^(nodes )?id$/i,
+      'Name',
+      'Type',
+      'Average response time',
+      'Transactions per minute',
+      'Success',
+      'Fault',
+      'Error',
+      'Throttled',
+    ]);
+  }
+);
 
-test('data query fails when query is invalid', async ({ page, panelEditPage, selectors }) => {
-  await panelEditPage.datasource.set('AWS X-Ray E2E');
+test('data query fails when query is invalid', { tag: '@aws' }, async ({ page, panelEditPage, selectors }) => {
+  await panelEditPage.datasource.set(DATA_SOURCE_NAME);
   await panelEditPage.setVisualization('Table');
 
   await panelEditPage.getByGrafanaSelector(selectors.components.QueryField.container).click();

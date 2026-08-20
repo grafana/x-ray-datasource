@@ -61,9 +61,13 @@ bra run
 
 1. Ensure you have the `AWS X-Ray E2E` data source provisioned in the `provisioning/datasources` directory
 
-2. Start the server
+2. Export live AWS test credentials, then start the server. The provisioning file reads these values when Grafana starts.
 
 ```sh
+export AWS_ACCESS_KEY_ID='your-access-key-id'
+export AWS_SECRET_ACCESS_KEY='your-secret-access-key'
+export AWS_DEFAULT_REGION='us-east-2'
+
 yarn server
 ```
 
@@ -76,6 +80,8 @@ yarn e2e
 yarn e2e:report
 
 ```
+
+When running against Grafana Cloud, set `DS_PDC_NETWORK_NAME` to select a Private Data Source Connect network.
 
 ## Building a release
 
