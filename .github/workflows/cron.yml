@@ -20,8 +20,8 @@ jobs:
       run-stage: nightly
       # Reusable-workflow inputs are resolved before Vault secrets are fetched.
       pdc-network-name: datasources-pdc-network-aws-datasourcese2e
-      bench-prepare-cmd: yarn install --immutable && yarn playwright install chromium
-      bench-execute-cmd: yarn e2e --grep @aws
+      bench-prepare-cmd: npm ci && npx playwright install chromium
+      bench-execute-cmd: npm run e2e --grep @aws
       repo-secrets: |
         AWS_ACCESS_KEY_ID=xray:secure_accessKey
         AWS_SECRET_ACCESS_KEY=xray:secure_secretKey
