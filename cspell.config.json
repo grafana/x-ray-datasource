@@ -2,21 +2,20 @@
   "ignorePaths": [
     ".config/**",
     ".github/**",
-    ".yarn/**",
     "node_modules/**",
     "dist/**",
     "cypress/**",
     "provisioning/**",
     "src/dashboards/**",
     "src/utils/transform.test.ts",
-    "yarn.lock",
     "go.mod",
     "go.sum",
     "mage_output_file.go",
     "playwright-report",
     "test-results",
     ".gitignore",
-    "jest.config.js"
+    "jest.config.js",
+    "package-lock.json"
   ],
   "words": [
     "awsds",
