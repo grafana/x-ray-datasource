@@ -2,6 +2,7 @@ import { test, expect } from '@grafana/plugin-e2e';
 import type { Page } from '@playwright/test';
 
 const PLUGIN_TYPE = 'grafana-x-ray-datasource';
+const isCloudRun = !!process.env.GRAFANA_URL;
 
 async function configurePDC(page: Page, networkName: string) {
   await page.getByRole('combobox', { name: 'Private data source connect' }).click();
@@ -20,6 +21,11 @@ test(
   'valid injected credentials should pass the health check',
   { tag: '@aws' },
   async ({ createDataSourceConfigPage, page }) => {
+    test.skip(
+      isCloudRun,
+      'Ad-hoc save and test hangs on the shared Cloud instance; managed datasource connectivity is covered by query tests'
+    );
+
     const accessKey = process.env.AWS_ACCESS_KEY_ID;
     const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
     const region = process.env.AWS_DEFAULT_REGION;
