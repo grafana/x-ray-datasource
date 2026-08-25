@@ -18,12 +18,32 @@ jobs:
       id-token: write
     with:
       run-stage: nightly
-      # Reusable-workflow inputs are resolved before Vault secrets are fetched.
-      pdc-network-name: datasources-pdc-network-aws-datasourcese2e
-      bench-prepare-cmd: npm ci && npx playwright install chromium
-      bench-execute-cmd: npm run e2e --grep @aws
+      # Bench runs each command without a shell, so use ';' to separate them.
+      bench-prepare-cmd: npm ci; npx playwright install chromium
+      # Bench appends its own '-- --reporter=json <suite-path>', so the tag
+      # filter has to live in the script rather than in extra args here.
+      bench-execute-cmd: npm run e2e:cloud
       repo-secrets: |
         AWS_ACCESS_KEY_ID=xray:secure_accessKey
         AWS_SECRET_ACCESS_KEY=xray:secure_secretKey
         AWS_DEFAULT_REGION=xray:json_defaultRegion
-        DS_PDC_NETWORK_NAME=xray:e2ePdcNetworkName
+
+  notify-slack:
+    name: Notify Slack on failure
+    needs: playwright-cloud
+    if: failure()
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      # The shared action authenticates to Slack over OIDC.
+      id-token: write
+    steps:
+      - name: Notify Slack on failure
+        uses: grafana/data-sources-ci-workflows/.github/actions/notify-cloud-e2e-failure@main
+        with:
+          repo: ${{ github.repository }}
+          run-stage: nightly
+          ref-name: ${{ github.ref_name }}
+          actor: ${{ github.actor }}
+          sha: ${{ github.sha }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
