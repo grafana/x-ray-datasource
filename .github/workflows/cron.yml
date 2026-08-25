@@ -18,12 +18,12 @@ jobs:
       id-token: write
     with:
       run-stage: nightly
-      # Reusable-workflow inputs are resolved before Vault secrets are fetched.
-      pdc-network-name: datasources-pdc-network-aws-datasourcese2e
-      bench-prepare-cmd: npm ci && npx playwright install chromium
-      bench-execute-cmd: npm run e2e --grep @aws
+      # Bench runs each command without a shell, so use ';' to separate them.
+      bench-prepare-cmd: npm ci; npx playwright install chromium
+      # Bench appends its own '-- --reporter=json <suite-path>', so the tag
+      # filter has to live in the script rather than in extra args here.
+      bench-execute-cmd: npm run e2e:cloud
       repo-secrets: |
         AWS_ACCESS_KEY_ID=xray:secure_accessKey
         AWS_SECRET_ACCESS_KEY=xray:secure_secretKey
         AWS_DEFAULT_REGION=xray:json_defaultRegion
-        DS_PDC_NETWORK_NAME=xray:e2ePdcNetworkName
