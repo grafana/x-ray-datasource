@@ -165,12 +165,58 @@ describe('XrayDataSource', () => {
       expect(mockQuery.mock.calls[0][0].targets[0].query).toBe('service("test")');
     });
 
-    it('handles group', async () => {
+    it('does not inject group FilterExpression into Trace Statistics query', async () => {
       const ds = makeDatasourceWithResponse({} as any);
+      const group = {
+        FilterExpression: 'annotation.my_env = "staging"',
+        GroupName: 'staging',
+        GroupARN: 'arn:aws:xray:us-east-1:123456789012:group/staging/EXAMPLE',
+      };
       await firstValueFrom(
         ds.query(
           makeQuery({
             queryType: XrayQueryType.getTimeSeriesServiceStatistics,
+            query: 'service("something")',
+            group,
+          })
+        )
+      );
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      const sent = mockQuery.mock.calls[0][0].targets[0];
+      expect(sent.query).toBe('service("something")');
+      expect(sent.group).toEqual(group);
+    });
+
+    it('does not use group FilterExpression as Trace Statistics query when query is empty', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      const group = {
+        FilterExpression: 'annotation.my_env = "staging"',
+        GroupName: 'staging',
+        GroupARN: 'arn:aws:xray:us-east-1:123456789012:group/staging/EXAMPLE',
+      };
+      await firstValueFrom(
+        ds.query(
+          makeQuery({
+            queryType: XrayQueryType.getTimeSeriesServiceStatistics,
+            query: '',
+            group,
+          })
+        )
+      );
+      const mockQuery = (ds as any).mockQuery as jest.Mock;
+      const sent = mockQuery.mock.calls[0][0].targets[0];
+      expect(sent.query).toBe('');
+      expect(sent.group.GroupName).toBe('staging');
+      expect(sent.group.GroupARN).toBe(group.GroupARN);
+      expect(sent.query).not.toContain('annotation.my_env');
+    });
+
+    it('still injects group FilterExpression for Trace List', async () => {
+      const ds = makeDatasourceWithResponse({} as any);
+      await firstValueFrom(
+        ds.query(
+          makeQuery({
+            queryType: XrayQueryType.getTraceSummaries,
             query: 'service("something")',
             group: { FilterExpression: 'service("from group")' } as any,
           })

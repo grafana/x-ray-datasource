@@ -21,6 +21,7 @@ import (
 
 type XrayClientMock struct {
 	queryCalledWithRegion string
+	lastTimeSeriesInput   *xray.GetTimeSeriesServiceStatisticsInput
 }
 
 func (client *XrayClientMock) GetServiceGraph(_ context.Context, _ *xray.GetServiceGraphInput, _ ...func(*xray.Options)) (*xray.GetServiceGraphOutput, error) {
@@ -190,7 +191,8 @@ func (client *XrayClientMock) BatchGetTraces(_ context.Context, input *xray.Batc
 	}, nil
 }
 
-func (client *XrayClientMock) GetTimeSeriesServiceStatistics(_ context.Context, _ *xray.GetTimeSeriesServiceStatisticsInput, _ ...func(*xray.Options)) (*xray.GetTimeSeriesServiceStatisticsOutput, error) {
+func (client *XrayClientMock) GetTimeSeriesServiceStatistics(_ context.Context, input *xray.GetTimeSeriesServiceStatisticsInput, _ ...func(*xray.Options)) (*xray.GetTimeSeriesServiceStatisticsOutput, error) {
+	client.lastTimeSeriesInput = input
 	firstRow := 0
 	if client.queryCalledWithRegion != "" {
 		firstRow = 13
@@ -643,6 +645,42 @@ func TestDatasource(t *testing.T) {
 		require.Equal(t, int64(10), *response.Responses["A"].Frames[0].Fields[1].At(0).(*int64))
 		require.Equal(t, int64(11), *response.Responses["A"].Frames[0].Fields[1].At(2).(*int64))
 		require.Equal(t, 3.14/80, *response.Responses["A"].Frames[5].Fields[1].At(0).(*float64))
+	})
+
+	t.Run("getTimeSeriesServiceStatistics scopes by GroupName/ARN and does not use FilterExpression as query", func(t *testing.T) {
+		mock := &XrayClientMock{}
+		factory := func(_ context.Context, _ backend.PluginContext, requestSettings datasource.RequestSettings) (datasource.XrayClient, error) {
+			mock.queryCalledWithRegion = requestSettings.Region
+			return mock, nil
+		}
+		scopedDs := datasource.NewDatasource(context.Background(), factory, appSignalsClientFactory, settings)
+
+		groupFilter := `annotation.my_env = "staging"`
+		entityQuery := `service("api")`
+		groupARN := "arn:aws:xray:us-east-1:123456789012:group/staging/EXAMPLE"
+		response, err := queryDatasource(
+			scopedDs,
+			datasource.QueryGetTimeSeriesServiceStatistics,
+			datasource.GetTimeSeriesServiceStatisticsQueryData{
+				Query:   entityQuery,
+				Columns: []string{},
+				Group: &xraytypes.Group{
+					GroupName:        aws.String("staging"),
+					GroupARN:         aws.String(groupARN),
+					FilterExpression: aws.String(groupFilter),
+				},
+			},
+		)
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+		require.NotNil(t, mock.lastTimeSeriesInput)
+		require.NotNil(t, mock.lastTimeSeriesInput.GroupName)
+		require.Equal(t, "staging", *mock.lastTimeSeriesInput.GroupName)
+		require.NotNil(t, mock.lastTimeSeriesInput.GroupARN)
+		require.Equal(t, groupARN, *mock.lastTimeSeriesInput.GroupARN)
+		require.NotNil(t, mock.lastTimeSeriesInput.EntitySelectorExpression)
+		require.Equal(t, entityQuery, *mock.lastTimeSeriesInput.EntitySelectorExpression)
+		require.NotEqual(t, groupFilter, *mock.lastTimeSeriesInput.EntitySelectorExpression)
 	})
 
 	t.Run("getTimeSeriesServiceStatistics query with region", func(t *testing.T) {

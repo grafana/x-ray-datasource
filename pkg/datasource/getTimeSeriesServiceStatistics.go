@@ -17,10 +17,11 @@ import (
 )
 
 type GetTimeSeriesServiceStatisticsQueryData struct {
-	Query      string   `json:"query"`
-	Columns    []string `json:"columns"`
-	Resolution int32    `json:"resolution"`
-	Region     string   `json:"region"`
+	Query      string           `json:"query"`
+	Columns    []string         `json:"columns"`
+	Resolution int32            `json:"resolution"`
+	Region     string           `json:"region"`
+	Group      *xraytypes.Group `json:"group"`
 }
 
 type ValueDef struct {
@@ -130,6 +131,13 @@ func (ds *Datasource) getTimeSeriesServiceStatisticsForSingleQuery(ctx context.C
 		EndTime:                  &query.TimeRange.To,
 		EntitySelectorExpression: entitySelectorExpression,
 		Period:                   &resolution,
+	}
+
+	// Scope by group identity. Do not put Group.FilterExpression into EntitySelectorExpression —
+	// that field only accepts id()/service()/edge() selectors (see #662).
+	if queryData.Group != nil {
+		request.GroupName = queryData.Group.GroupName
+		request.GroupARN = queryData.Group.GroupARN
 	}
 	pager := xray.NewGetTimeSeriesServiceStatisticsPaginator(xrayClient, request)
 	var pagerError error
