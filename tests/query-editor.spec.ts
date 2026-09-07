@@ -41,13 +41,9 @@ function exploreUrl(query: Record<string, unknown>) {
   return `/explore?orgId=1&schemaVersion=1&panes=${encodeURIComponent(panes)}`;
 }
 
-async function openExploreQuery(page: Page, query: Record<string, unknown>) {
-  await page.goto(exploreUrl(query));
-}
-
 test('data query is successful when `Trace List` query is valid', { tag: '@aws' }, async ({ page }) => {
   const query = 'service("PetSite")';
-  await openExploreQuery(page, { queryType: XrayQueryType.getTraceSummaries, query });
+  await page.goto(exploreUrl({ queryType: XrayQueryType.getTraceSummaries, query }));
 
   const queryParam = new URLSearchParams({ filter: query }).toString();
   await expect(page.getByRole('button', { name: 'Trace List' })).toBeVisible({ timeout: 30_000 });
@@ -62,38 +58,44 @@ test('data query is successful when `Trace List` query is valid', { tag: '@aws' 
 });
 
 test('data query is successful when `Trace Statistics` query is valid', { tag: '@aws' }, async ({ page }) => {
-  await openExploreQuery(page, {
-    queryType: XrayQueryType.getTimeSeriesServiceStatistics,
-    query: 'service("PetSite")',
-    columns: ['TotalCount'],
-  });
+  await page.goto(
+    exploreUrl({
+      queryType: XrayQueryType.getTimeSeriesServiceStatistics,
+      query: 'service("PetSite")',
+      columns: ['TotalCount'],
+    })
+  );
 
   await expect(page.getByRole('button', { name: 'Trace Statistics' })).toBeVisible({ timeout: 30_000 });
   await expect(columnHeaders(page)).toHaveText(['Time', 'Total Count'], { timeout: 30_000 });
 });
 
 test('data query is successful when `Trace Analytics` query is valid', { tag: '@aws' }, async ({ page }) => {
-  await openExploreQuery(page, {
-    queryType: XrayQueryType.getAnalyticsStatusCode,
-    query: 'service("PetSite")',
-  });
+  await page.goto(
+    exploreUrl({
+      queryType: XrayQueryType.getAnalyticsStatusCode,
+      query: 'service("PetSite")',
+    })
+  );
 
   await expect(page.getByRole('button', { name: 'HTTP status code' })).toBeVisible({ timeout: 30_000 });
   await expect(columnHeaders(page)).toHaveText(['Status Code', 'Count', 'Percent'], { timeout: 30_000 });
 });
 
 test('data query is successful when `Service Map` query is valid', { tag: '@aws' }, async ({ page }) => {
-  await openExploreQuery(page, {
-    queryType: XrayQueryType.getServiceMap,
-    query: 'service("PetSite")',
-  });
+  await page.goto(
+    exploreUrl({
+      queryType: XrayQueryType.getServiceMap,
+      query: 'service("PetSite")',
+    })
+  );
 
   await expect(page.getByRole('button', { name: 'Service Map' })).toBeVisible({ timeout: 30_000 });
   await expect(serviceMapNodes(page).first()).toBeVisible({ timeout: 30_000 });
 });
 
 test('data query fails when query is invalid', { tag: '@aws' }, async ({ page }) => {
-  await openExploreQuery(page, { queryType: XrayQueryType.getTraceSummaries, query: 'PetSite' });
+  await page.goto(exploreUrl({ queryType: XrayQueryType.getTraceSummaries, query: 'PetSite' }));
 
   await expect(page.getByText(/InvalidRequestException/)).toBeVisible({ timeout: 30_000 });
 });
