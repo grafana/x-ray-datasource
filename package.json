@@ -103,9 +103,8 @@
     "npm": ">=11.16.0"
   },
   "overrides": {
-    "fast-uri": "3.1.6",
     "@types/slate": {
-      "immutable": "4.3.9"
+      "immutable": "5.1.9"
     }
   }
 }
