@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.2
+
+- chore(security): bump fast-uri and immutable in [#728](https://github.com/grafana/x-ray-datasource/pull/728)
+- fix(deps): update backend dependencies in [#695](https://github.com/grafana/x-ray-datasource/pull/695)
+- Chore: Use npm as package manager in [#725](https://github.com/grafana/x-ray-datasource/pull/725)
+- test: add X-Ray Cloud E2E coverage in [#724](https://github.com/grafana/x-ray-datasource/pull/724)
+- fix(e2e): stabilize scheduled Cloud tests in [#726](https://github.com/grafana/x-ray-datasource/pull/726)
+
 ## v2.17.1
 
 - Fix out of SLO CVEs in [#721](https://github.com/grafana/x-ray-datasource/pull/721)
