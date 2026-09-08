@@ -1,12 +1,8 @@
 import { test, expect } from '@grafana/plugin-e2e';
-import type { Page } from '@playwright/test';
 
 const PLUGIN_TYPE = 'grafana-x-ray-datasource';
-
-async function configurePDC(page: Page, networkName: string) {
-  await page.getByRole('combobox', { name: 'Private data source connect' }).click();
-  await page.getByText(networkName, { exact: true }).click();
-}
+const isCloudRun = !!process.env.GRAFANA_URL;
+const MANAGED_DATA_SOURCE_UID = process.env.DS_E2E_UID || 'xray-ds-m';
 
 test('invalid credentials should return an error', async ({ createDataSourceConfigPage, page }) => {
   const configPage = await createDataSourceConfigPage({ type: PLUGIN_TYPE });
@@ -20,6 +16,11 @@ test(
   'valid injected credentials should pass the health check',
   { tag: '@aws' },
   async ({ createDataSourceConfigPage, page }) => {
+    // This datasource's PDC network is not available on the shared Cloud instance, so an
+    // ad-hoc datasource cannot reach X-Ray there. The provisioned one already has PDC wired
+    // up and is covered by the health check below.
+    test.skip(isCloudRun, 'PDC network for this datasource is not available on the shared Cloud instance');
+
     const accessKey = process.env.AWS_ACCESS_KEY_ID;
     const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
     const region = process.env.AWS_DEFAULT_REGION;
@@ -39,10 +40,15 @@ test(
     await page.getByLabel('Default Region').click();
     await page.getByText(region ?? '', { exact: true }).click();
 
-    if (process.env.DS_PDC_NETWORK_NAME) {
-      await configurePDC(page, process.env.DS_PDC_NETWORK_NAME);
-    }
-
     await expect(configPage.saveAndTest()).toBeOK();
   }
 );
+
+test('provisioned datasource passes the health check', { tag: '@aws' }, async ({ page }) => {
+  test.skip(!isCloudRun, 'Exercises the managed Cloud datasource; local runs configure their own');
+
+  const response = await page.request.get(`/api/datasources/uid/${MANAGED_DATA_SOURCE_UID}/health`);
+
+  await expect(response).toBeOK();
+  expect((await response.json()).status).toBe('OK');
+});
