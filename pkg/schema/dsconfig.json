@@ -110,7 +110,12 @@
       "id": "assume-role",
       "title": "Assume Role",
       "order": 2,
-      "fieldRefs": ["jsonData_assumeRoleARN", "aws_sdk_settings.externalId"]
+      "fieldRefs": [
+        "jsonData_assumeRoleARN",
+        "aws_sdk_settings.externalId",
+        "aws_sdk_settings.usePerDatasourceExternalId",
+        "aws_sdk_settings.grafanaExternalId"
+      ]
     },
     {
       "id": "additional-settings",
@@ -135,6 +140,11 @@
       "type": "group",
       "fields": ["jsonData_assumeRoleARN", "aws_sdk_settings.externalId"],
       "description": "STS assume-role parameters — external ID is only meaningful when assumeRoleARN is set"
+    },
+    {
+      "type": "group",
+      "fields": ["aws_sdk_settings.usePerDatasourceExternalId", "aws_sdk_settings.grafanaExternalId"],
+      "description": "Grafana Assume Role per-datasource external ID — grafanaExternalId is only meaningful when usePerDatasourceExternalId is true"
     },
     {
       "type": "group",

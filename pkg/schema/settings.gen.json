@@ -37,6 +37,11 @@
             "type": "string",
             "x-dsconfig-depends-on": "aws_sdk_settings.authType != 'grafana_assume_role'"
           },
+          "grafanaExternalId": {
+            "description": "Per-datasource external ID used for Grafana Assume Role. Only takes effect when \"Use per-datasource external ID\" is enabled; otherwise the stack-wide external ID is used.",
+            "type": "string",
+            "x-dsconfig-depends-on": "aws_sdk_settings.authType == 'grafana_assume_role' \u0026\u0026 aws_sdk_settings.usePerDatasourceExternalId == true"
+          },
           "profile": {
             "description": "Credentials profile name, as specified in ~/.aws/credentials, leave blank for default.",
             "type": "string",
@@ -66,6 +71,12 @@
           "region": {
             "description": "Backend-only. Second region field on awsds.AWSDatasourceSettings that the config editor never renders — awsds Load copies defaultRegion into it when it is empty or the literal 'default'. Set defaultRegion instead.",
             "type": "string"
+          },
+          "usePerDatasourceExternalId": {
+            "description": "Grafana Assume Role only. When enabled, this datasource uses its own external ID (below) instead of the stack-wide external ID.",
+            "type": "boolean",
+            "default": false,
+            "x-dsconfig-depends-on": "aws_sdk_settings.authType == 'grafana_assume_role'"
           }
         }
       }
