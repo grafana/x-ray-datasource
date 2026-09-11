@@ -44,7 +44,7 @@ require (
 	github.com/go-openapi/swag/yamlutils v0.28.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
-	github.com/grafana/dsconfig/dsconfig v0.0.7 // indirect
+	github.com/grafana/dsconfig/dsconfig v0.0.12 // indirect
 	github.com/grafana/sqlds/v5 v5.3.1 // indirect
 	github.com/jaegertracing/jaeger-idl v0.11.4 // indirect
 	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
