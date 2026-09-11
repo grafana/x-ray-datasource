@@ -5,12 +5,12 @@ go 1.26.5
 require (
 	github.com/aws/aws-sdk-go-v2 v1.46.0
 	github.com/aws/aws-sdk-go-v2/service/xray v1.44.0
+	github.com/grafana/dsconfig/schema v0.0.12
 	github.com/grafana/grafana-aws-sdk v1.5.3
 	github.com/grafana/grafana-plugin-sdk-go v0.296.4
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/sync v0.23.0
 	golang.org/x/text v0.41.0
-	github.com/grafana/dsconfig/schema v0.0.12
 )
 
 require (
@@ -27,7 +27,24 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
+	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
+	github.com/go-openapi/jsonpointer v1.0.0 // indirect
+	github.com/go-openapi/jsonreference v1.0.0 // indirect
+	github.com/go-openapi/swag v0.28.0 // indirect
+	github.com/go-openapi/swag/cmdutils v0.28.0 // indirect
+	github.com/go-openapi/swag/conv v0.28.0 // indirect
+	github.com/go-openapi/swag/fileutils v0.28.0 // indirect
+	github.com/go-openapi/swag/jsonutils v0.28.0 // indirect
+	github.com/go-openapi/swag/loading v0.28.0 // indirect
+	github.com/go-openapi/swag/mangling v0.28.0 // indirect
+	github.com/go-openapi/swag/netutils v0.28.0 // indirect
+	github.com/go-openapi/swag/pools v0.28.0 // indirect
+	github.com/go-openapi/swag/stringutils v0.28.0 // indirect
+	github.com/go-openapi/swag/typeutils v0.28.0 // indirect
+	github.com/go-openapi/swag/yamlutils v0.28.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
+	github.com/google/gnostic-models v0.7.1 // indirect
+	github.com/grafana/dsconfig/dsconfig v0.0.7 // indirect
 	github.com/grafana/sqlds/v5 v5.3.1 // indirect
 	github.com/jaegertracing/jaeger-idl v0.11.4 // indirect
 	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
@@ -35,7 +52,11 @@ require (
 	github.com/olekukonko/ll v0.1.8 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
+	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad // indirect
+	sigs.k8s.io/randfill v1.0.0 // indirect
+	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
 require (
