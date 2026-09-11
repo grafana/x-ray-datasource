@@ -1,15 +1,16 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "2.17.1",
+  "version": "2.17.2",
   "description": "AWS Application Signals data source",
   "private": true,
   "scripts": {
     "build": "webpack -c ./webpack.config.ts --env production",
     "dev": "webpack -w -c ./webpack.config.ts --env development",
     "e2e": "playwright test",
+    "e2e:cloud": "playwright test --grep @aws",
     "e2e:report": "playwright show-report",
     "lint": "eslint --cache .",
-    "lint:fix": "yarn run lint --fix && prettier --write --list-different .",
+    "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
     "server": "docker compose up --build",
     "sign": "npx --yes --ignore-scripts --package @grafana/sign-plugin@3.2.2 sign-plugin",
     "spellcheck": "cspell -c cspell.config.json \"**/*.{ts,tsx,js,go,md,mdx,yml,yaml,json,scss,css}\"",
@@ -41,7 +42,7 @@
     "@eslint/js": "10.0.1",
     "@grafana/aws-sdk": "0.12.0",
     "@grafana/eslint-config": "9.0.0",
-    "@grafana/plugin-e2e": "3.10.0",
+    "@grafana/plugin-e2e": "3.12.0",
     "@grafana/sign-plugin": "3.3.3",
     "@grafana/tsconfig": "2.1.0",
     "@openfeature/web-sdk": "1.8.0",
@@ -63,6 +64,7 @@
     "@types/slate": "0.47.16",
     "@typescript-eslint/eslint-plugin": "8.59.2",
     "@typescript-eslint/parser": "8.59.2",
+    "ajv": "8.20.0",
     "copy-webpack-plugin": "14.0.0",
     "cspell": "9.8.0",
     "css-loader": "7.1.4",
@@ -96,9 +98,14 @@
     "webpack-subresource-integrity": "5.1.0",
     "webpack-virtual-modules": "0.6.2"
   },
-  "packageManager": "yarn@4.15.0",
+  "packageManager": "npm@11.18.0",
   "engines": {
     "node": ">=24",
-    "yarn": "4.15.0"
+    "npm": ">=11.16.0"
+  },
+  "overrides": {
+    "@types/slate": {
+      "immutable": "5.1.9"
+    }
   }
 }
