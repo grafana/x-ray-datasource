@@ -143,8 +143,8 @@ github.com/grafana/dataplane/sdata v0.0.9 h1:AGL1LZnCUG4MnQtnWpBPbQ8ZpptaZs14w6k
 github.com/grafana/dataplane/sdata v0.0.9/go.mod h1:Jvs5ddpGmn6vcxT7tCTWAZ1mgi4sbcdFt9utQx5uMAU=
 github.com/grafana/dsconfig/dsconfig v0.0.12 h1:v1rjd9EX3VFUHGM9OLRbHqX/fM7mIezrKDbuUS6Gm50=
 github.com/grafana/dsconfig/dsconfig v0.0.12/go.mod h1:MceNATZFsNZyrsomYe7JTgD1NvhLDRBPN+u2s+Tvx5Y=
-github.com/grafana/dsconfig/schema v0.0.12 h1:WQFlKzJtACotG3fcNnU+RcnBMDXxgSAuAphkF2nlyz0=
-github.com/grafana/dsconfig/schema v0.0.12/go.mod h1:kBZ/uoNZw6QjYU/eCS2wdBckerbv7zTWLtgy+9Hm8LQ=
+github.com/grafana/dsconfig/schema v0.0.13 h1:XSmm5nP9NkMx0J/W87myvzfOaK1VaEPExQYlEL49AGw=
+github.com/grafana/dsconfig/schema v0.0.13/go.mod h1:N/x7ChhNHeopMP3gsLYRt3bgTRzbnOGX2ATlLGFqPTk=
 github.com/grafana/grafana-aws-sdk v1.5.3 h1:/pdOnjBtw6lnxaXYGZ5MAv5ICH4dZfz/Epr+cblFSnk=
 github.com/grafana/grafana-aws-sdk v1.5.3/go.mod h1:6xfya1f+cxbeuFRHmesSaK30aNzi/2xGok2Ww6UsUak=
 github.com/grafana/grafana-plugin-sdk-go v0.296.4 h1:3+sYR2lmdb+sIk3m/eA9/lY8sztbhFyGf+6he8nwKuM=

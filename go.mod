@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/aws/aws-sdk-go-v2 v1.46.0
 	github.com/aws/aws-sdk-go-v2/service/xray v1.44.0
-	github.com/grafana/dsconfig/schema v0.0.12
+	github.com/grafana/dsconfig/schema v0.0.13
 	github.com/grafana/grafana-aws-sdk v1.5.3
 	github.com/grafana/grafana-plugin-sdk-go v0.296.4
 	github.com/stretchr/testify v1.12.1
