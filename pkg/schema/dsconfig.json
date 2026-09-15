@@ -156,22 +156,6 @@
     {
       "msg": "Six authentication values are stored in jsonData.authType. The five editor-selectable ones are: 'default' (AWS SDK Default — the default credential chain), 'keys' (Access & secret key — puts accessKey/secretKey in secureJsonData), 'credentials' (Credentials file — optionally provide jsonData.profile), 'ec2_iam_role' (Workspace IAM Role — no extra credentials needed), and 'grafana_assume_role' (Grafana Assume Role — Grafana Cloud only; visible only when the awsDatasourcesTempCredentials feature toggle is on and grafana-x-ray-datasource is in the ConnectionConfig allow-list, which it is). The sixth is 'arn' (deprecated legacy value; the backend maps it to 'default').",
       "tags": ["llm", "auth"]
-    },
-    {
-      "msg": "The assume-role ARN is stored under two spellings and they are not interchangeable for round-tripping. grafana-aws-sdk's Go struct tags it `assumeRoleARN` (awsds.AWSDatasourceSettings), which is the spelling this schema declares so it stays in sync with the settings model. The config editor (@grafana/aws-sdk ConnectionConfig) reads and writes `assumeRoleArn`. Either spelling authenticates correctly because encoding/json matches tags case-insensitively, but a provisioned datasource that sets `assumeRoleARN` will show an empty Assume Role ARN box in the UI. Prefer `assumeRoleArn` in provisioning files until the Go struct tag is fixed upstream.",
-      "tags": ["llm", "auth", "legacy"]
-    },
-    {
-      "msg": "Region fields: jsonData.defaultRegion is what the config editor writes and what provisioning should set. jsonData.region is a second, backend-only field on awsds.AWSDatasourceSettings that the editor never renders — awsds Load copies defaultRegion into it when it is empty or the literal 'default', and pkg/client/client.go falls back to defaultRegion when region is empty or 'default'. Set defaultRegion and leave region unset unless round-tripping an existing config that already has it.",
-      "tags": ["llm", "settings", "connection", "legacy"]
-    },
-    {
-      "msg": "Proxy fields (jsonData.proxyType, proxyUrl, proxyUsername) come from awsds.AWSDatasourceSettings and are provisioning-only — the config editor renders no inputs for them, and pkg/client/client.go builds its HTTP client from Grafana's own httpclient options without forwarding them, so they currently have no effect for this plugin. secureJsonData.proxyPassword is intentionally absent from this schema for the same reason. Use Grafana's Secure Socks Proxy instead if a proxy is required.",
-      "tags": ["llm", "settings", "connection"]
-    },
-    {
-      "msg": "secureJsonData values (accessKey, secretKey, sessionToken) are write-only: they can be set or reset but never read back. To check whether a secret is already configured on an existing datasource, read the secureJsonFields object (e.g. secureJsonFields.accessKey == true) instead of secureJsonData. Backend-only secrets like sessionToken never surface in secureJsonFields until they are set.",
-      "tags": ["llm", "auth", "secure"]
     }
   ]
 }
