@@ -8,11 +8,11 @@
           "type": "object",
           "properties": {
             "assumeRoleARN": {
-              "description": "Backend-only. Mirrors the upper-camel-case `assumeRoleARN` json tag on awsds.AWSDatasourceSettings that encoding/json promotes independently of the `assumeRoleArn` field above. The config editor never renders or reads this spelling; set jsonData_assumeRoleArn instead. This entry exists only so the schema stays in sync with the promoted struct tag.",
+              "description": "Backend-only. Mirrors the promoted `assumeRoleARN` struct tag so the schema stays in sync. Use jsonData_assumeRoleArn instead — the editor never reads this spelling.",
               "type": "string"
             },
             "assumeRoleArn": {
-              "description": "Optional. Specifying the ARN of a role will ensure that the selected authentication provider is used to assume the role rather than the credentials directly. Note the key casing: the backend struct tag is `assumeRoleARN` (grafana-aws-sdk awsds.AWSDatasourceSettings), but this schema declares `assumeRoleArn` to match what the config editor (@grafana/aws-sdk ConnectionConfig) reads and writes. encoding/json falls back to a case-insensitive tag match, so the backend loads either spelling correctly; `assumeRoleArn` is required here so the editor can read the value back.",
+              "description": "Optional role ARN to assume instead of using the selected credentials directly. Backend struct tag is `assumeRoleARN`; declared as `assumeRoleArn` here since only that casing is read back by the config editor (backend accepts both).",
               "type": "string",
               "pattern": "^(arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role/.+)?$"
             },
@@ -75,7 +75,7 @@
               "x-dsconfig-depends-on": "aws_sdk_settings.proxyType == 'url'"
             },
             "region": {
-              "description": "Backend-only. Second region field on awsds.AWSDatasourceSettings that the config editor never renders — awsds Load copies defaultRegion into it when it is empty or the literal 'default'. Set defaultRegion instead.",
+              "description": "Backend-only mirror of defaultRegion — awsds Load copies defaultRegion here when empty or 'default'. Set defaultRegion instead.",
               "type": "string"
             },
             "usePerDatasourceExternalId": {
