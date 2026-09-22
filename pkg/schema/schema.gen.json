@@ -8,11 +8,11 @@
           "type": "object",
           "properties": {
             "assumeRoleARN": {
-              "description": "Backend-only. Mirrors the promoted `assumeRoleARN` struct tag so the schema stays in sync. Use jsonData_assumeRoleArn instead — the editor never reads this spelling.",
+              "description": "Backend-only. Mirrors the promoted `assumeRoleARN` struct tag so the schema stays in sync. Use aws_sdk_settings.assumeRoleArn instead — the editor never reads this spelling.",
               "type": "string"
             },
             "assumeRoleArn": {
-              "description": "Optional role ARN to assume instead of using the selected credentials directly. Backend struct tag is `assumeRoleARN`; declared as `assumeRoleArn` here since only that casing is read back by the config editor (backend accepts both).",
+              "description": "Optional. Specifying the ARN of a role will ensure that the selected authentication provider is used to assume the role rather than the credentials directly.",
               "type": "string",
               "pattern": "^(arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role/.+)?$"
             },
