@@ -1,0 +1,151 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/dsconfig/refs/tags/dsconfig/v0.0.12/dsconfig/schema.json",
+  "schemaVersion": "v1",
+  "pluginType": "grafana-x-ray-datasource",
+  "pluginName": "AWS Application Signals",
+  "docURL": "https://grafana.com/grafana/plugins/grafana-x-ray-datasource/",
+  "baseFields": [
+    {
+      "from": "aws_sdk_settings",
+      "exclude": [
+        "aws_sdk_settings.sessionToken",
+        "aws_sdk_settings.proxyPassword"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "aws_sdk_settings.authType",
+      "key": "authType",
+      "label": "Authentication Provider",
+      "description": "Specify which AWS credentials chain to use.",
+      "valueType": "string",
+      "target": "jsonData",
+      "role": "auth.discriminator",
+      "defaultValue": "default",
+      "validations": [
+        {
+          "type": "allowedValues",
+          "values": ["default", "keys", "credentials", "ec2_iam_role", "grafana_assume_role", "arn"]
+        }
+      ],
+      "ui": {
+        "component": "select",
+        "options": [
+          {
+            "label": "Workspace IAM Role",
+            "value": "ec2_iam_role"
+          },
+          {
+            "label": "Grafana Assume Role",
+            "value": "grafana_assume_role"
+          },
+          {
+            "label": "AWS SDK Default",
+            "value": "default"
+          },
+          {
+            "label": "Access & secret key",
+            "value": "keys"
+          },
+          {
+            "label": "Credentials file",
+            "value": "credentials"
+          }
+        ]
+      }
+    },
+    {
+      "id": "secureJsonData_sessionToken",
+      "key": "sessionToken",
+      "valueType": "string",
+      "target": "secureJsonData",
+      "role": "auth.aws.sessionToken",
+      "tags": ["backend-only"]
+    },
+    {
+      "id": "jsonData_region",
+      "key": "region",
+      "label": "Region",
+      "description": "Backend-only mirror of defaultRegion — awsds Load copies defaultRegion here when empty or 'default'. Set defaultRegion instead.",
+      "valueType": "string",
+      "target": "jsonData",
+      "tags": ["backend-only"]
+    },
+    {
+      "id": "jsonData_assumeRoleARN_legacy",
+      "key": "assumeRoleARN",
+      "label": "Assume Role ARN (legacy casing)",
+      "description": "Backend-only. Mirrors the promoted `assumeRoleARN` struct tag so the schema stays in sync. Use aws_sdk_settings.assumeRoleArn instead — the editor never reads this spelling.",
+      "valueType": "string",
+      "target": "jsonData",
+      "tags": ["backend-only"]
+    }
+  ],
+  "groups": [
+    {
+      "id": "authentication",
+      "title": "Authentication",
+      "order": 1,
+      "fieldRefs": [
+        "aws_sdk_settings.authType",
+        "aws_sdk_settings.profile",
+        "aws_sdk_settings.accessKey",
+        "aws_sdk_settings.secretKey",
+        "secureJsonData_sessionToken"
+      ]
+    },
+    {
+      "id": "assume-role",
+      "title": "Assume Role",
+      "order": 2,
+      "fieldRefs": [
+        "aws_sdk_settings.assumeRoleArn",
+        "jsonData_assumeRoleARN_legacy",
+        "aws_sdk_settings.externalId",
+        "aws_sdk_settings.usePerDatasourceExternalId",
+        "aws_sdk_settings.grafanaExternalId"
+      ]
+    },
+    {
+      "id": "additional-settings",
+      "title": "Additional Settings",
+      "order": 3,
+      "fieldRefs": ["aws_sdk_settings.endpoint", "aws_sdk_settings.defaultRegion", "jsonData_region"]
+    },
+    {
+      "id": "proxy",
+      "title": "Proxy",
+      "order": 4,
+      "fieldRefs": ["aws_sdk_settings.proxyType", "aws_sdk_settings.proxyUrl", "aws_sdk_settings.proxyUsername"]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "pair",
+      "fields": ["aws_sdk_settings.accessKey", "aws_sdk_settings.secretKey"],
+      "description": "AWS access key pair — supplied together when authType is 'keys'"
+    },
+    {
+      "type": "group",
+      "fields": ["aws_sdk_settings.assumeRoleArn", "aws_sdk_settings.externalId"],
+      "description": "STS assume-role parameters — external ID is only meaningful when assumeRoleArn is set"
+    },
+    {
+      "type": "group",
+      "fields": ["aws_sdk_settings.usePerDatasourceExternalId", "aws_sdk_settings.grafanaExternalId"],
+      "description": "Grafana Assume Role per-datasource external ID — grafanaExternalId is only meaningful when usePerDatasourceExternalId is true"
+    },
+    {
+      "type": "group",
+      "fields": ["aws_sdk_settings.proxyType", "aws_sdk_settings.proxyUrl", "aws_sdk_settings.proxyUsername"],
+      "description": "HTTP proxy parameters — proxyUrl and proxyUsername only apply when proxyType is 'url'"
+    }
+  ],
+  "instructions": [
+    {
+      "msg": "Six authentication values are stored in jsonData.authType. The five editor-selectable ones are: 'default' (AWS SDK Default — the default credential chain), 'keys' (Access & secret key — puts accessKey/secretKey in secureJsonData), 'credentials' (Credentials file — optionally provide jsonData.profile), 'ec2_iam_role' (Workspace IAM Role — no extra credentials needed), and 'grafana_assume_role' (Grafana Assume Role — Grafana Cloud only; visible only when the awsDatasourcesTempCredentials feature toggle is on and grafana-x-ray-datasource is in the ConnectionConfig allow-list, which it is). The sixth is 'arn' (deprecated legacy value; the backend maps it to 'default').",
+      "tags": ["llm", "auth"]
+    }
+  ]
+}
