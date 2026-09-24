@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/xray"
 	xraytypes "github.com/aws/aws-sdk-go-v2/service/xray/types"
 
@@ -11,6 +12,13 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 )
+
+// defaultGroupName is used when the request has no Group (or an empty
+// GroupName) set — for example when a panel was created via the API or a
+// dashboard JSON import rather than the query editor, which normally
+// populates the field on open. Without this fallback, dereferencing
+// Group.GroupName panics in getSingleServiceMap. See issue #635.
+const defaultGroupName = "Default"
 
 type GetServiceMapQueryData struct {
 	Region     string           `json:"region"`
@@ -38,10 +46,16 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 	)
 
 	log.DefaultLogger.Debug("getSingleServiceMap", "RefID", query.RefID)
+
+	groupName := aws.String(defaultGroupName)
+	if queryData.Group != nil && queryData.Group.GroupName != nil && *queryData.Group.GroupName != "" {
+		groupName = queryData.Group.GroupName
+	}
+
 	input := &xray.GetServiceGraphInput{
 		StartTime: &query.TimeRange.From,
 		EndTime:   &query.TimeRange.To,
-		GroupName: queryData.Group.GroupName,
+		GroupName: groupName,
 	}
 
 	accountIdsToFilterBy := make(map[string]bool)
