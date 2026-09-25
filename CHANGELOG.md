@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.3
+
+- Adds dsconfig schema [#700](https://github.com/grafana/x-ray-datasource/pull/700)
+- Fix security vulnerabilities (CVE-2026-84375)
+
 ## v2.17.2
 
 - chore(security): bump fast-uri and immutable in [#728](https://github.com/grafana/x-ray-datasource/pull/728)
