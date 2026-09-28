@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Bump `@grafana/aws-sdk` to 0.12.2 so Grafana Assume Role uses the server-minted external ID
+
 ## v2.17.3
 
 - Adds dsconfig schema [#700](https://github.com/grafana/x-ray-datasource/pull/700)
