@@ -743,6 +743,23 @@ func TestDatasource(t *testing.T) {
 		require.True(t, strings.Contains(frame.Fields[0].At(0).(string), "mockServiceName-us-east-1"))
 	})
 
+	// Regression test for #635 — a panel imported from JSON (or created via API)
+	// may arrive without a Group populated. Must fall back to the default group
+	// instead of panicking on nil dereference.
+	t.Run("getServiceMap query with nil group does not panic", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+		require.Equal(t, 2, response.Responses["A"].Frames[0].Fields[0].Len())
+	})
+
+	t.Run("getServiceMap query with group present but GroupName nil does not panic", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{Group: &xraytypes.Group{}})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+		require.Equal(t, 2, response.Responses["A"].Frames[0].Fields[0].Len())
+	})
+
 	//
 	// RootCauseError
 	//
