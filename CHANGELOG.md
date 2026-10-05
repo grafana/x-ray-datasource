@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.4
+
+- Fix security vulnerabilities (CVE-2026-84292, CVE-2026-84394, CVE-2026-102278, CVE-2026-102276, CVE-2026-102990)
+
 ## v2.17.3
 
 - Adds dsconfig schema [#700](https://github.com/grafana/x-ray-datasource/pull/700)
