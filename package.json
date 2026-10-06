@@ -104,9 +104,6 @@
     "npm": ">=11.16.0"
   },
   "overrides": {
-    "@types/slate": {
-      "immutable": "5.1.9"
-    },
     "basic-ftp": "6.2.1"
   }
 }
