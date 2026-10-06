@@ -1,6 +1,6 @@
 {
   "name": "grafana-x-ray-datasource",
-  "version": "2.17.3",
+  "version": "2.17.4",
   "description": "AWS Application Signals data source",
   "private": true,
   "scripts": {
@@ -106,6 +106,7 @@
   "overrides": {
     "@types/slate": {
       "immutable": "5.1.9"
-    }
+    },
+    "basic-ftp": "6.2.1"
   }
 }
