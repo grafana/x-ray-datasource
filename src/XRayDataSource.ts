@@ -384,7 +384,14 @@ function processRequest(request: DataQueryRequest<XrayQuery>, templateSrv: Templ
       // Add Group filter expression to the query filter expression. This seems to mimic what x-ray console is doing
       // as there are APIs that do not expect group just the filter expression. At the same time some APIs like Insights
       // do not accept filter expression just the groupARN so this will have to be adjusted for them.
-      if (target.group && target.group.FilterExpression && target.queryType !== XrayQueryType.getTrace) {
+      // GetTimeSeriesServiceStatistics scopes via GroupName/GroupARN; its EntitySelectorExpression only supports
+      // id()/service()/edge() — do not inject annotation-style group FilterExpressions into query (see #662).
+      if (
+        target.group &&
+        target.group.FilterExpression &&
+        target.queryType !== XrayQueryType.getTrace &&
+        target.queryType !== XrayQueryType.getTimeSeriesServiceStatistics
+      ) {
         if (newTarget.query) {
           newTarget.query = target.group.FilterExpression + ' AND ' + newTarget.query;
         } else {
