@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.5
+
+- Update Go to 1.27.3 [#737](https://github.com/grafana/x-ray-datasource/pull/737)
+
 ## v2.17.4
 
 - Fix security vulnerabilities (CVE-2026-84292, CVE-2026-84394, CVE-2026-102278, CVE-2026-102276, CVE-2026-102990)
