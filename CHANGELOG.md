@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.6
+
+- Update backend dependencies [#736](https://github.com/grafana/x-ray-datasource/pull/736), [#740](https://github.com/grafana/x-ray-datasource/pull/740)
+
 ## v2.17.5
 
 - Update Go to 1.27.3 [#737](https://github.com/grafana/x-ray-datasource/pull/737)
