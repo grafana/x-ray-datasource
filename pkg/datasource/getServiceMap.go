@@ -38,10 +38,14 @@ func (ds *Datasource) getSingleServiceMap(ctx context.Context, query backend.Dat
 	)
 
 	log.DefaultLogger.Debug("getSingleServiceMap", "RefID", query.RefID)
+	var groupName *string
+	if queryData.Group != nil {
+		groupName = queryData.Group.GroupName
+	}
 	input := &xray.GetServiceGraphInput{
 		StartTime: &query.TimeRange.From,
 		EndTime:   &query.TimeRange.To,
-		GroupName: queryData.Group.GroupName,
+		GroupName: groupName,
 	}
 
 	accountIdsToFilterBy := make(map[string]bool)
