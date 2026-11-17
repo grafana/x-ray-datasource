@@ -743,6 +743,15 @@ func TestDatasource(t *testing.T) {
 		require.True(t, strings.Contains(frame.Fields[0].At(0).(string), "mockServiceName-us-east-1"))
 	})
 
+	t.Run("getServiceMap query with no group does not panic", func(t *testing.T) {
+		response, err := queryDatasource(ds, datasource.QueryGetServiceMap, datasource.GetServiceMapQueryData{})
+		require.NoError(t, err)
+		require.NoError(t, response.Responses["A"].Error)
+
+		frame := response.Responses["A"].Frames[0]
+		require.Equal(t, 2, frame.Fields[0].Len())
+	})
+
 	//
 	// RootCauseError
 	//
