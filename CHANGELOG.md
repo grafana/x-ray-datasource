@@ -2,9 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v2.17.8
 
-- Pass the per-datasource Grafana external ID through to Assume Role, and bump `@grafana/aws-sdk` to 0.12.2.
+- Pass the per-datasource Grafana external ID through to Assume Role in [#750](https://github.com/grafana/x-ray-datasource/pull/750)
+- Bump `@grafana/aws-sdk` to 0.13.1 in [#751](https://github.com/grafana/x-ray-datasource/pull/751)
+- Fix a security vulnerability in glob in [#747](https://github.com/grafana/x-ray-datasource/pull/747)
+- Fix CVEs in moment and ip-address in [#748](https://github.com/grafana/x-ray-datasource/pull/748)
+- Update backend dependencies in [#742](https://github.com/grafana/x-ray-datasource/pull/742) and [#749](https://github.com/grafana/x-ray-datasource/pull/749)
 
 ## v2.17.7
 
