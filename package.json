@@ -43,7 +43,7 @@
     "@grafana/aws-sdk": "0.13.1",
     "@grafana/eslint-config": "9.0.0",
     "@grafana/plugin-e2e": "3.15.4",
-    "@grafana/sign-plugin": "3.3.3",
+    "@grafana/sign-plugin": "4.0.0",
     "@grafana/tsconfig": "2.2.0",
     "@openfeature/web-sdk": "1.10.0",
     "@playwright/test": "1.65.1",
