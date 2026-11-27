@@ -132,6 +132,7 @@
     "trufflehogignore",
     "dsconfig",
     "struct",
-    "Struct"
+    "Struct",
+    "smol"
   ]
 }
