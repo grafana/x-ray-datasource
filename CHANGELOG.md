@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.17.9
+
+- Fix CVEs in source-map-js, smol-toml, postcss-selector-parser and fast-uri in [#753](https://github.com/grafana/x-ray-datasource/pull/753)
+- Update frontend dependencies in [#706](https://github.com/grafana/x-ray-datasource/pull/706)
+- Update plugin CI workflows to v12.1.1 in [#754](https://github.com/grafana/x-ray-datasource/pull/754)
+
 ## v2.17.8
 
 - Pass the per-datasource Grafana external ID through to Assume Role in [#750](https://github.com/grafana/x-ray-datasource/pull/750)
