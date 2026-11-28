@@ -24,18 +24,18 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@emotion/css": "11.13.5",
-    "@grafana/data": "13.1.10",
-    "@grafana/plugin-ui": "0.17.8",
-    "@grafana/runtime": "13.1.10",
-    "@grafana/schema": "13.1.10",
-    "@grafana/ui": "13.1.10",
+    "@grafana/data": "13.3.2",
+    "@grafana/plugin-ui": "0.18.0",
+    "@grafana/runtime": "13.3.2",
+    "@grafana/schema": "13.3.2",
+    "@grafana/ui": "13.3.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "semver": "7.8.6",
     "tslib": "2.9.1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.14.0",
+    "@axe-core/playwright": "4.14.1",
     "@babel/core": "7.29.13",
     "@eslint/compat": "2.1.1",
     "@eslint/eslintrc": "3.3.7",
@@ -56,14 +56,14 @@
     "@testing-library/react": "16.3.3",
     "@types/jest": "30.0.0",
     "@types/lodash": "4.17.27",
-    "@types/node": "24.19.2",
+    "@types/node": "24.19.4",
     "@types/prismjs": "1.26.6",
-    "@types/react": "18.3.31",
+    "@types/react": "18.3.32",
     "@types/react-dom": "18.3.7",
     "@types/semver": "7.8.0",
     "@types/slate": "0.47.16",
-    "@typescript-eslint/eslint-plugin": "8.73.0",
-    "@typescript-eslint/parser": "8.73.0",
+    "@typescript-eslint/eslint-plugin": "8.74.0",
+    "@typescript-eslint/parser": "8.74.0",
     "ajv": "8.20.0",
     "copy-webpack-plugin": "14.0.0",
     "cspell": "9.8.0",
@@ -81,7 +81,7 @@
     "imports-loader": "5.0.0",
     "jest": "30.5.2",
     "jest-environment-jsdom": "30.5.2",
-    "lefthook": "2.2.2",
+    "lefthook": "2.2.3",
     "prettier": "3.10.1",
     "prismjs": "1.30.0",
     "replace-in-file-webpack-plugin": "1.0.6",
@@ -104,6 +104,6 @@
     "npm": ">=11.16.0"
   },
   "overrides": {
-    "basic-ftp": "6.2.4"
+    "basic-ftp": "6.2.6"
   }
 }
